@@ -7,13 +7,13 @@ import wx.lib.agw.labelbook as LB
 from wx.lib.embeddedimage import PyEmbeddedImage
 
 imagebmp = PyEmbeddedImage(
-
 "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAHFJ"
 
 "REFUWIXt1jsKgDAQRdF7xY25cpcWC60kioI6Fm/ahHBCMh+BRmGMnAgEWnvPpzK8dvrFCCCA"
 
 "coD8og4c5Lr6WB3Q3l1TBwLYPuF3YS1gn1HphgEEEABcKERrGy0E3B0HFJg7C1N/f/kTBBBA"
     "+Vi+AMkgFEvBPD17AAAAAElFTkSuQmCC")
+
 
 class MyFrame(wx.Frame):
     def _InitCtrl(self):

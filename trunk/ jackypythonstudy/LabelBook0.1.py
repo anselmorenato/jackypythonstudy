@@ -1,9 +1,10 @@
 import wx
 import wx.lib.colourselect as csel
-import random
+#import random
 
 import os
 import sys
+from wx.lib.embeddedimage import PyEmbeddedImage
 
 try:
     dirName = os.path.dirname(os.path.abspath(__file__))
@@ -23,8 +24,12 @@ except ImportError: # if it's not there locally, try the wxPython lib.
 #import images
 
 _pageTexts = ["Hello", "From", "wxPython", "LabelBook", "Demo"]
-_pageIcons = ["roll.png", "charge.png", "add.png", "decrypted.png", "news.png"]
+_pageIcons = []
 _pageColours = [wx.RED, wx.GREEN, wx.WHITE, wx.BLUE, "Pink"]
+
+
+
+
 
 #----------------------------------------------------------------------
 #class SamplePane(wx.Panel):
@@ -37,7 +42,7 @@ _pageColours = [wx.RED, wx.GREEN, wx.WHITE, wx.BLUE, "Pink"]
 #        self.SetBackgroundColour(colour)
 
 #        label = label + "\nEnjoy the LabelBook && FlatImageBook demo!"
- #       static = wx.StaticText(self, -1, label, pos=(10, 10))        
+#       static = wx.StaticText(self, -1, label, pos=(10, 10))        
 
 #----------------------------------------------------------------------
 
@@ -50,34 +55,12 @@ class LabelBookDemo(wx.Frame):
         self.initializing = True
 
         self.log = log
-
-        #self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER|
-        #wx.SP_LIVE_UPDATE|wx.SP_3DSASH)
+       
         self.mainpanel = wx.Panel(self, -1)
-        #self.leftpanel = wx.Panel(self.splitter, -1, style=wx.SUNKEN_BORDER)
-
-        #self.sizer_3_staticbox = wx.StaticBox(self.leftpanel, -1, "Book Styles")
-        #self.sizer_4_staticbox = wx.StaticBox(self.leftpanel, -1, "Colours")
-
-        
-        
-     
-        
+       
         self.SetProperties()
         self.CreateLabelBook()
         self.DoLayout()
-
-       
-
-       
-
-        
-
-        self.Bind(LB.EVT_IMAGENOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
-        self.Bind(LB.EVT_IMAGENOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-        self.Bind(LB.EVT_IMAGENOTEBOOK_PAGE_CLOSING, self.OnPageClosing)
-        self.Bind(LB.EVT_IMAGENOTEBOOK_PAGE_CLOSED, self.OnPageClosed)
-
 
         statusbar = self.CreateStatusBar(2, wx.ST_SIZEGRIP)
         statusbar.SetStatusWidths([-2, -1])
@@ -88,7 +71,7 @@ class LabelBookDemo(wx.Frame):
         for i in range(len(statusbar_fields)):
             statusbar.SetStatusText(statusbar_fields[i], i)
 
-        self.CreateMenu()
+        
 
         self.SetSize((800,700))
 
@@ -101,7 +84,7 @@ class LabelBookDemo(wx.Frame):
 
     def SetProperties(self):
 
-        self.SetTitle("LabelBook & FlatImageBook wxPython Demo ;-)")
+        self.SetTitle("This is my code souce!-)")
         #sself.pin.SetValue(1)
         #self.mainpanel.SetMinimumPaneSize(120)
 
@@ -110,26 +93,13 @@ class LabelBookDemo(wx.Frame):
 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         panelsizer = wx.BoxSizer(wx.VERTICAL)
-        #leftsizer = wx.BoxSizer(wx.VERTICAL)
         
-
-        
-
-        
-
-        
-       
-
-        #self.leftpanel.SetSizer(leftsizer)
-        #leftsizer.Layout()
-        #leftsizer.SetSizeHints(self.leftpanel)
-        #leftsizer.Fit(self.leftpanel)
 
         panelsizer.Add(self.book, 1, wx.EXPAND, 0)
         self.mainpanel.SetSizer(panelsizer)
         panelsizer.Layout()
 
-        #self.splitter.SplitVertically( self.mainpanel, 200)
+        
         mainsizer.Add(self.mainpanel, 1, wx.EXPAND, 0)
 
         self.SetSizer(mainsizer)
@@ -139,13 +109,6 @@ class LabelBookDemo(wx.Frame):
 
     def CreateLabelBook(self, btype=0):
 
-        if not self.initializing:
-            self.Freeze()
-            panelsizer = self.mainpanel.GetSizer()
-            panelsizer.Detach(0)
-            self.book.Destroy()
-        else:
-            self.imagelist = self.CreateImageList()
 
         style = self.GetBookStyles()
 
@@ -161,11 +124,12 @@ class LabelBookDemo(wx.Frame):
 
         #self.EnableChoices(btype)            
 
+        self.imagelist = self.CreateImageList()
         self.book.AssignImageList(self.imagelist)
 
         for indx, txts in enumerate(_pageTexts):
             #label = "This is panel number %d"%(indx+1)
-            self.book.AddPage(TestPanel(self.book, _pageColours[indx]),
+            self.book.AddPage(TestPanel(self.book,_pageColours[indx]),
                               txts, True, indx)
 
         self.book.SetSelection(0)            
@@ -185,7 +149,7 @@ class LabelBookDemo(wx.Frame):
 
     def GetBookStyles(self):
 
-        style = INB_FIT_BUTTON
+        #style = INB_FIT_BUTTON
         #style = self.GetBookOrientation(style)
 
         #style = INB_WEB_HILITE
@@ -216,8 +180,13 @@ class LabelBookDemo(wx.Frame):
         imagelist = wx.ImageList(32, 32)
         for img in _pageIcons:
             newImg = os.path.join(bitmapDir, "lb%s"%img)
-            bmp = wx.Bitmap(newImg, wx.BITMAP_TYPE_PNG)
+            bmp = wx.Bitmap(newImg, wx.BITMAP_TYPE_GIF)
             imagelist.Add(bmp)
+        
+        #bmp = imagebmp.GetBitmap()
+
+        #for i in range(5):
+         #   imagelist.Add(bmp)
 
         return imagelist
 
@@ -251,160 +220,8 @@ class LabelBookDemo(wx.Frame):
         event.Skip()
 
 
-    def OnStyle(self, event):
-
-        style = self.GetBookStyles()
-        self.book.SetWindowStyleFlag(style)
-
-        event.Skip()
-
-
-    def OnBookColours(self, event):
-
-        obj = event.GetId()
-        colour = event.GetValue()
-
-        if obj == self.background.GetId():
-            self.book.SetColour(INB_TAB_AREA_BACKGROUND_COLOR, colour)
-        elif obj == self.activetab.GetId():
-            self.book.SetColour(INB_ACTIVE_TAB_COLOR, colour)
-        elif obj == self.tabsborder.GetId():
-            self.book.SetColour(INB_TABS_BORDER_COLOR, colour)
-        elif obj == self.textcolour.GetId():
-            self.book.SetColour(INB_TEXT_COLOR, colour)
-        elif obj == self.activetextcolour.GetId():
-            self.book.SetColour(INB_ACTIVE_TEXT_COLOR, colour)
-        else:
-            self.book.SetColour(INB_HILITE_TAB_COLOR, colour)
-
-        self.book.Refresh()
-
-
     
-
-
-    def OnPageChanging(self, event):
-
-        oldsel = event.GetOldSelection()
-        newsel = event.GetSelection()
-        #self.log.write("Page Changing From: " + str(oldsel) + " To: " + str(newsel) + "\n")
-        event.Skip()
-
-
-    def OnPageChanged(self, event):
-
-        newsel = event.GetSelection()
-        #self.log.write("Page Changed To: " + str(newsel) + "\n")
-        event.Skip()
-
-
-    def OnPageClosing(self, event):
-
-        newsel = event.GetSelection()
-        #self.log.write("Closing Page: " + str(newsel) + "\n")
-        event.Skip()
-
-
-    def OnPageClosed(self, event):
-
-        newsel = event.GetSelection()
-        #self.log.write("Closed Page: " + str(newsel) + "\n")
-        event.Skip()
-
-
-    def OnAddPage(self, event):
-
-        pageCount = self.book.GetPageCount()
-        indx = random.randint(0, 4)
-        label = "This is panel number %d"%(pageCount+1)
-        #self.book.AddPage(TestPanel(self.book, _pageColours[indx], label),
-        #                  "Added Page", True, indx)
-
-        self.book.AddPage(TestPanel(self.book, _pageColours[indx]),
-                              txts, True, indx)
-
-    def OnDeletePage(self, event):
-
-        msg = "Please Enter The Page Number You Want To Remove:"
-        dlg = wx.TextEntryDialog(self, msg, "Enter Page")
-
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
-            return
-
-        userString = dlg.GetValue()
-        dlg.Destroy()
-
-        try:
-            page = int(userString)
-        except:
-            return
-
-        if page < 0 or page > self.book.GetPageCount() - 1:
-            return
-
-        self.book.DeletePage(page)
-
-
-    def OnDeleteAllPages(self, event):
-
-        self.book.DeleteAllPages()        
-
-
-    def CreateMenu(self):
-
-        menuBar = wx.MenuBar(wx.MB_DOCKABLE)
-        fileMenu = wx.Menu()
-        editMenu = wx.Menu()
-        helpMenu = wx.Menu()
-
-        item = wx.MenuItem(fileMenu, wx.ID_ANY, "E&xit")
-        self.Bind(wx.EVT_MENU, self.OnQuit, item)
-        fileMenu.AppendItem(item)
-
-        item = wx.MenuItem(editMenu, wx.ID_ANY, "Add Page")
-        self.Bind(wx.EVT_MENU, self.OnAddPage, item)
-        editMenu.AppendItem(item)
-
-        editMenu.AppendSeparator()
-
-        item = wx.MenuItem(editMenu, wx.ID_ANY, "Delete Page")
-        self.Bind(wx.EVT_MENU, self.OnDeletePage, item)
-        editMenu.AppendItem(item)
-
-        item = wx.MenuItem(editMenu, wx.ID_ANY, "Delete All Pages")
-        self.Bind(wx.EVT_MENU, self.OnDeleteAllPages, item)
-        editMenu.AppendItem(item)
-
-        item = wx.MenuItem(helpMenu, wx.ID_ANY, "About")
-        self.Bind(wx.EVT_MENU, self.OnAbout, item)
-        helpMenu.AppendItem(item)
-
-        menuBar.Append(fileMenu, "&File")
-        menuBar.Append(editMenu, "&Edit")
-        menuBar.Append(helpMenu, "&Help")
-
-        self.SetMenuBar(menuBar)
-
-
-    def OnQuit(self, event):
-
-        self.Destroy()
-
-
-    def OnAbout(self, event):
-
-        msg = "This Is The About Dialog Of The LabelBook & FlatImageBook Demo.\n\n" + \
-            "Author: Andrea Gavana @ 03 Nov 2006\n\n" + \
-            "Please Report Any Bug/Requests Of Improvements\n" + \
-            "To Me At The Following Adresses:\n\n" + \
-            "andrea.gavana@gmail.com\n" + "gavana@kpo.kz\n\n" + \
-            "Welcome To wxPython " + wx.VERSION_STRING + "!!"
-
-        dlg = wx.MessageDialog(self, msg, "LabelBook wxPython Demo",
-                               wx.OK | wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
+    
 
 
 #---------------------------------------------------------------------------
@@ -434,13 +251,6 @@ class TestPanel(wx.Panel):
         dlg.Destroy()
         
 
-#----------------------------------------------------------------------
-
-def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
-
-#----------------------------------------------------------------------
 
 
 overview = LB.__doc__
@@ -450,8 +260,3 @@ if __name__ == '__main__':
     frame = LabelBookDemo(None,-1)
     frame.Show()
     app.MainLoop()
-if not __name__ == '__main__':
-    import sys,os
-    import run
-    run.main(['', os.path.basename(sys.argv[0])] + sys.argv[1:])
-
