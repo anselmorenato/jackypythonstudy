@@ -26,7 +26,7 @@ class MyFrame(wx.Frame):
         
         #style = wx.INB_SHOW_ONLY_TEXT
         self.labelbook.SetWindowStyleFlag(style=LB.INB_LABEL_BOOK_DEFAULT)
-        for i in range(5):
+        for i in range(3):
             self.labelbook.AddPage(wx.StaticText(self.labelbook, -1,
 u'Panel%d'%i),
                                       u'Panel%d'%i, True, i)

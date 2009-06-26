@@ -21,8 +21,8 @@ except ImportError: # if it's not there locally, try the wxPython lib.
    
 #import images
 _pageTexts = ["Hello", "From", "wxPython", "LabelBook", "Demo"]
-#_pageIcons = []
-_pageIcons = ["roll.png", "charge.png", "add.png", "decrypted.png", "news.png"]
+_pageIcons = ["roll.png", "charge.png"]
+#_pageIcons = ["roll.png", "charge.png", "add.png", "decrypted.png", "news.png"]
 
 #_pageIcons = ["icon-equiv.png","icon-minimiz.png","icon-product.png","icon-setup.png","product4x.png"]
 _pageColours = [wx.RED, wx.GREEN, wx.WHITE, wx.BLUE, "Pink"]
@@ -72,12 +72,17 @@ class LabelBook(wx.Frame):
         self.imagelist = self.CreateImageList()
         self.book.AssignImageList(self.imagelist)
         self.Refresh()
-
+        '''
         for indx, txts in enumerate(_pageTexts):
             #label = "This is panel number %d"%(indx+1)
             self.book.AddPage(TestPanel(self.book,_pageColours[indx]),
                               txts, True, indx)
+        '''
+        #for i in range(3):
+         #   self.book.AddPage(TestPanel(self.book,_pageColours[i]),_pageTexts[0],True,i)
 
+        self.book.AddPage(TestPanel(self.book,_pageColours[2]),_pageTexts[0],True,0)
+        self.book.AddPage(TestPanel(self.book,_pageColours[1]),_pageTexts[1],True,1)
         self.book.SetSelection(0)
         #self.book.SetWindowStyleFlag(style=LB.INB_FIT_BUTTON)
         
@@ -85,8 +90,8 @@ class LabelBook(wx.Frame):
 
     def GetBookStyles(self):
         style = INB_FIT_BUTTON
-        
-        style |= LB.INB_FIT_LABELTEXT
+        #style |= INB_DEFAULT_STYLE
+        style |= INB_FIT_LABELTEXT
         #style |= INB_WEB_HILITE
         #style |= INB_USE_PIN_BUTTON
         #style |= INB_BORDER
@@ -143,7 +148,37 @@ class TestPanel(wx.Panel):
         dlg = wx.MessageDialog(self,msg,"this my test",wx.OK | wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
- 
+#---------------------------------------------------------------------------
+########################################################################
+class Remote(wx.Panel):
+    """    """
+
+    #----------------------------------------------------------------------
+    def __init__(self, parent, ID=-1):
+        """Constructor"""
+        wx.Panel.__init__(self,parent,-1)
+
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    
+
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------
 overview = LB.__doc__
 
 if __name__ == '__main__':
