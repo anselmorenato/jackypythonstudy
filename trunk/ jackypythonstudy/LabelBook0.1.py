@@ -158,8 +158,10 @@ class Remote(wx.Panel):
         """Constructor"""
         wx.Panel.__init__(self,parent,-1)
 
+        listbox = 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer3 = wx.BoxSizer(wx.VERTICAL)
         
         
         
@@ -179,7 +181,6 @@ class Remote(wx.Panel):
 
 
 #---------------------------------------------------------------------------
-overview = LB.__doc__
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
