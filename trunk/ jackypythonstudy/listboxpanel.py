@@ -15,6 +15,17 @@ class MyFrame(wx.Frame):
 
         listbox = wx.ListBox(panel, size=(100,80),
                         choices="Local Paic Visn three four five six seven eight nine".split())
+        scrolledpanel = scrolled.ScrolledPanel(panel, -1, size=(100, 100),
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name="scrolledpanel" )
+        scrolledpanel.SetBackgroundColour("white")
+        spb1 = wx.Button(scrolledpanel, -1, "New")
+        spb2 = wx.Button(scrolledpanel, -1, "New")
+        spb3 = wx.Button(scrolledpanel, -1, "New")
+        spb4 = wx.Button(scrolledpanel, -1, "New")
+        spb5 = wx.Button(scrolledpanel, -1, "New")
+        spb6 = wx.Button(scrolledpanel, -1, "New")
+        spb7 = wx.Button(scrolledpanel, -1, "New")
+        
         b1 = wx.Button(panel, -1, "New")
         self.Bind(wx.EVT_BUTTON, self.OnClick, b1)
         b1.SetDefault()
@@ -33,12 +44,27 @@ class MyFrame(wx.Frame):
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         mainsizer.Add(panel1, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(listbox, 0, wx.ALIGN_CENTER,5)
+        sizer_1_sp = wx.BoxSizer(wx.VERTICAL)
+        sizer_1_sp.Add(spb1)
+        sizer_1_sp.Add(spb2)
+        sizer_1_sp.Add(spb3)
+        sizer_1_sp.Add(spb4)
+        sizer_1_sp.Add(spb5)
+        sizer_1_sp.Add(spb6)
+        sizer_1_sp.Add(spb7)
+        
+        scrolledpanel.SetSizer(sizer_1_sp)
+        scrolledpanel.SetupScrolling()
+        
+        sizer_1.Add(listbox, 0, wx.ALIGN_LEFT,5)
+        #sizer_1.Add(sizer_1_sp,0,wx.ALIGN_CENTER|wx.ALL,5)
+        sizer_1.Add(scrolledpanel,0,wx.ALIGN_CENTER,5)
         sizer_1_bt = wx.BoxSizer(wx.VERTICAL)
         sizer_1_bt.Add(b1)
         sizer_1_bt.Add(b2)
         sizer_1_bt.Add(b3)
-        sizer_1.Add(sizer_1_bt,0,wx.EXPAND,5)
+        
+        sizer_1.Add(sizer_1_bt,0,wx.ALIGN_RIGHT|wx.ALL,5)
         
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         
