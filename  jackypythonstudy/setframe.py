@@ -2,7 +2,7 @@ import wx
 import wx.lib.colourselect as csel
 import os
 import sys
-
+import remotepanel
 
 try:
     dirName = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     from wx.lib.agw.fmresources import *
    
 #import images
-_pageTexts = ["Hello", "From", "wxPython", "LabelBook", "Demo"]
+_pageTexts = ["Local", "Remote", "wxPython", "LabelBook", "Demo"]
 _pageIcons = ["roll.png", "charge.png"]
 #_pageIcons = ["roll.png", "charge.png", "add.png", "decrypted.png", "news.png"]
 
@@ -81,8 +81,9 @@ class LabelBook(wx.Frame):
         #for i in range(3):
          #   self.book.AddPage(TestPanel(self.book,_pageColours[i]),_pageTexts[0],True,i)
 
-        self.book.AddPage(TestPanel(self.book,_pageColours[2]),_pageTexts[0],True,0)
-        self.book.AddPage(TestPanel(self.book,_pageColours[1]),_pageTexts[1],True,1)
+        self.book.AddPage(TestPanel(self.book,_pageColours[1]),_pageTexts[0],True,0)
+        self.book.AddPage(remotepanel.RemotePanel(self.book),_pageTexts[1],True,1)
+        
         self.book.SetSelection(0)
         #self.book.SetWindowStyleFlag(style=LB.INB_FIT_BUTTON)
         
@@ -150,28 +151,6 @@ class TestPanel(wx.Panel):
         dlg.Destroy()
 #---------------------------------------------------------------------------
 ########################################################################
-class Remote(wx.Panel):
-    """    """
-
-    #----------------------------------------------------------------------
-    def __init__(self, parent, ID=-1):
-        """Constructor"""
-        wx.Panel.__init__(self,parent,-1)
-
-        listbox = 
-        mainsizer = wx.BoxSizer(wx.VERTICAL)
-        sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer3 = wx.BoxSizer(wx.VERTICAL)
-        
-        
-        
-        
-        
-        
-        
-        
-    
-    
 
 
 
