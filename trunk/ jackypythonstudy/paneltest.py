@@ -1,5 +1,6 @@
 import wx
 import remotepanel
+import htlpanel
 
 
 
@@ -8,7 +9,9 @@ class MyFrame(wx.Frame):
     def __init__(self, parent, ID, title, pos=wx.DefaultPosition,size=wx.DefaultSize):
 
         wx.Frame.__init__(self, parent, ID, title, pos, size)
-        panel = remotepanel.RemotePanel(self)
+        #panel = remotepanel.RemotePanel(self)
+        
+        panel = htlpanel.HyperTreeListPanel(self)
 
 
         self.Show()
