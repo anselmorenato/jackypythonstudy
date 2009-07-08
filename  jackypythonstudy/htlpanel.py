@@ -1,7 +1,6 @@
 import wx
 
 import wx.lib.agw.hypertreelist as HTL
-import ListCtrl
 
 ArtIDs = [ "None",
            "wx.ART_ADD_BOOKMARK",
@@ -55,7 +54,7 @@ class HyperTreeListPanel(wx.Panel):
         tree = HyperTreeList(self,-1)
         
         sizer.Add(tree,1,wx.EXPAND)
-        self.SetSize(sizer)
+        self.SetSizer(sizer)
         sizer.Layout()
         
         
@@ -122,28 +121,11 @@ class HyperTreeList(HTL.HyperTreeList):
             self.SetItemImage(self.root, 13, which=wx.TreeItemIcon_Expanded)
             self.SetItemText(self.root, "col 1 root", 1)
             self.SetItemText(self.root, "col 2 root", 2)
-
-        textctrl = wx.TextCtrl(self.GetMainWindow(), -1, "I Am A Simple\nMultiline wx.TexCtrl", style=wx.TE_MULTILINE)
-        self.gauge = wx.Gauge(self.GetMainWindow(), -1, 50, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
-        self.gauge.SetValue(0)
-        combobox = wx.ComboBox(self.GetMainWindow(), -1, choices=["That", "Was", "A", "Nice", "Holiday!"], style=wx.CB_READONLY|wx.CB_DROPDOWN)
-        button1 = wx.Button(self.GetMainWindow(), -1, "wxPython")
-        button1.SetSize(button1.GetBestSize())
-        button2 = wx.Button(self.GetMainWindow(), -1, "Rules!")
-        button2.SetSize(button2.GetBestSize())
-        listctrl = ListCtrl.TestListCtrlPanel(self.GetMainWindow(), self.log)
-        listctrl.SetSize((500, 200))
-        
-        textctrl.Bind(wx.EVT_CHAR, self.OnTextCtrl)
-        combobox.Bind(wx.EVT_COMBOBOX, self.OnComboBox)
-
-        for x in range(15):
+             
+        for x in range(5):
             txt = "Item %d" % x
-            if x == 1:
-                child = self.AppendItem(self.root, txt + "\nHello World\nHappy wxPython-ing!")
-                self.SetItemBold(child, True)
-            else:
-                child = self.AppendItem(self.root, txt)
+            
+            child = self.AppendItem(self.root, txt)
 
             self.SetPyData(child, None)
             self.SetItemText(child, txt + " (c1)", 1)
@@ -153,27 +135,17 @@ class HyperTreeList(HTL.HyperTreeList):
                 
             for y in range(5):
                 txt = "item %d-%s" % (x, chr(ord("a")+y))
-                if y == 0 and x == 1:
-                    last = self.AppendItem(child, txt, ct_type=2, wnd=self.gauge)
-                elif y == 1 and x == 2:
-                    last = self.AppendItem(child, txt, ct_type=1, wnd=textctrl)
-                elif 2 < y < 4:
-                    last = self.AppendItem(child, txt)
-                elif y == 4 and x == 1:
-                    last = self.AppendItem(child, txt, wnd=combobox)
-                else:
-                    last = self.AppendItem(child, txt, ct_type=2)
+                
+                last = self.AppendItem(child, txt)
+           
+                #last = self.AppendItem(child, txt, ct_type=2)
                     
                 self.SetPyData(last, None)
                 self.SetItemText(last, txt + " (c1)", 1)
                 self.SetItemText(last, txt + " (c2)", 2)
                 self.SetItemImage(last, 24, which=wx.TreeItemIcon_Normal)
                 self.SetItemImage(last, 13, which=wx.TreeItemIcon_Expanded)
-
-                if y == 3 and x == 0:
-                    self.SetItemWindow(last, button1, 1)
-                    self.SetItemWindow(last, button2, 2)
-
+                
                 for z in range(5):                    
                     txt = "item %d-%s-%d" % (x, chr(ord("a")+y), z)
                     if z > 2:
@@ -189,10 +161,7 @@ class HyperTreeList(HTL.HyperTreeList):
                         self.SetItemText(item, "", 1)
                         self.SetItemText(item, txt + " (c2)", 2)
                         self.SetItemWindow(item, self.CreateTreeCtrl(), 1)
-                    elif x == 0 and y == 0 and z == 1:
-                        self.SetItemText(item, txt + " (c1)", 1)
-                        self.SetItemText(item, "", 2)
-                        self.SetItemWindow(item, listctrl, 2)
+                    
                     else:
                         self.SetItemText(item, txt + " (c1)", 1)
                         self.SetItemText(item, txt + " (c2)", 2)
@@ -216,26 +185,7 @@ class HyperTreeList(HTL.HyperTreeList):
                           'EVT_TREE_KEY_DOWN': self.OnKey, 'EVT_TREE_SEL_CHANGED': self.OnSelChanged,
                           'EVT_TREE_SEL_CHANGING': self.OnSelChanging, "EVT_TREE_ITEM_HYPERLINK": self.OnHyperLink}
 
-        mainframe = wx.GetTopLevelParent(self)
-        
-        if not hasattr(mainframe, "leftpanel"):
-            self.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnItemExpanded)
-            self.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed)
-            self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
-            self.Bind(wx.EVT_TREE_SEL_CHANGING, self.OnSelChanging)
-            self.GetMainWindow().Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
-            self.GetMainWindow().Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-        else:
-            for combos in mainframe.treeevents:
-                self.BindEvents(combos)
-
-        if hasattr(mainframe, "leftpanel"):
-            self.ChangeStyle(mainframe.treestyles)
-
-        if not(self.GetWindowStyle() & wx.TR_HIDE_ROOT):
-            self.SelectItem(self.root)
-            self.Expand(self.root)
-            
+       
 
     def CreateTreeCtrl(self):
 
@@ -332,33 +282,9 @@ class HyperTreeList(HTL.HyperTreeList):
     
     def OnIdle(self, event):
 
-        if self.gauge:
+        pass
 
-            try:
-                if self.gauge.IsEnabled() and self.gauge.IsShown():
-                    self.count = self.count + 1
-
-                    if self.count >= 50:
-                        self.count = 0
-
-                    self.gauge.SetValue(self.count)
-
-            except:
-                
-                self.gauge = None
-
-        event.Skip()
-
-
-    def OnRightDown(self, event):
-        
-        pt = event.GetPosition()
-        item, flags, column = self.HitTest(pt)
-
-        if item:
-            self.item = item
-            self.log.write("OnRightClick: %s, %s, %s\n" % (self.GetItemText(item), type(item), item.__class__))
-            self.SelectItem(item)
+    def OnRightDown(self, event):pass
 
 
     def OnRightUp(self, event):
@@ -618,135 +544,56 @@ class HyperTreeList(HTL.HyperTreeList):
 
     def OnBeginEdit(self, event):
         
-        self.log.write("OnBeginEdit\n")
-        # show how to prevent edit...
-        item = event.GetItem()
-        if item and self.GetItemText(item) == "The Root Item":
-            wx.Bell()
-            self.log.write("You can't edit this one...\n")
-
-            # Lets just see what's visible of its children
-            cookie = 0
-            root = event.GetItem()
-            (child, cookie) = self.GetFirstChild(root)
-
-            while child:
-                self.log.write("Child [%s] visible = %d\n" % (self.GetItemText(child), self.IsVisible(child)))
-                (child, cookie) = self.GetNextChild(root, cookie)
-
-            event.Veto()
-
+       pass
 
     def OnEndEdit(self, event):
         
-        self.log.write("OnEndEdit: %s %s\n" %(event.IsEditCancelled(), event.GetLabel()))
-        # show how to reject edit, we'll not allow any digits
-        for x in event.GetLabel():
-            if x in string.digits:
-                self.log.write("You can't enter digits...\n")
-                event.Veto()
-                return
-            
+        pass
 
     def OnLeftDClick(self, event):
         
-        pt = event.GetPosition()
-        item, flags, column = self.HitTest(pt)
-        if item and (flags & wx.TREE_HITTEST_ONITEMLABEL):
-            if self.GetWindowStyle() & wx.TR_EDIT_LABELS:
-                self.log.write("OnLeftDClick: %s (manually starting label edit)\n"% self.GetItemText(item))
-                self.EditLabel(item)
-            else:
-                self.log.write("OnLeftDClick: Cannot Start Manual Editing, Missing Style TR_EDIT_LABELS\n")
-
-        event.Skip()                
+        pass             
         
 
-    def OnItemExpanded(self, event):
-        
-        item = event.GetItem()
-        if item:
-            self.log.write("OnItemExpanded: %s\n" % self.GetItemText(item))
+    def OnItemExpanded(self, event):     
+        pass
 
 
     def OnItemExpanding(self, event):
-        
-        item = event.GetItem()
-        if item:
-            self.log.write("OnItemExpanding: %s\n" % self.GetItemText(item))
-            
-        event.Skip()
-
-        
+        pass
+               
     def OnItemCollapsed(self, event):
 
-        item = event.GetItem()
-        if item:
-            self.log.write("OnItemCollapsed: %s" % self.GetItemText(item))
+        pass
             
 
     def OnItemCollapsing(self, event):
 
-        item = event.GetItem()
-        if item:
-            self.log.write("OnItemCollapsing: %s\n" % self.GetItemText(item))
-    
-        event.Skip()
+        pass
 
         
     def OnSelChanged(self, event):
 
-        self.item = event.GetItem()
-        if self.item:
-            self.log.write("OnSelChanged: %s" % self.GetItemText(self.item))
-            if wx.Platform == '__WXMSW__':
-                self.log.write(", BoundingRect: %s\n" % self.GetBoundingRect(self.item, True))
-            else:
-                self.log.write("\n")
-                
-        event.Skip()
+        pass
 
 
     def OnSelChanging(self, event):
 
-        item = event.GetItem()
-        olditem = event.GetOldItem()
-        
-        if item:
-            if not olditem:
-                olditemtext = "None"
-            else:
-                olditemtext = self.GetItemText(olditem)
-            self.log.write("OnSelChanging: From %s To %s\n" %(olditemtext, self.GetItemText(item)))
-                
-        event.Skip()
-
+        pass
 
     def OnBeginDrag(self, event):
 
-        self.item = event.GetItem()
-        if self.item:
-            self.log.write("Beginning Drag...\n")
-
-            event.Allow()
+        pass
 
 
     def OnBeginRDrag(self, event):
 
-        self.item = event.GetItem()
-        if self.item:
-            self.log.write("Beginning Right Drag...\n")
-
-            event.Allow()
+        pass
         
 
     def OnEndDrag(self, event):
 
-        self.item = event.GetItem()
-        if self.item:
-            self.log.write("Ending Drag!\n")
-
-        event.Skip()            
+        pass
 
 
     def OnDeleteItem(self, event):
@@ -756,101 +603,53 @@ class HyperTreeList(HTL.HyperTreeList):
         if not item:
             return
 
-        self.log.write("Deleting Item: %s\n" % self.GetItemText(item))
+        #self.log.write("Deleting Item: %s\n" % self.GetItemText(item))
         event.Skip()
         
 
     def OnItemCheck(self, event):
 
         item = event.GetItem()
-        self.log.write("Item " + self.GetItemText(item) + " Has Been Cheched!\n")
+        #self.log.write("Item " + self.GetItemText(item) + " Has Been Cheched!\n")
         event.Skip()
 
 
     def OnItemChecking(self, event):
 
         item = event.GetItem()
-        self.log.write("Item " + self.GetItemText(item) + " Is Being Checked...\n")
+        #self.log.write("Item " + self.GetItemText(item) + " Is Being Checked...\n")
         event.Skip()
         
 
     def OnToolTip(self, event):
 
-        item = event.GetItem()
-        if item:
-            event.SetToolTip(wx.ToolTip(self.GetItemText(item)))
-
+        pass
 
     def OnItemMenu(self, event):
 
-        item = event.GetItem()
-        if item:
-            self.log.write("OnItemMenu: %s\n" % self.GetItemText(item))
-    
-        event.Skip()
+        pass
 
 
     def OnKey(self, event):
 
-        keycode = event.GetKeyCode()
-        keyname = keyMap.get(keycode, None)
-                
-        if keycode == wx.WXK_BACK:
-            self.log.write("OnKeyDown: HAHAHAHA! I Vetoed Your Backspace! HAHAHAHA\n")
-            return
-
-        if keyname is None:
-            if "unicode" in wx.PlatformInfo:
-                keycode = event.GetUnicodeKey()
-                if keycode <= 127:
-                    keycode = event.GetKeyCode()
-                keyname = "\"" + unichr(event.GetUnicodeKey()) + "\""
-                if keycode < 27:
-                    keyname = "Ctrl-%s" % chr(ord('A') + keycode-1)
-                
-            elif keycode < 256:
-                if keycode == 0:
-                    keyname = "NUL"
-                elif keycode < 27:
-                    keyname = "Ctrl-%s" % chr(ord('A') + keycode-1)
-                else:
-                    keyname = "\"%s\"" % chr(keycode)
-            else:
-                keyname = "unknown (%s)" % keycode
-                
-        self.log.write("OnKeyDown: You Pressed '" + keyname + "'\n")
-
-        event.Skip()
+        pass
         
         
     def OnActivate(self, event):
         
-        if self.item:
-            self.log.write("OnActivate: %s\n" % self.GetItemText(self.item))
-
-        event.Skip()
-
+        pass
         
     def OnHyperLink(self, event):
 
-        item = event.GetItem()
-        if item:
-            self.log.write("OnHyperLink: %s\n" % self.GetItemText(self.item))
-            
+        pass
 
     def OnTextCtrl(self, event):
 
-        char = chr(event.GetKeyCode())
-        self.log.write("EDITING THE TEXTCTRL: You Wrote '" + char + \
-                       "' (KeyCode = " + str(event.GetKeyCode()) + ")\n")
-        event.Skip()
-
+        pass
 
     def OnComboBox(self, event):
 
-        selection = event.GetEventObject().GetValue()
-        self.log.write("CHOICE FROM COMBOBOX: You Chose '" + selection + "'\n")
-        event.Skip()
+        pass
 
 
 #---------------------------------------------------------------------------
