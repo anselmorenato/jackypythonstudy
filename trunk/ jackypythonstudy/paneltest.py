@@ -6,9 +6,9 @@ import htlpanel
 
 class MyFrame(wx.Frame):
     '''This is a frame for newpanel test'''    
-    def __init__(self, parent, ID, title, pos=wx.DefaultPosition,size=wx.DefaultSize):
+    def __init__(self, parent, ID):
 
-        wx.Frame.__init__(self, parent, ID, title, pos, size)
+        wx.Frame.__init__(self, parent, -1)
         #panel = remotepanel.RemotePanel(self)
         
         panel = htlpanel.HyperTreeListPanel(self)
@@ -22,6 +22,6 @@ class MyFrame(wx.Frame):
 
 app = wx.App()
 
-frame = MyFrame(None, -1, "This is a Panel test Frame", size=(350, 300))
+frame = MyFrame(None, -1)
 #frame.Show()
 app.MainLoop()
