@@ -68,6 +68,71 @@ class HyperTreeList(HTL.HyperTreeList):
         HTL.HyperTreeList.__init__(self, parent, id, pos, size, style)
 
         alldata = dir(HTL)
+        
+        remote_configs = dict(
+            email = 'ishikura@gifu-u.ac.jp',
+            local = dict(
+                ssh = {},
+                rootdir = 'C:\path\to\nagara-root',
+                workdir = '',
+                jms = dict(
+                    Single = dict(
+                        envs = {},
+                        path = {},
+                    ),
+                    MultiProcess = dict(
+                    ),
+                ),
+                commands = {},
+            ),
+            hpcs = dict(
+                ssh = dict(
+                    address = '133.66.117.139',
+                    user = 'ishikura',
+                    passwd = '*********',
+                    port = 22,
+                ),
+                rootdir = '/home/ishikura/Nagara/projects',
+                workdir = '/work/ishikura',
+                # jms = ['Single', 'MPI', 'LSF'], #Local
+                jms = dict(
+                    Single = dict(
+                        envs = {},
+                        path = {},
+                    ),
+                    MPI = dict(
+                        envs = {},
+                        path = {},
+                    ),
+                    LSF = dict(
+                        envs = {},
+                        path = {},
+                        script = {},
+                    ),
+                ),
+                commands = dict(
+                    amber = dict(
+                        # envs = dict(AMBERHOME = '/home/hpc/opt/amber10.eth'),
+                        # path = '/home/hpcs/opt/amber10.eth/exe/sander.MPI',
+                        envs = dict(AMBERHOME = '/home/ishikura/opt/amber10.eth'),
+                        path = '/home/ishikura/opt/amber10.eth/exe/sander.MPI',
+                    ),
+                    marvin = dict(
+                        envs = {},
+                        # path = '/home/hpcs/Nagara/app/bin/marvin',
+                        path = '/home/ishikura/Nagara/app/bin/marvin',
+                    ),
+                    paics = dict(
+                        # envs = dict(PAICS_HOME='/home/ishi/paics/paics-20081214'),
+                        # path = '/home/ishi/paics/paics-20081214/main.exe',
+                        envs = dict(PAICS_HOME='/home/ishi/paics/paics-20081214'),
+                        path = '/home/ishi/paics/paics-20081214/main.exe',
+                    ),
+                ),
+            ),
+            vlsn = dict(),
+            rccs = dict(),
+        )
 
         treestyles = []
         events = []
@@ -122,17 +187,24 @@ class HyperTreeList(HTL.HyperTreeList):
             self.SetItemText(self.root, "col 1 root", 1)
             self.SetItemText(self.root, "col 2 root", 2)
              
-        for x in range(5):
-            txt = "Item %d" % x
+        for item in remote_configs:
+            #txt = "Item %d" % x
             
-            child = self.AppendItem(self.root, txt)
+            child = self.AppendItem(self.root, item)
 
             self.SetPyData(child, None)
-            self.SetItemText(child, txt + " (c1)", 1)
-            self.SetItemText(child, txt + " (c2)", 2)
+            self.SetItemText(child, item, 1)
+            self.SetItemText(child, item + " (c2)", 2)
             self.SetItemImage(child, 24, which=wx.TreeItemIcon_Normal)
             self.SetItemImage(child, 13, which=wx.TreeItemIcon_Expanded)
+            
+            if item == 'local':
+                for item2 in remote_configs['local']:
                 
+                    last = self.AppendItem(child, item2)
+                    self.SetPyData(last, None)
+                    self.SetItemText(last, item2, 1)
+            '''    
             for y in range(5):
                 txt = "item %d-%s" % (x, chr(ord("a")+y))
                 
@@ -170,6 +242,7 @@ class HyperTreeList(HTL.HyperTreeList):
                         
                     self.SetItemImage(item, 28, which=wx.TreeItemIcon_Normal)
                     self.SetItemImage(item, numicons-1, which=wx.TreeItemIcon_Selected)
+            '''
 
         self.GetMainWindow().Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.Bind(wx.EVT_IDLE, self.OnIdle)

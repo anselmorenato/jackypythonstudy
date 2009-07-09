@@ -5,8 +5,11 @@ import htlpanel
 class RemotePanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self,parent,-1)
+        
+        #splitter = wx.SplitterWindow(self, -1, style=wx.CLIP_CHILDREN | wx.SP_LIVE_UPDATE | wx.SP_3D)
+        #panel = wx.Panel(splitter, -1, style=wx.WANTS_CHARS)
           
-        listbox = wx.ListBox(self, size=(200,200),
+        listbox = wx.ListBox(self, size=(200,100),
                        choices="Local Paic Visn three four five six seven eight nine".split())
         htl = htlpanel.HyperTreeListPanel(self)
         okBtn = wx.Button(self, -1, "Save")
@@ -31,7 +34,7 @@ class RemotePanel(wx.Panel):
         
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
                                 
-        sizer_1.Add(listbox, 0, wx.EXPAND,5)
+        sizer_1.Add(listbox, 1, wx.EXPAND,5)
         
         
         sizer_1_bt = wx.BoxSizer(wx.VERTICAL)
