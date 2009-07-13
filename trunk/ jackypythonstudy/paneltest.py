@@ -23,5 +23,4 @@ class MyFrame(wx.Frame):
 app = wx.App()
 
 frame = MyFrame(None, -1)
-#frame.Show()
 app.MainLoop()

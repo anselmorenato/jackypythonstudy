@@ -1,5 +1,5 @@
-import wx
 
+import wx
 import htlpanel 
 
 class RemotePanel(wx.Panel):
