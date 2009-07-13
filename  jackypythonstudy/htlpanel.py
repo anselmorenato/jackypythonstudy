@@ -202,8 +202,11 @@ class HyperTreeList(HTL.HyperTreeList):
                 for item2 in remote_configs['local']:
                 
                     last = self.AppendItem(child, item2)
-                    self.SetPyData(last, None)
-                    self.SetItemText(last, item2, 1)
+                    #self.SetPyData(last, None)
+                    #self.SetItemText(last, item2[:-1], 1)
+                    if item2 == 'jms':
+                        for item3 in remote_configs['local']['jms']:
+                            self.SetPyData(last,None)
             '''    
             for y in range(5):
                 txt = "item %d-%s" % (x, chr(ord("a")+y))
@@ -260,42 +263,7 @@ class HyperTreeList(HTL.HyperTreeList):
 
        
 
-    def CreateTreeCtrl(self):
-
-        tree = wx.TreeCtrl(self.GetMainWindow(), -1, wx.Point(0, 0), wx.Size(160, 200),
-                           wx.TR_DEFAULT_STYLE)
-        
-        items = []
-
-        imglist = wx.ImageList(16, 16, True, 2)
-        imglist.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
-        imglist.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
-        tree.AssignImageList(imglist)
-
-        root = tree.AddRoot("HyperTreeList :-D", image=0)
-
-        items.append(tree.AppendItem(root, "Item 1", 0))
-        items.append(tree.AppendItem(root, "Item 2", 0))
-        items.append(tree.AppendItem(root, "Item 3", 0))
-        items.append(tree.AppendItem(root, "Item 4", 0))
-        items.append(tree.AppendItem(root, "Item 5", 0))
-
-        for ii in xrange(len(items)):
-        
-            id = items[ii]
-            tree.AppendItem(id, "Subitem 1", 1)
-            tree.AppendItem(id, "Subitem 2", 1)
-            tree.AppendItem(id, "Subitem 3", 1)
-            tree.AppendItem(id, "Subitem 4", 1)
-            tree.AppendItem(id, "Subitem 5", 1)
-        
-        tree.Expand(root)
-        tree.Expand(items[1])
-        tree.Expand(items[3])
-        tree.SelectItem(root)
-        
-        return tree
-
+    
 
     def BindEvents(self, choice, recreate=False):
 
@@ -617,7 +585,7 @@ class HyperTreeList(HTL.HyperTreeList):
 
     def OnBeginEdit(self, event):
         
-       pass
+        pass
 
     def OnEndEdit(self, event):
         
