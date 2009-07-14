@@ -66,7 +66,7 @@ class HyperTreeList(HTL.HyperTreeList):
                  log=None):
 
         HTL.HyperTreeList.__init__(self, parent, id, pos, size, style)
-
+        self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         alldata = dir(HTL)
         
         remote_configs = dict(
@@ -200,13 +200,18 @@ class HyperTreeList(HTL.HyperTreeList):
             
             if item == 'local':
                 for item2 in remote_configs['local']:
-                
+                    
+                    
                     last = self.AppendItem(child, item2)
-                    #self.SetPyData(last, None)
-                    #self.SetItemText(last, item2[:-1], 1)
+                    self.SetPyData(last, None)
+                    self.SetItemText(last, item2[:-1], 1)
                     if item2 == 'jms':
                         for item3 in remote_configs['local']['jms']:
-                            self.SetPyData(last,None)
+                            
+                            third = self.AppendItem(last,item3)
+                            
+                            self.SetPyData(third,None)
+                            self.SetItemText(third, item3[:-1], 1)
             '''    
             for y in range(5):
                 txt = "item %d-%s" % (x, chr(ord("a")+y))
@@ -249,6 +254,7 @@ class HyperTreeList(HTL.HyperTreeList):
 
         self.GetMainWindow().Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.GetMainWindow().Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
 
         self.eventdict = {'EVT_TREE_BEGIN_DRAG': self.OnBeginDrag, 'EVT_TREE_BEGIN_LABEL_EDIT': self.OnBeginEdit,
                           'EVT_TREE_BEGIN_RDRAG': self.OnBeginRDrag, 'EVT_TREE_DELETE_ITEM': self.OnDeleteItem,
@@ -694,7 +700,30 @@ class HyperTreeList(HTL.HyperTreeList):
 
 
 #---------------------------------------------------------------------------
-            
+ 
+def main():
+    import nagaratest
+    app = nagaratest.FrameTest()
+    log = app.log
+    frame = app.frame
+
+    dlg = HyperTreeListPanel(frame)
+    # paicspanel.MarvinPanel(dlg, -1, 'marvin', log=self.getLog())
+    
+    
+
+    # app.MainLoop()
+
+    try:
+        app.MainLoop()
+    except:
+        app.RedirectStdio()
+
+
+if __name__ == '__main__':
+    main()
+    module = __file__.split('.')[0]
+    print 
             
         
         
