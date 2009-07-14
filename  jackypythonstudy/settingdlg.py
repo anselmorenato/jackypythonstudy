@@ -7,7 +7,8 @@ class SettingDialog(wx.Notebook):
 
     #----------------------------------------------------------------------
     def __init__(self, parent, id):
-        wx.Notebook.__init__(self, frame, id, size=(21,21), style=
+        panel = wx.Panel(self)
+        wx.Notebook.__init__(self, panel, id, size=(21,21), style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
                              #wx.BK_BOTTOM
@@ -17,10 +18,10 @@ class SettingDialog(wx.Notebook):
                              )
         
 
-        win = htlpanel.HyperTreeListPanel(frame)
+        win = htlpanel.HyperTreeListPanel(panel)
         self.AddPage(win, "Blue")
        
-        win = htlpanel.HyperTreeListPanel(frame)
+        win = htlpanel.HyperTreeListPanel(panel)
         self.AddPage(win, "green")
     
         
