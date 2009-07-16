@@ -11,6 +11,7 @@ class RemotePanel(wx.Panel):
           
         listbox = wx.ListBox(self, size=(200,100),
                        choices="Local Paic Visn three four five six seven eight nine".split())
+        listbox.Bind(wx.EVT_LISTBOX_DCLICK, self.EvtListBoxDClick, listbox)
         htl = htlpanel.HyperTreeListPanel(self)
         okBtn = wx.Button(self, -1, "Save")
         cancelBtn = wx.Button(self, -1, "Cancel")
@@ -28,8 +29,10 @@ class RemotePanel(wx.Panel):
         b3.SetDefault()
         b3.SetSize(b3.GetBestSize())
         
+        #self.Dolayout()
         
-
+    #def Dolayout(self):
+        
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -59,3 +62,12 @@ class RemotePanel(wx.Panel):
         mainsizer.SetSizeHints(self)
         
     def OnClick(self, event): pass
+    
+    #----------------------------------------------------------------------
+    def EvtListBoxDClick(self,event):
+        """"""
+        import settingdlg
+        dlg = settingdlg.SettingDialog(self,None,-1)
+        dlg.Show()
+        event.Skip()
+            
