@@ -9,9 +9,9 @@ class MyFrame(wx.Frame):
     def __init__(self, parent, ID):
 
         wx.Frame.__init__(self, parent, -1)
-        #panel = remotepanel.RemotePanel(self)
+        panel = remotepanel.RemotePanel(self)
         
-        panel = htlpanel.HyperTreeListPanel(self)
+        #panel = htlpanel.HyperTreeListPanel(self)
 
 
         self.Show()

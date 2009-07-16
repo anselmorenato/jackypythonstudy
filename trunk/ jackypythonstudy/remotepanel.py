@@ -6,7 +6,8 @@ class RemotePanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self,parent,-1)
         
-        #splitter = wx.SplitterWindow(self, -1, style=wx.CLIP_CHILDREN | wx.SP_LIVE_UPDATE | wx.SP_3D)
+        #splitter = wx.SplitterWindow(self, -1, style=wx.SPLIT_VERTICAL| wx.SP_3D)
+        #self.splitter = wx.SplitterWindow(self, ID_SPLITTER, style=wx.SP_BORDER)
         #panel = wx.Panel(splitter, -1, style=wx.WANTS_CHARS)
           
         listbox = wx.ListBox(self, size=(200,100),
@@ -34,25 +35,29 @@ class RemotePanel(wx.Panel):
     #def Dolayout(self):
         
         mainsizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_1_stb = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'ListBox'), orient=wx.VERTICAL)
         
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
-                                
-        sizer_1.Add(listbox, 1, wx.EXPAND,5)
+        
+        sizer_1_stb.Add(listbox,1,wx.EXPAND)                        
+        sizer_1.Add(sizer_1_stb, 1, wx.EXPAND,5)
         
         
-        sizer_1_bt = wx.BoxSizer(wx.VERTICAL)
+        sizer_1_bt = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Edit Botton'),orient = wx.VERTICAL)
         sizer_1_bt.Add(b1)
         sizer_1_bt.Add(b2)
         sizer_1_bt.Add(b3)
-        
+        sizer_1.Add((5,-1),0)
         sizer_1.Add(sizer_1_bt,0,wx.ALIGN_RIGHT|wx.ALL,5)
         
         
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add(okBtn,0,wx.ALIGN_RIGHT,5)
         sizer_2.Add(cancelBtn,0,wx.ALIGN_RIGHT,5)
-                
+        
+        #mainsizer.Add((5,20),wx.EXPAND,5)
         mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
+        #mainsizer.Add((5,20),wx.EXPAND,5)
         mainsizer.Add(htl,1,wx.EXPAND,5)
         mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT, 5)
         
@@ -67,7 +72,7 @@ class RemotePanel(wx.Panel):
     def EvtListBoxDClick(self,event):
         """"""
         import settingdlg
-        dlg = settingdlg.SettingDialog(self,None,-1)
+        dlg = settingdlg.SettingDialog(self,None)
         dlg.Show()
         event.Skip()
             
