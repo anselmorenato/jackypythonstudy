@@ -52,10 +52,12 @@ class HyperTreeListPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         # Create the HyperTreeList
         tree = HyperTreeList(self,-1)
-        
+        tree.Bind(wx.EVT_RIGHT_UP, HyperTreeList.OnRightUp, tree)
         sizer.Add(tree,1,wx.EXPAND)
         self.SetSizer(sizer)
         sizer.Layout()
+        
+    
         
         
 class HyperTreeList(HTL.HyperTreeList):
@@ -66,7 +68,7 @@ class HyperTreeList(HTL.HyperTreeList):
                  log=None):
 
         HTL.HyperTreeList.__init__(self, parent, id, pos, size, style)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+        
         alldata = dir(HTL)
         
         remote_configs = dict(

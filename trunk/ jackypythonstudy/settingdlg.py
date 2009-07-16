@@ -2,13 +2,15 @@ import wx
 import htlpanel
 
 ########################################################################
-class SettingDialog(wx.Notebook):
+class SettingDialog(wx.Frame):
     """"""
 
     #----------------------------------------------------------------------
     def __init__(self, parent, id):
-        panel = wx.Panel(self)
-        wx.Notebook.__init__(self, panel, id, size=(21,21), style=
+        wx.Frame.__init__(self,parent,-1,'Setting dialog',size=(500,450))
+        
+        #panel = wx.Panel(self)
+        nb = wx.Notebook(self, id, size=(30,30), style=
                              wx.BK_DEFAULT
                              #wx.BK_TOP 
                              #wx.BK_BOTTOM
@@ -18,15 +20,17 @@ class SettingDialog(wx.Notebook):
                              )
         
 
-        win = htlpanel.HyperTreeListPanel(panel)
-        self.AddPage(win, "Blue")
+        win = htlpanel.HyperTreeListPanel(nb)
+        nb.AddPage(win, "Blue")
        
-        win = htlpanel.HyperTreeListPanel(panel)
-        self.AddPage(win, "green")
+        win = htlpanel.HyperTreeListPanel(nb)
+        nb.AddPage(win, "green")
+        
+        self.CenterOnParent()
     
         
     
 app = wx.App()
-frame = wx.Frame(None)
+frame = SettingDialog(None,-1)
 frame.Show()
 app.MainLoop()
