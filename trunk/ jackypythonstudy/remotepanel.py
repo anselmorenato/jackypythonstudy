@@ -10,8 +10,8 @@ class RemotePanel(wx.Panel):
         #self.splitter = wx.SplitterWindow(self, ID_SPLITTER, style=wx.SP_BORDER)
         #panel = wx.Panel(splitter, -1, style=wx.WANTS_CHARS)
           
-        listbox = wx.ListBox(self, size=(200,100),
-                       choices="Local Paic Visn three four five six seven eight nine".split())
+        listbox = wx.ListBox(self, size=(100,80),
+                       choices="vlsn rccs local email phcs".split())
         listbox.Bind(wx.EVT_LISTBOX_DCLICK, self.EvtListBoxDClick, listbox)
         htl = htlpanel.HyperTreeListPanel(self)
         okBtn = wx.Button(self, -1, "Save")
@@ -29,11 +29,7 @@ class RemotePanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnClick, b3)
         b3.SetDefault()
         b3.SetSize(b3.GetBestSize())
-        
-        #self.Dolayout()
-        
-    #def Dolayout(self):
-        
+              
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         sizer_1_stb = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'ListBox'), orient=wx.VERTICAL)
         
@@ -72,7 +68,7 @@ class RemotePanel(wx.Panel):
     def EvtListBoxDClick(self,event):
         """"""
         import settingdlg
-        dlg = settingdlg.SettingDialog(self,None)
+        dlg = settingdlg.SettingDialog(None,-1)
         dlg.Show()
         event.Skip()
             
