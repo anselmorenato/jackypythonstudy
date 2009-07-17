@@ -28,8 +28,8 @@ _pageIcons = ["roll.png", "charge.png"]
 _pageColours = [wx.RED, wx.GREEN, wx.WHITE, wx.BLUE, "Pink"]
 
 class LabelBook(wx.Frame):
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent)
+    def __init__(self, parent,id):
+        wx.Frame.__init__(self, parent,-1)
         self.mainpanel = wx.Panel(self, -1)
       
         self.SetProperties()
@@ -91,12 +91,12 @@ class LabelBook(wx.Frame):
 
     def GetBookStyles(self):
         style = INB_FIT_BUTTON
-        #style |= INB_DEFAULT_STYLE
         style |= INB_FIT_LABELTEXT
+        #style |= INB_DEFAULT_STYLE
         #style |= INB_WEB_HILITE
         #style |= INB_USE_PIN_BUTTON
         #style |= INB_BORDER
-        #style |= LB.INB_SHOW_ONLY_TEXT   #only used in FlatImageBook type
+        #style |= LB.INB_SHOW_ONLY_TEXT   #This stytle is only used in FlatImageBook type
         
         style = self.GetBookOrientation(style)
         
@@ -105,7 +105,7 @@ class LabelBook(wx.Frame):
 
     def CreateImageList(self):
 
-        imagelist = wx.ImageList(32, 32)
+        imagelist = wx.ImageList(32, 32)    # (*,*) is the size of icon's heigh and width
         for img in _pageIcons:
             newImg = os.path.join(bitmapDir, "lb%s"%img)
             bmp = wx.Bitmap(newImg, wx.BITMAP_TYPE_PNG)
@@ -138,7 +138,7 @@ class TestPanel(wx.Panel):
                           "tabs can be on any side of the notebook.",
                           (10, 10))
 
-        b = wx.Button(self, -1, " Test LabelBook And FlatImageBook ", (100,100))
+        b = wx.Button(self, -1, " Test Messagedialog ", (100,100))
        
        
         self.Bind(wx.EVT_BUTTON, self.OnButton, b)
@@ -150,19 +150,9 @@ class TestPanel(wx.Panel):
         dlg.ShowModal()
         dlg.Destroy()
 #---------------------------------------------------------------------------
-########################################################################
-
-
-
-
-
-
-
-
-#---------------------------------------------------------------------------
 
 if __name__ == '__main__':
     app = wx.PySimpleApp()
-    frame = LabelBook(None)
+    frame = LabelBook(None,-1)
     frame.Show()
     app.MainLoop()
