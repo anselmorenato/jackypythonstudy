@@ -277,40 +277,42 @@ class HyperTreeList(HTL.HyperTreeList):
             self.SetItemText(self.root, "col 1 root", 1)
             self.SetItemText(self.root, "col 2 root", 2)
              
-        for item in remote_configs:
-            #txt = "Item %d" % x
+            for item, val in remote_configs.items():
+                #txt = "Item %d" % x
+                
+                child = self.AppendItem(self.root, item)
+    
+                self.SetPyData(child, None)
+                self.SetItemText(child, item, 1)
+                self.SetItemText(child, item + " (c2)", 2)
+                self.SetItemImage(child, 24, which=wx.TreeItemIcon_Normal)
+                self.SetItemImage(child, 13, which=wx.TreeItemIcon_Expanded)
+                
             
-            child = self.AppendItem(self.root, item)
-
-            self.SetPyData(child, None)
-            self.SetItemText(child, item, 1)
-            self.SetItemText(child, item + " (c2)", 2)
-            self.SetItemImage(child, 24, which=wx.TreeItemIcon_Normal)
-            self.SetItemImage(child, 13, which=wx.TreeItemIcon_Expanded)
-            
-            if item == 'local':
-                for item2 in remote_configs['local']:
-                    
-                    
-                    child2 = self.AppendItem(child, item2)
-                    self.SetPyData(child2, None)
-                    self.SetItemText(child2, item2[:-1], 1)
-                    self.SetItemImage(child2, 24, which=wx.TreeItemIcon_Normal)
-                    self.SetItemImage(child2, 13, which=wx.TreeItemIcon_Expanded)
-                    if item2 == 'jms':
-                        for item3 in remote_configs['local']['jms']:
+                if isinstance(val,dict):
+                    for item2,val in remote_configs[item].items():
+                        
+                        
+                        child2 = self.AppendItem(child, item2)
+                        self.SetPyData(child2, None)
+                        self.SetItemText(child2, item2[:-1], 1)
+                        self.SetItemImage(child2, 24, which=wx.TreeItemIcon_Normal)
+                        self.SetItemImage(child2, 13, which=wx.TreeItemIcon_Expanded)
+                        if isinstance(val,dict):
                             
-                            child3 = self.AppendItem(child2,item3)
-                            
-                            self.SetPyData(child3,None)
-                            self.SetItemText(child3, item3[:-1], 1)
-                            self.SetItemImage(child3, 24, which=wx.TreeItemIcon_Normal)
-                            self.SetItemImage(child3, 13, which=wx.TreeItemIcon_Expanded)
-                            if item3 == 'Single':
-                                for item4 in remote_configs['local']['jms']['Single']:
-                                    child4 = self.AppendItem(child3,item4)
-                                    self.SetPyData(child4,None)
-                                    self.SetItemText(child4, item4[:-1], 1)
+                            for item3,val in remote_configs[item][item2].items():
+                                
+                                child3 = self.AppendItem(child2,item3)
+                                
+                                self.SetPyData(child3,None)
+                                self.SetItemText(child3, item3[:-1], 1)
+                                self.SetItemImage(child3, 24, which=wx.TreeItemIcon_Normal)
+                                self.SetItemImage(child3, 13, which=wx.TreeItemIcon_Expanded)
+                                if isinstance(val,dict):
+                                    for item4,val in remote_configs[item][item2][item3].items():
+                                        child4 = self.AppendItem(child3,item4)
+                                        self.SetPyData(child4,None)
+                                        self.SetItemText(child4, item4[:-1], 1)
                                     
                             
 def main():
