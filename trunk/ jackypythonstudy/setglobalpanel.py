@@ -27,47 +27,52 @@ _pageIcons = ["roll.png", "charge.png"]
 #_pageIcons = ["icon-equiv.png","icon-minimiz.png","icon-product.png","icon-setup.png","product4x.png"]
 _pageColours = [wx.RED, wx.GREEN, wx.WHITE, wx.BLUE, "Pink"]
 
-class LabelBook(wx.Frame):
+class SetGlobalPanel(wx.Panel):
+    '''
+    The panel to setting configution base LabelBook
+    '''
+    
     def __init__(self, parent,id):
-        wx.Frame.__init__(self, parent,-1)
-        self.mainpanel = wx.Panel(self, -1)
+        wx.Panel.__init__(self, parent,-1,size =(800,500))
+        #self.mainpanel = wx.Panel(self, -1)
       
-        self.SetProperties()
+        
         self.CreateLabelBook()
         self.DoLayout()
 
-        self.SetSize((600,500))
+        
 
         #self.SetIcon(images.Mondrian.GetIcon()) 
-        self.CenterOnScreen()
+        self.Center()
 
         #self.initializing = False
         self.SendSizeEvent()
        
-    def SetProperties(self):
-
-        self.SetTitle("The success labelbook!-)")
-        
+    
        
     def DoLayout(self):
         mainsizer = wx.BoxSizer(wx.VERTICAL)
-        panelsizer = wx.BoxSizer(wx.VERTICAL)
+        #panelsizer = wx.BoxSizer(wx.VERTICAL)
        
-        panelsizer.Add(self.book, 1, wx.EXPAND, 0)
-        self.mainpanel.SetSizer(panelsizer)
-        panelsizer.Layout()
+        mainsizer.Add(self.book, 1, wx.EXPAND, 0)
+        #self.mainpanel.SetSizer(panelsizer)
+        #panelsizer.Layout()
       
-        mainsizer.Add(self.mainpanel, 1, wx.EXPAND, 0)
+        #mainsizer.Add(self, 1, wx.EXPAND, 0)
 
         self.SetSizer(mainsizer)
+        mainsizer.Fit(self)
         mainsizer.Layout()
         self.Layout()
 
     def CreateLabelBook(self):
+        '''
+        Create the labebook
+        '''
         style = self.GetBookStyles() 
                
-        self.book = LB.LabelBook(self.mainpanel, -1,style=style)                     
-        #self.book = LB.FlatImageBook(self.mainpanel, -1, style=style)           
+        self.book = LB.LabelBook(self, -1,style=style)                     
+        # self.book = LB.FlatImageBook(self.mainpanel, -1, style=style)  #change the type of labelbook to Flatimagebook          
 
         self.imagelist = self.CreateImageList()
         self.book.AssignImageList(self.imagelist)
@@ -82,9 +87,9 @@ class LabelBook(wx.Frame):
          #   self.book.AddPage(TestPanel(self.book,_pageColours[i]),_pageTexts[0],True,i)
 
         self.book.AddPage(TestPanel(self.book,_pageColours[1]),_pageTexts[0],True,0)
-        self.book.AddPage(remotepanel.RemotePanel(self.book),_pageTexts[1],True,1)
+        self.book.AddPage(remotepanel.RemotePanel(self.book,-1,(-1,-1)),_pageTexts[1],True,1)
         
-        self.book.SetSelection(0)
+        self.book.SetSelection(1)
         #self.book.SetWindowStyleFlag(style=LB.INB_FIT_BUTTON)
         
         self.SendSizeEvent()
@@ -151,8 +156,27 @@ class TestPanel(wx.Panel):
         dlg.Destroy()
 #---------------------------------------------------------------------------
 
+def main():
+    import nagaratest
+    app = nagaratest.FrameTest()
+    log = app.log
+    frame = app.frame
+    
+    dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(600,300))
+    # paicspanel.MarvinPanel(dlg, -1, 'marvin', log=self.getLog())
+    SetGlobalPanel(dlg,-1)
+    dlg.ShowModal()
+    #dlg.SetSize(dlg.GetBestSize())
+    dlg.Destroy()
+
+    # app.MainLoop()
+
+    try:
+        app.MainLoop()
+    except:
+        app.RedirectStdio()
+
+
 if __name__ == '__main__':
-    app = wx.PySimpleApp()
-    frame = LabelBook(None,-1)
-    frame.Show()
-    app.MainLoop()
+    main()
+    
