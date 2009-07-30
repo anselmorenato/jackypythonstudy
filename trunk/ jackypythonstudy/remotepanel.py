@@ -106,6 +106,18 @@ remote_configs = dict(
     rccs = dict(),
 )
 #item = None
+class Myframe(wx.Frame):
+    def __init__(self,parent):
+        wx.Frame.__init__(self,parent,-1,size=(500,300))
+        remote=RemotePanel(self,-1,'size')
+        self.Show()
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(remote,0,wx.EXPAND,10)
+        self.SetSizer(sizer)
+        #sizer.Fit(self)
+        #self.SetAutoLayout(True)
+        
 class RemotePanel(wx.Panel):
     def __init__(self, parent,id,size):
         wx.Panel.__init__(self,parent,-1,size=(500,500))
@@ -162,6 +174,9 @@ class RemotePanel(wx.Panel):
         sizer_1_bt.Add(b4,0,wx.EXPAND|wx.ALL)
         sizer_1.Add((80,-1))
         sizer_1.Add(sizer_1_bt,0,wx.EXPAND|wx.ALL,5)
+
+        sizer_tree = wx.BoxSizer(wx.VERTICAL)
+        sizer_tree.Add(self.tree,0,wx.EXPAND,5)
         
         
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -171,17 +186,17 @@ class RemotePanel(wx.Panel):
         #mainsizer.Add((5,20),wx.EXPAND,5)
         mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
         #mainsizer.Add((5,20),wx.EXPAND,5)
-        mainsizer.Add(self.tree,0,wx.EXPAND,5)
+        mainsizer.Add(sizer_tree,0,wx.EXPAND,5)
         mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT, 5)
         
         
         
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(mainsizer,0,wx.EXPAND)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
+        
+        self.SetSizer(mainsizer)
+        #mainsizer.Fit(self)
+        #self.SetAutoLayout(True)
         #sizer.SetSizeHints(self)
-        sizer.Layout()
+        #sizer.Layout()
     def OnClick(self, event): pass
     def OnCancel(self,event):
         self.Close()
@@ -323,12 +338,18 @@ def main():
     log = app.log
     frame = app.frame
     
-    dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(600,500))
+    dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(500,500))
     # paicspanel.MarvinPanel(dlg, -1, 'marvin', log=self.getLog())
-    RemotePanel(dlg,-1,size=(500,500))
+    remote=RemotePanel(dlg,-1,size=(500,500))
     dlg.ShowModal()
-    dlg.SetSize(dlg.GetBestSize())
+    #dlg.SetSize(dlg.GetBestSize())
     dlg.Destroy()
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer.Add(remote,0,wx.EXPAND)
+    dlg.SetSizer(sizer)
+    sizer.Fit(dlg)
+    dlg.SetAutoLayout(True)
+                    
 
     # app.MainLoop()
 
@@ -339,6 +360,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    #main()
+    app =wx.App()
+    frame=Myframe(None)
+    
+    
+    app.MainLoop()
     
         
