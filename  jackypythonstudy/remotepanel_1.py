@@ -105,10 +105,10 @@ remote_configs = dict(
     vlsn = dict(),
     rccs = dict(),
 )
-choice =['vlsn','rccs','lacal','email','phcs']#item = None
+choice =['vlsn','rccs','lacal','email','phcs']
         
 class RemotePanel(wx.Panel):
-    def __init__(self, parent,id,size):
+    def __init__(self, parent):
         wx.Panel.__init__(self,parent,-1)
         
         self.listbox = wx.ListBox(self, size = (130,50),choices=choice)
@@ -117,7 +117,7 @@ class RemotePanel(wx.Panel):
         self.listbox.Bind(wx.EVT_LISTBOX_DCLICK, self.EvtListBoxDClick, self.listbox)
         self.listbox.Bind(wx.EVT_LISTBOX, self.EvtListBox, self.listbox)
         
-        self.tree = HyperTreeList(self,-1,size=(800,800),style=wx.TR_DEFAULT_STYLE)
+        self.tree = HyperTreeList(self)
         self.root = self.tree.root
         
         self.okBtn = wx.Button(self, -1, "Ok")
@@ -140,18 +140,21 @@ class RemotePanel(wx.Panel):
         self.b4.SetDefault()
         self.b4.SetSize(self.b4.GetBestSize())
         
-        self.Dolayout()
+        #self.Dolayout()
         
-    def Dolayout(self):
-              
-        mainsizer = wx.BoxSizer(wx.VERTICAL)
+    #def Dolayout(self):
+        # create the mainsizer      
+        self.mainsizer = wx.BoxSizer(wx.VERTICAL)
+        # top sizer has two subsizer
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1_lb = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'ListBox'), orient=wx.VERTICAL)
         sizer_1_bt = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Edit Botton'),orient = wx.VERTICAL)
+        # the middle sizer has one wediget 'self.tree'
+        #sizer_tree = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         
         sizer_1_lb.Add(self.listbox,1,wx.EXPAND,5)                        
-        sizer_1.Add(sizer_1_lb, 1, wx.EXPAND|wx.ALL,5)
+        sizer_1.Add(sizer_1_lb, 0, wx.EXPAND|wx.ALL,5)
 
         sizer_1_bt.Add(self.b1,0,wx.EXPAND|wx.ALL)
         sizer_1_bt.Add(self.b2,0,wx.EXPAND|wx.ALL)
@@ -164,30 +167,29 @@ class RemotePanel(wx.Panel):
         sizer_2.Add(self.cancelBtn,0,wx.ALIGN_RIGHT,5)
 
 
-        sizer_tree = wx.BoxSizer(wx.VERTICAL)
-        sizer_tree.Add(self.tree,0,wx.EXPAND,5)
+        
+        #sizer_tree.Add(self.tree,1,wx.EXPAND,5)
 
         
         #mainsizer.Add((5,20),wx.EXPAND,5)
-        mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
+        self.mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
         #mainsizer.Add((5,20),wx.EXPAND,5)
-        mainsizer.Add(sizer_tree,0,wx.EXPAND,5)
-        mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT, 5)
+        self.mainsizer.Add(self.tree,0,wx.EXPAND,5)
+        self.mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT, 5)
         
 
-        self.SetSizer(mainsizer)
-        mainsizer.Fit(self)
-
-        
-        
-        
-        self.SetSizer(mainsizer)
+        self.SetSizer(self.mainsizer)
         #mainsizer.Fit(self)
+
+        
+        
+        
+        
+        self.mainsizer.Fit(parent)
         #self.SetAutoLayout(True)
 
         #sizer.SetSizeHints(self)
 
-        mainsizer.Layout()
     def OnClick(self, event): 
         pass
 
@@ -195,17 +197,17 @@ class RemotePanel(wx.Panel):
     def OnClick(self, event): pass
 
     def OnCancel(self,event):
-        self.Close()
+        self.Close(True)
     
     #----------------------------------------------------------------------
     def OnAddNewListItem(self,event):
         self.listbox.Insert('new',5)
         
-    def OnEditListItem():
+    def OnEditListItem(self,event):
         pass
-    def OnCopyListItem():
+    def OnCopyListItem(self,event):
         pass
-    def OnDeleteListItem():
+    def OnDeleteListItem(self,event):
         pass
     
     def EvtListBoxDClick(self,event):
@@ -307,27 +309,18 @@ def main():
     app = nagaratest.FrameTest()
     log = app.log
     frame = app.frame
-    
-
-    dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(600,600))
-    
-    remote = RemotePanel(dlg,-1,'size')
-    
 
     dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(500,500))
-    # paicspanel.MarvinPanel(dlg, -1, 'marvin', log=self.getLog())
-    remote=RemotePanel(dlg,-1,size=(500,500))
-    dlg.ShowModal()
+    remote = RemotePanel(dlg)
 
     #dlg.SetSize(dlg.GetBestSize())
-    dlg.ShowModal()
-    dlg.Destroy()
     sizer = wx.BoxSizer(wx.VERTICAL)
-    sizer.Add(remote,0,wx.EXPAND)
-    dlg.SetSizer(sizer)
-    sizer.Fit(dlg)
-    dlg.SetAutoLayout(True)
-                    
+    sizer.Add(remote,1,wx.EXPAND)
+    #dlg.SetSizer(sizer)
+    #sizer.Fit(dlg)
+    #dlg.SetAutoLayout(True)
+    dlg.ShowModal()
+    dlg.Destroy()                
 
     try:
         app.MainLoop()
