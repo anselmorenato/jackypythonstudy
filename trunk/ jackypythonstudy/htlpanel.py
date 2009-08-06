@@ -709,11 +709,13 @@ def main():
     log = app.log
     frame = app.frame
 
-    dlg = HyperTreeListPanel(frame)
-    # paicspanel.MarvinPanel(dlg, -1, 'marvin', log=self.getLog())
-    
-    
-
+    dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(600,600))
+    htl = HyperTreeList(dlg,-1)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer.Add(htl,1,wx.EXPAND)
+    dlg.SetSizer(sizer)
+    dlg.ShowModal()
+    dlg.Destroy()
     # app.MainLoop()
 
     try:
