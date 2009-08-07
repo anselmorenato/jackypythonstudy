@@ -665,3 +665,95 @@ wx.ART_QUESTION
 wx.ART_WARNING
 wx.ART_INFORMATION
 wx.ART_MISSING_IMAGE
+wx.ART_ADD_BOOKMARK
+wx.ART_DEL_BOOKMARK
+wx.ART_HELP_SIDE_PANEL
+wx.ART_HELP_SETTINGS
+wx.ART_HELP_BOOK
+wx.ART_HELP_FOLDER
+wx.ART_HELP_PAGE
+wx.ART_GO_BACK
+wx.ART_GO_FORWARD
+wx.ART_GO_UP
+wx.ART_GO_DOWN
+wx.ART_GO_TO_PARENT
+wx.ART_GO_HOME
+wx.ART_FILE_OPEN
+wx.ART_PRINT
+wx.ART_HELP
+wx.ART_TIP
+wx.ART_REPORT_VIEW
+wx.ART_LIST_VIEW
+wx.ART_NEW_DIR
+wx.ART_HARDDISK
+wx.ART_FLOPPY
+wx.ART_CDROM
+wx.ART_REMOVABLE
+wx.ART_FOLDER
+wx.ART_FOLDER_OPEN
+wx.ART_GO_DIR_UP
+wx.ART_EXECUTABLE_FILE
+wx.ART_NORMAL_FILE
+wx.ART_TICK_MARK
+wx.ART_CROSS_MARK
+wx.ART_ERROR
+wx.ART_QUESTION
+wx.ART_WARNING
+wx.ART_INFORMATION
+wx.ART_MISSING_IMAGE
+wx.ART_ADD_BOOKMARK
+wx.ART_DEL_BOOKMARK
+wx.ART_HELP_SIDE_PANEL
+wx.ART_HELP_SETTINGS
+wx.ART_HELP_BOOK
+wx.ART_HELP_FOLDER
+wx.ART_HELP_PAGE
+wx.ART_GO_BACK
+wx.ART_GO_FORWARD
+wx.ART_GO_UP
+wx.ART_GO_DOWN
+wx.ART_GO_TO_PARENT
+wx.ART_GO_HOME
+wx.ART_FILE_OPEN
+wx.ART_PRINT
+wx.ART_HELP
+wx.ART_TIP
+wx.ART_REPORT_VIEW
+wx.ART_LIST_VIEW
+wx.ART_NEW_DIR
+wx.ART_HARDDISK
+wx.ART_FLOPPY
+wx.ART_CDROM
+wx.ART_REMOVABLE
+wx.ART_FOLDER
+wx.ART_FOLDER_OPEN
+wx.ART_GO_DIR_UP
+wx.ART_EXECUTABLE_FILE
+wx.ART_NORMAL_FILE
+wx.ART_TICK_MARK
+wx.ART_CROSS_MARK
+wx.ART_ERROR
+wx.ART_QUESTION
+wx.ART_WARNING
+wx.ART_INFORMATION
+wx.ART_MISSING_IMAGE
+Traceback (most recent call last):
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 408, in <module>
+    main()
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 390, in main
+    remote = RemotePanel(dlg)
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 120, in __init__
+    self.CreateTreeList()
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 268, in CreateTreeList
+    self.AddTreeNodes(self.root,remote_configs['loacl'].items())
+KeyError: 'loacl'
+Traceback (most recent call last):
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 408, in <module>
+    main()
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 390, in main
+    remote = RemotePanel(dlg)
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 120, in __init__
+    self.CreateTreeList()
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 268, in CreateTreeList
+    self.AddTreeNodes(self.root,remote_configs['loacl'].items())
+KeyError: 'loacl'
