@@ -105,7 +105,7 @@ remote_configs = dict(
     vlsn = dict(),
     rccs = dict(),
 )
-choice =['vlsn','rccs','lacal','email','phcs']
+choice =['vlsn','rccs','local','email','phcs']
         
 class RemotePanel(wx.Panel):
     def __init__(self, parent):
@@ -117,8 +117,8 @@ class RemotePanel(wx.Panel):
         self.listbox.Bind(wx.EVT_LISTBOX_DCLICK, self.EvtListBoxDClick, self.listbox)
         self.listbox.Bind(wx.EVT_LISTBOX, self.EvtListBox, self.listbox)
         
-        self.tree = HyperTreeList(self)
-        self.root = self.tree.root
+        self.CreateTreeList()
+        #self.root = self.tree.root
         
         self.okBtn = wx.Button(self, -1, "Ok")
         self.cancelBtn = wx.Button(self, -1, "Cancel")
@@ -177,15 +177,15 @@ class RemotePanel(wx.Panel):
         self.mainsizer.Add(self.tree,0,wx.EXPAND,5)
         self.mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT, 5)
         
-
+        
         self.SetSizer(self.mainsizer)
         #mainsizer.Fit(self)
 
-        
-        
-        
-        
         self.mainsizer.Fit(parent)
+        
+        
+        
+        
         #self.SetAutoLayout(True)
 
         #sizer.SetSizeHints(self)
@@ -222,13 +222,91 @@ class RemotePanel(wx.Panel):
     def EvtListBox(self,event):
         '''
         '''
-        self.root = self.tree.SetItemText(self.tree.GetRootItem(),event.GetString()) 
+        #self.root = self.tree.SetItemText(self.tree.GetRootItem(),event.GetString())
+        self.AddTreeNodes(self.root,remote_configs[event.GetString()])
+        self.tree.Expand(self.root)
         
         #self.tree.SetItemText(self.tree.GetItemText(1),event.GetString())
         #item = self.tree.SetItemText(self.tree.GetFirstChild(),event.GetString())#event.GetString()
         #self.text = parent.GetParent().rightPanel.text
         #item = event.GetString()
+        
+    def CreateTreeList(self):
+        
+        
+        il = wx.ImageList(16, 16)
 
+        for items in ArtIDs[1:-1]:
+            #print items
+            bmp = wx.ArtProvider_GetBitmap(eval(items), wx.ART_TOOLBAR, (16, 16))
+            il.Add(bmp)
+
+        #smileidx = il.Add(images.Smiles.GetBitmap())
+        numicons = il.GetImageCount()
+         
+        # Create the tree
+        self.tree = wx.gizmos.TreeListCtrl(self, style =
+                                           wx.TR_DEFAULT_STYLE
+                                           )
+
+        # Give it the image list
+        self.tree.AssignImageList(il)
+
+
+        # create some columns
+        self.tree.AddColumn("Class Name")
+        self.tree.AddColumn("Description")
+        self.tree.SetMainColumn(0) # the one with the tree in it...
+        self.tree.SetColumnWidth(0, 100)
+        self.tree.SetColumnWidth(1, 100)
+        # Add a root node and assign it some images
+        self.root = self.tree.AddRoot("phcs")
+        self.tree.SetItemText(self.root, "A description of wx.Object", 1)
+        self.tree.SetItemImage(self.root, 24,
+                               which=wx.TreeItemIcon_Normal)
+        self.tree.SetItemImage(self.root, 13,
+                               which=wx.TreeItemIcon_Expanded)
+        
+    def AddTreeNodes(self,parentItem,items):
+        ''''''
+        self.root = parentItem
+        for item, val in items.items():
+                       
+            child = self.tree.AppendItem(self.root, item)
+
+            self.tree.SetPyData(child, None)
+            self.tree.SetItemText(child, item, 1)
+            self.tree.SetItemText(child, item + " (c2)", 2)
+            self.tree.SetItemImage(child, 24, which=wx.TreeItemIcon_Normal)
+            self.tree.SetItemImage(child, 13, which=wx.TreeItemIcon_Expanded)
+            
+        
+            if isinstance(val,dict):
+                for item2,val in items[item].items():
+                    
+                    
+                    child2 = self.tree.AppendItem(child, item2)
+                    self.tree.SetPyData(child2, None)
+                    self.tree.SetItemText(child2, item2[:-1], 1)
+                    self.tree.SetItemImage(child2, 24, which=wx.TreeItemIcon_Normal)
+                    self.tree.SetItemImage(child2, 13, which=wx.TreeItemIcon_Expanded)
+                    if isinstance(val,dict):
+                        '''                        
+                        for item3,val in remote_configs[item][item2].items():
+                            
+                            child3 = self.tree.AppendItem(child2,item3)
+                            
+                            self.tree.SetPyData(child3,None)
+                            self.tree.SetItemText(child3, item3[:-1], 1)
+                            self.tree.SetItemImage(child3, 24, which=wx.TreeItemIcon_Normal)
+                            self.tree.SetItemImage(child3, 13, which=wx.TreeItemIcon_Expanded)
+                            if isinstance(val,dict):
+                                for item4,val in remote_configs[item][item2][item3].items():
+                                    child4 = self.tree.AppendItem(child3,item4)
+                                    self.tree.SetPyData(child4,None)
+                                    self.tree.SetItemText(child4, item4[:-1], 1)
+                                    '''
+'''
 class HyperTreeList(HTL.HyperTreeList):
 
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
@@ -302,7 +380,7 @@ class HyperTreeList(HTL.HyperTreeList):
                                     child4 = self.AppendItem(child3,item4)
                                     self.SetPyData(child4,None)
                                     self.SetItemText(child4, item4[:-1], 1)
-                                
+'''                                
                         
 def main():
     import nagaratest
