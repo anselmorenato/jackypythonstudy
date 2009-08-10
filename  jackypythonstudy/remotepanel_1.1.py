@@ -105,7 +105,7 @@ remote_configs = dict(
     vlsn = dict(),
     rccs = dict(),
 )
-choice =['vlsn','rccs','local','email','phcs']
+choice =['vlsn','rccs','local','email','hpcs']
         
 class RemotePanel(wx.Panel):
     def __init__(self, parent):
@@ -140,9 +140,9 @@ class RemotePanel(wx.Panel):
         self.b4.SetDefault()
         self.b4.SetSize(self.b4.GetBestSize())
         
-        #self.Dolayout()
+        self.Dolayout()
         
-    #def Dolayout(self):
+    def Dolayout(self):
         # create the mainsizer      
         self.mainsizer = wx.BoxSizer(wx.VERTICAL)
         # top sizer has two subsizer
@@ -181,7 +181,7 @@ class RemotePanel(wx.Panel):
         self.SetSizer(self.mainsizer)
         #mainsizer.Fit(self)
 
-        self.mainsizer.Fit(parent)
+        self.mainsizer.Fit(self)
         
         
         
@@ -197,11 +197,14 @@ class RemotePanel(wx.Panel):
     def OnClick(self, event): pass
 
     def OnCancel(self,event):
-        self.Close(True)
+        self.GetParent().Destroy()
     
     #----------------------------------------------------------------------
     def OnAddNewListItem(self,event):
-        self.listbox.Insert('new',5)
+        dlg = wx.TextEntryDialog(self,'Please enter the item name you want to add!','Add the new item','new')
+        if dlg.ShowModal()== wx.ID_OK:
+            self.listbox.Insert(dlg.GetValue(),0)
+        dlg.Destroy()
         
     def OnEditListItem(self,event):
         pass
@@ -220,16 +223,14 @@ class RemotePanel(wx.Panel):
             dlg.Show()
             event.Skip()
     def EvtListBox(self,event):
-        '''
-        '''
-        #self.root = self.tree.SetItemText(self.tree.GetRootItem(),event.GetString())
-        self.AddTreeNodes(self.root,remote_configs[event.GetString()])
-        self.tree.Expand(self.root)
+        #change the ItemText of root
+        self.tree.SetItemText(self.tree.GetRootItem(),event.GetString())
         
-        #self.tree.SetItemText(self.tree.GetItemText(1),event.GetString())
-        #item = self.tree.SetItemText(self.tree.GetFirstChild(),event.GetString())#event.GetString()
-        #self.text = parent.GetParent().rightPanel.text
-        #item = event.GetString()
+        if self.tree.HasChildren(self.root)==True:
+            self.tree.DeleteChildren(self.root)
+        elif remote_configs.has_key(event.GetString())==True and type(remote_configs[event.GetString()])==dict:
+            self.AddTreeNodes(self.root,remote_configs[event.GetString()])
+            self.tree.Expand(self.root)
         
     def CreateTreeList(self):
         
@@ -257,24 +258,27 @@ class RemotePanel(wx.Panel):
         self.tree.AddColumn("Class Name")
         self.tree.AddColumn("Description")
         self.tree.SetMainColumn(0) # the one with the tree in it...
-        self.tree.SetColumnWidth(0, 100)
-        self.tree.SetColumnWidth(1, 100)
+        self.tree.SetColumnWidth(0, 150)
+        self.tree.SetColumnWidth(1, 150)
         # Add a root node and assign it some images
-        self.root = self.tree.AddRoot("phcs")
+        self.root = self.tree.AddRoot("vlsn")
         self.tree.SetItemText(self.root, "A description of wx.Object", 1)
         self.tree.SetItemImage(self.root, 24,
                                which=wx.TreeItemIcon_Normal)
         self.tree.SetItemImage(self.root, 13,
                                which=wx.TreeItemIcon_Expanded)
         
+        
     def AddTreeNodes(self,parentItem,items):
-        ''''''
+        '''
+        Add the item on root
+        '''
         self.root = parentItem
         for item, val in items.items():
                        
             child = self.tree.AppendItem(self.root, item)
 
-            self.tree.SetPyData(child, None)
+            #self.tree.SetPyData(child, None)
             self.tree.SetItemText(child, item, 1)
             self.tree.SetItemText(child, item + " (c2)", 2)
             self.tree.SetItemImage(child, 24, which=wx.TreeItemIcon_Normal)
@@ -286,26 +290,26 @@ class RemotePanel(wx.Panel):
                     
                     
                     child2 = self.tree.AppendItem(child, item2)
-                    self.tree.SetPyData(child2, None)
+                    #self.tree.SetPyData(child2, None)
                     self.tree.SetItemText(child2, item2[:-1], 1)
                     self.tree.SetItemImage(child2, 24, which=wx.TreeItemIcon_Normal)
                     self.tree.SetItemImage(child2, 13, which=wx.TreeItemIcon_Expanded)
                     if isinstance(val,dict):
-                        '''                        
-                        for item3,val in remote_configs[item][item2].items():
+                                                
+                        for item3,val in items[item][item2].items():
                             
                             child3 = self.tree.AppendItem(child2,item3)
                             
-                            self.tree.SetPyData(child3,None)
+                            #self.tree.SetPyData(child3,None)
                             self.tree.SetItemText(child3, item3[:-1], 1)
                             self.tree.SetItemImage(child3, 24, which=wx.TreeItemIcon_Normal)
                             self.tree.SetItemImage(child3, 13, which=wx.TreeItemIcon_Expanded)
                             if isinstance(val,dict):
-                                for item4,val in remote_configs[item][item2][item3].items():
+                                for item4,val in items[item][item2][item3].items():
                                     child4 = self.tree.AppendItem(child3,item4)
                                     self.tree.SetPyData(child4,None)
                                     self.tree.SetItemText(child4, item4[:-1], 1)
-                                    '''
+                                    
 '''
 class HyperTreeList(HTL.HyperTreeList):
 

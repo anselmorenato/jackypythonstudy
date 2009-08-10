@@ -757,3 +757,15 @@ Traceback (most recent call last):
   File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 268, in CreateTreeList
     self.AddTreeNodes(self.root,remote_configs['loacl'].items())
 KeyError: 'loacl'
+Traceback (most recent call last):
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 414, in <module>
+    main()
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 396, in main
+    remote = RemotePanel(dlg)
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 120, in __init__
+    self.CreateTreeList()
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 269, in CreateTreeList
+    self.AddTreeNodes(self.root,remote_configs["hpcs"])
+  File "C:\Documents and Settings\Jacky\My Documents\googlecode\remotepanel_1.1.py", line 299, in AddTreeNodes
+    for item3,val in remote_configs[item][item2].items():
+KeyError: 'jms'
