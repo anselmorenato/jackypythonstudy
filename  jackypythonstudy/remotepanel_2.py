@@ -42,7 +42,7 @@ ArtIDs = [ "None",
            "SmileBitmap"
            ]
 class RemotePanel(wx.Panel):
-    def __init__(self, parent,id,size):
+    def __init__(self, parent):
         wx.Panel.__init__(self,parent,-1,size=(500,500))
         
         #splitter = wx.SplitterWindow(self, -1, style=wx.SPLIT_VERTICAL| wx.SP_3D)
@@ -103,14 +103,15 @@ class RemotePanel(wx.Panel):
         #mainsizer.Add((5,20),wx.EXPAND,5)
         mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
         #mainsizer.Add((5,20),wx.EXPAND,5)
-        mainsizer.Add(tree,1,wx.EXPAND,5)
+        mainsizer.Add(tree,1,wx.EXPAND)
         mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT, 5)
         
         
         self.SetSizer(mainsizer)
-        mainsizer.Fit(self)
-        mainsizer.SetSizeHints(self)
-        mainsizer.Layout()
+        #mainsizer.Fit(self)
+        #mainsizer.SetSizeHints(self)
+        #mainsizer.Layout()
+        #self.SetAutoLayout(True)
         
     def OnClick(self, event): pass
     def OnCancel(self,event):
@@ -127,26 +128,7 @@ class RemotePanel(wx.Panel):
             dlg.Show()
             event.Skip()
         
-    '''        
-class HyperTreeListPanel(wx.Panel):
-    """This is a HyperTreeListPanel"""
-       
-    #----------------------------------------------------------------------
-    def __init__(self,parent):
-        """Constructor"""   
-        wx.Panel.__init__(self,parent,-1)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        # Create the HyperTreeList
-        tree = HyperTreeList(self,-1)
-        #tree.Bind(wx.EVT_RIGHT_DOWN, HyperTreeList.OnRightUp, tree)
-        sizer.Add(tree,0,wx.EXPAND)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-        sizer.SetSizeHints(self)
-        sizer.Layout()
-        
-    '''        
-        
+
 class HyperTreeList(HTL.HyperTreeList):
 
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
@@ -323,9 +305,14 @@ def main():
     
     dlg = wx.Dialog(None, -1, title='Amber Dialog',size =(600,500))
     # paicspanel.MarvinPanel(dlg, -1, 'marvin', log=self.getLog())
-    RemotePanel(dlg,-1,size=(500,500))
+    remote = RemotePanel(dlg)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+        
+    sizer.Add(remote,1,wx.EXPAND)
+    dlg.SetSizer(sizer)
+    #sizer.Fit(remote)
     dlg.ShowModal()
-    dlg.SetSize(dlg.GetBestSize())
+    #dlg.SetSize(dlg.GetBestSize())
     dlg.Destroy()
 
     # app.MainLoop()
