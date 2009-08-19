@@ -159,18 +159,18 @@ class RemotePanel(wx.Panel):
         sizer_1_bt.Add(self.b2,0,wx.EXPAND|wx.ALL)
         sizer_1_bt.Add(self.b3,0,wx.EXPAND|wx.ALL)
         sizer_1_bt.Add(self.b4,0,wx.EXPAND|wx.ALL)
-        sizer_1.Add((80,-1))
+        sizer_1.Add((150,-1))
         sizer_1.Add(sizer_1_bt,0,wx.EXPAND|wx.ALL,5)
 
         sizer_2.Add(self.okBtn,0,wx.ALIGN_RIGHT)
         sizer_2.Add(self.cancelBtn,0,wx.ALIGN_RIGHT)
 
         self.mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
-        self.mainsizer.Add(self.tree,1,wx.EXPAND)
+        self.mainsizer.Add(self.tree,3,wx.EXPAND)
         self.mainsizer.Add(sizer_2,0,wx.ALIGN_BOTTOM|wx.ALIGN_RIGHT)
 
         self.SetSizer(self.mainsizer)
-        #self.mainsizer.Fit(self)
+        self.mainsizer.Fit(self.GetParent())
         #self.SetAutoLayout(True)
         #self.mainsizer.SetSizeHints(self)
     def initBind(self):
@@ -194,10 +194,16 @@ class RemotePanel(wx.Panel):
     def OnAddNewListItem(self,event):
         dlg = wx.TextEntryDialog(self,'Please enter the item name you want to add!','Add the new item','new')
         if dlg.ShowModal()== wx.ID_OK:
-            self.listbox.Insert(dlg.GetValue(),0)
+            self.listbox.Insert(dlg.GetValue(),self.listbox.GetSelection())
         dlg.Destroy()
     def OnEditListItem(self,event):
-        pass
+        selection = self.listbox.GetSelection()
+        dlg = wx.TextEntryDialog(self,'Please enter the item name you want to Edit!','Edit the item',self.listbox.GetString(selection))
+        if dlg.ShowModal()== wx.ID_OK:
+            
+            self.listbox.Insert(dlg.GetValue(),selection)
+            self.listbox.Delete(selection+1)
+        dlg.Destroy()
     def OnCopyListItem(self,event):
         pass
     def OnDeleteListItem(self,event):
@@ -207,11 +213,11 @@ class RemotePanel(wx.Panel):
         """"""
         lb = event.GetEventObject()
         tag = lb.GetSelection()
-        if tag == 2:
-            import settingdlg
-            dlg = settingdlg.SettingDialog(None,-1)
-            dlg.Show()
-            event.Skip()
+    
+        import settingdlg
+        dlg = settingdlg.SettingDialog(None,-1)
+        dlg.Show()
+        event.Skip()
     def EvtListBox(self,event):
         #change the ItemText of root
         self.tree.SetItemText(self.tree.GetRootItem(),event.GetString())
@@ -242,21 +248,20 @@ class RemotePanel(wx.Panel):
         # make a menu
         menu = wx.Menu()
         # Show how to put an icon in the menu
-        item = wx.MenuItem(menu, self.popupID1,"One")
+        item = wx.MenuItem(menu, self.popupID1,"New")
         #bmp = images.Smiles.GetBitmap()
         #item.SetBitmap(bmp)
         menu.AppendItem(item)
         # add some other items
-        menu.Append(self.popupID2, "Two")
-        menu.Append(self.popupID3, "Three")
-        menu.Append(self.popupID4, "Four")
-        menu.Append(self.popupID5, "Five")
-        menu.Append(self.popupID6, "Six")
+        menu.Append(self.popupID2, "Edit")
+        menu.Append(self.popupID3, "Copy")
+        menu.Append(self.popupID4, "Delete")
+        
         # make a submenu
-        sm = wx.Menu()
-        sm.Append(self.popupID8, "sub item 1")
-        sm.Append(self.popupID9, "sub item 1")
-        menu.AppendMenu(self.popupID7, "Test Submenu", sm)
+        # sm = wx.Menu()
+        # sm.Append(self.popupID8, "sub item 1")
+        # sm.Append(self.popupID9, "sub item 1")
+        # menu.AppendMenu(self.popupID7, "Test Submenu", sm)
 
 
         # Popup the menu.  If an item is selected then its handler
