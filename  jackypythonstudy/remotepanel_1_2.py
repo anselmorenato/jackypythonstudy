@@ -191,24 +191,43 @@ class RemotePanel(wx.Panel):
         self.GetParent().Close(True)
     
     #----------------------------------------------------------------------
+    # Create the event hander for Edit Buttons
     def OnAddNewListItem(self,event):
+        selection = self.listbox.GetSelection()
         dlg = wx.TextEntryDialog(self,'Please enter the item name you want to add!','Add the new item','new')
         if dlg.ShowModal()== wx.ID_OK:
             self.listbox.Insert(dlg.GetValue(),self.listbox.GetSelection())
+            self.listbox.Select(selection)
         dlg.Destroy()
     def OnEditListItem(self,event):
         selection = self.listbox.GetSelection()
-        dlg = wx.TextEntryDialog(self,'Please enter the item name you want to Edit!','Edit the item',self.listbox.GetString(selection))
-        if dlg.ShowModal()== wx.ID_OK:
-            
-            self.listbox.Insert(dlg.GetValue(),selection)
-            self.listbox.Delete(selection+1)
+        if self.listbox.FindFocus()==False:
+            dlg = wx.MessageDialog(self,'Error! No item is selected!','Error',style = wx.OK|wx.ICON_ERROR)
+            dlg.ShowModal()
+        else:
+            dlg = wx.TextEntryDialog(self,'Please enter the new item name!',' The Item Edit')
+            if dlg.ShowModal()== wx.ID_OK:
+                selection=selection
+                try:
+                    self.listbox.Insert(dlg.GetValue(),selection)
+                    self.listbox.Delete(selection+1)
+                    self.listbox.Select(selection)
+                except:
+                    dlg = wx.MessageDialog(self,'Error! No item is selected!','Error',style = wx.OK|wx.ICON_ERROR)
+                    dlg.Destroy()
         dlg.Destroy()
     def OnCopyListItem(self,event):
-        pass
+        selection = self.listbox.GetSelection()
+        self.listbox.Insert(self.listbox.GetString(selection),selection)
+        self.listbox.Select(selection)
     def OnDeleteListItem(self,event):
-        pass
-    
+        selection = self.listbox.GetSelection()
+        dlg =wx.MessageDialog(self,'Do you real want to delete this item?','The Item Delete',style = wx.OK|wx.CANCEL|wx.ICON_WARNING)
+        if dlg.ShowModal()== wx.ID_OK:
+            self.listbox.Delete(selection)
+            self.listbox.Select(selection)
+            
+    # Create the event handers for listbox
     def EvtListBoxDClick(self,event):
         """"""
         lb = event.GetEventObject()
@@ -240,11 +259,11 @@ class RemotePanel(wx.Panel):
         self.popupID2 = wx.NewId()
         self.popupID3 = wx.NewId()
         self.popupID4 = wx.NewId()
-        self.popupID5 = wx.NewId()
-        self.popupID6 = wx.NewId()
-        self.popupID7 = wx.NewId()
-        self.popupID8 = wx.NewId()
-        self.popupID9 = wx.NewId()
+        
+        self.Bind(wx.EVT_MENU, self.OnAddNewListItem, id=self.popupID1)
+        self.Bind(wx.EVT_MENU, self.OnEditListItem, id=self.popupID2)
+        self.Bind(wx.EVT_MENU, self.OnCopyListItem, id=self.popupID3)
+        self.Bind(wx.EVT_MENU, self.OnDeleteListItem, id=self.popupID4)
         # make a menu
         menu = wx.Menu()
         # Show how to put an icon in the menu
