@@ -6,7 +6,7 @@ class SettingDialog(wx.Frame):
     """"""
 
     #----------------------------------------------------------------------
-    def __init__(self, parent, id):
+    def __init__(self,parent,id,selection):
         wx.Frame.__init__(self,parent,-1,'Setting Dialog',size=(-1,-1))
         
         panel = wx.Panel(self)
@@ -19,18 +19,28 @@ class SettingDialog(wx.Frame):
                              #wx.BK_RIGHT
                              # | wx.NB_MULTILINE
                              )
-        
+       
         win = SshSetPanel(nb)
         nb.AddPage(win, "SSH")
        
         win = PathSetPanel(nb)
         nb.AddPage(win, "Path")
         
+        win = wx.Panel(nb)
+        nb.AddPage(win,"Jims")
+        
+        win = wx.Panel(nb)
+        nb.AddPage(win,"Command")
+        
+        nb.SetSelection(min(selection,nb.GetPageCount()-1)) # the selection must smaller than pagecount.
         self.CenterOnParent()
         self.SetMinSize((300,250))
         
-        self.okBtn = wx.Button(panel, -1, "Ok")
-        self.cancelBtn = wx.Button(panel, -1, "Cancel")
+        self.okBtn = wx.Button(panel, wx.ID_OK, "Ok")
+        self.cancelBtn = wx.Button(panel, wx.ID_CANCEL, "Cancel")
+        
+        self.Bind(wx.EVT_BUTTON,self.OnOk,self.okBtn)
+        self.Bind(wx.EVT_BUTTON,self.OnCanel,self.cancelBtn)
         
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add(self.okBtn,0,wx.ALIGN_RIGHT,5)
@@ -62,7 +72,7 @@ class SshSetPanel(wx.Panel):
         self.userLbl = wx.StaticText(self, -1, "User:")
         self.user = wx.TextCtrl(self, -1, "");
         self.passLbl = wx.StaticText(self, -1, "Password:")
-        self.password = wx.TextCtrl(self, -1, "");
+        self.password = wx.TextCtrl(self, -1, "",style =wx.PASSWORD);
         #self.okBtn = wx.Button(self, -1, "Save")
         #self.cancelBtn = wx.Button(self, -1, "Cancel")
         self.Dolayout()
@@ -136,6 +146,6 @@ class PathSetPanel(wx.Panel):
 if __name__ =='__main__':
 
     app = wx.App()
-    frame = SettingDialog(None,-1)
+    frame = SettingDialog(None,-1,selection = 0)
     frame.Show()
     app.MainLoop()

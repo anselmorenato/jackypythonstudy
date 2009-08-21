@@ -168,10 +168,11 @@ class RemotePanel(wx.Panel):
         self.mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
         self.mainsizer.Add(self.tree,3,wx.EXPAND)
         self.mainsizer.Add(sizer_2,0,wx.ALIGN_BOTTOM|wx.ALIGN_RIGHT)
-
+        
         self.SetSizer(self.mainsizer)
+        self.SetAutoLayout(True)
         self.mainsizer.Fit(self.GetParent())
-        #self.SetAutoLayout(True)
+        
         #self.mainsizer.SetSizeHints(self)
     def initBind(self):
         # show a dialog by double click
@@ -196,13 +197,17 @@ class RemotePanel(wx.Panel):
         selection = self.listbox.GetSelection()
         dlg = wx.TextEntryDialog(self,'Please enter the item name you want to add!','Add the new item','new')
         if dlg.ShowModal()== wx.ID_OK:
-            self.listbox.Insert(dlg.GetValue(),self.listbox.GetSelection())
-            self.listbox.Select(selection)
+            if selection ==-1: # If all items had deleted,the selection == -1
+                self.listbox.Insert(dlg.GetValue(),selection+1)
+                self.listbox.Select(selection+1)
+            else:
+                self.listbox.Insert(dlg.GetValue(),selection)
+                self.listbox.Select(selection)
         dlg.Destroy()
     def OnEditListItem(self,event):
         selection = self.listbox.GetSelection()
         
-        if selection == -1:
+        if selection == -1: # If no item selected, the selection == -1
             dlg = wx.MessageDialog(self,'Error! No item is selected!','Error',style = wx.OK|wx.ICON_ERROR)
             dlg.ShowModal()
         else:
@@ -218,20 +223,25 @@ class RemotePanel(wx.Panel):
         self.listbox.Insert(self.listbox.GetString(selection),selection)
         self.listbox.Select(selection)
     def OnDeleteListItem(self,event):
-        selection = self.listbox.GetSelection()
+        selection = max(0,self.listbox.GetSelection())
+        if selection > self.listbox.GetCount():
+            selection = selection-1
         dlg =wx.MessageDialog(self,'Do you real want to delete this item?','The Item Delete',style = wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if dlg.ShowModal()== wx.ID_OK:
             self.listbox.Delete(selection)
-            self.listbox.Select(selection)
+            if selection+1 > self.listbox.GetCount():
+                self.listbox.Select(selection-1)
+            else:
+                self.listbox.Select(selection)
             
     # Create the event handers for listbox
     def EvtListBoxDClick(self,event):
         """"""
         lb = event.GetEventObject()
-        tag = lb.GetSelection()
+        selection = lb.GetSelection()
     
         import settingdlg
-        dlg = settingdlg.SettingDialog(None,-1)
+        dlg = settingdlg.SettingDialog(None,-1,selection=selection)
         dlg.Show()
         event.Skip()
     def EvtListBox(self,event):
