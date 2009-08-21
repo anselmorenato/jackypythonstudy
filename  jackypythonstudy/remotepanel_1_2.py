@@ -201,21 +201,18 @@ class RemotePanel(wx.Panel):
         dlg.Destroy()
     def OnEditListItem(self,event):
         selection = self.listbox.GetSelection()
-        if self.listbox.FindFocus()==False:
+        
+        if selection == -1:
             dlg = wx.MessageDialog(self,'Error! No item is selected!','Error',style = wx.OK|wx.ICON_ERROR)
             dlg.ShowModal()
         else:
-            dlg = wx.TextEntryDialog(self,'Please enter the new item name!',' The Item Edit')
+            dlg = wx.TextEntryDialog(self,'Please enter the new item name!',' The Item Edit',self.listbox.GetString(selection))
             if dlg.ShowModal()== wx.ID_OK:
-                selection=selection
-                try:
-                    self.listbox.Insert(dlg.GetValue(),selection)
-                    self.listbox.Delete(selection+1)
-                    self.listbox.Select(selection)
-                except:
-                    dlg = wx.MessageDialog(self,'Error! No item is selected!','Error',style = wx.OK|wx.ICON_ERROR)
-                    dlg.Destroy()
-        dlg.Destroy()
+                self.listbox.SetString(selection, dlg.GetValue()) 
+                #self.listbox.Insert(dlg.GetValue(),selection)
+                #self.listbox.Delete(selection+1)
+                self.listbox.Select(selection)
+                dlg.Destroy()
     def OnCopyListItem(self,event):
         selection = self.listbox.GetSelection()
         self.listbox.Insert(self.listbox.GetString(selection),selection)
