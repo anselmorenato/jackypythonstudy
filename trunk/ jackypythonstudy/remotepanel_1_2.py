@@ -2,6 +2,8 @@
 import wx
 #import htlpanel 
 import wx.lib.agw.hypertreelist as HTL
+from modules import dict4ini as d4i
+
 ArtIDs = [ "None",
            "wx.ART_ADD_BOOKMARK",
            "wx.ART_DEL_BOOKMARK",
@@ -41,6 +43,9 @@ ArtIDs = [ "None",
            "wx.ART_MISSING_IMAGE",
            "SmileBitmap"
            ]
+remote_configs = d4i.DictIni('remote_config.ini')
+
+'''
 remote_configs = dict(
     # email = 'ishikura@gifu-u.ac.jp',
     local = dict(
@@ -105,6 +110,7 @@ remote_configs = dict(
     vlsn = dict(),
     rccs = dict(),
 )
+'''
 choice =remote_configs.keys() #['vlsn','rccs','local','email','hpcs']
         
 class RemotePanel(wx.Panel):
