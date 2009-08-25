@@ -6,8 +6,9 @@ class SettingDialog(wx.Frame):
     """"""
 
     #----------------------------------------------------------------------
-    def __init__(self,parent,id,selection):
+    def __init__(self,parent,id,selection,target):
         wx.Frame.__init__(self,parent,-1,'Setting Dialog',size=(-1,-1))
+        self.target = target
 
         panel = wx.Panel(self)
         #panel.SetBackgroundColour('white')
@@ -20,19 +21,19 @@ class SettingDialog(wx.Frame):
                          # | wx.NB_MULTILINE
                          )
 
-        win = SshSetPanel(nb)
-        nb.AddPage(win, "SSH")
+        self.ssh = SshSetPanel(nb)
+        nb.AddPage(self.ssh, "SSH")
 
-        win = PathSetPanel(nb)
-        nb.AddPage(win, "Path")
+        self.path = PathSetPanel(nb)
+        nb.AddPage(self.path, "Path")
 
-        win = wx.Panel(nb)
-        nb.AddPage(win,"Jims")
+        self.jms = wx.Panel(nb)
+        nb.AddPage(self.jms,"Jms")
 
-        win = wx.Panel(nb)
-        nb.AddPage(win,"Command")
+        self.command = wx.Panel(nb)
+        nb.AddPage(self.command,"Command")
 
-        nb.SetSelection(min(selection,nb.GetPageCount()-1)) # the selection must smaller than pagecount.
+        #nb.SetSelection(min(selection,nb.GetPageCount()-1)) # the selection must smaller than pagecount.
         self.CenterOnParent()
         self.SetMinSize((300,250))
 
@@ -55,73 +56,15 @@ class SettingDialog(wx.Frame):
         mainsizer.Fit(panel)
         mainsizer.SetSizeHints(panel)
     def OnOk(self,event):
+        target = self.target
         from modules import dict4ini as d4i
         rec = d4i.DictIni('remote_config.ini')
+        if target == 'vlsn':
+            rec.remote_configs.vlsn.ssh.address = self.ssh.host.GetValue()
+            rec.remote_configs.vlsn.ssh.port = self.ssh.port.GetValue()
+            rec.remote_configs.vlsn.ssh.user = self.ssh.user.GetValue()
+            rec.remote_configs.vlsn.ssh.passwd = self.ssh.passwd.GetValue()
         
-        rec.remote_configs = dict(
-    # email = 'ishikura@gifu-u.ac.jp',
-    local = dict(
-        ssh = {},
-        rootdir = 'C:\path\to\nagara-root',
-        workdir = '',
-        jms = dict(
-            Single = dict(
-                envs = {},
-                path = {},
-            ),
-            MultiProcess = dict(
-            ),
-        ),
-        commands = {},
-    ),
-    hpcs = dict(
-        ssh = dict(
-            address = '133.66.117.139',
-            user = 'ishikura',
-            passwd = '*********',
-            port = 22,
-        ),
-        rootdir = '/home/ishikura/Nagara/projects',
-        workdir = '/work/ishikura',
-        # jms = ['Single', 'MPI', 'LSF'], #Local
-        jms = dict(
-            Single = dict(
-                envs = {},
-                path = {},
-            ),
-            MPI = dict(
-                envs = {},
-                path = {},
-            ),
-            LSF = dict(
-                envs = {},
-                path = {},
-                script = {},
-            ),
-        ),
-        commands = dict(
-            amber = dict(
-                # envs = dict(AMBERHOME = '/home/hpc/opt/amber10.eth'),
-                # path = '/home/hpcs/opt/amber10.eth/exe/sander.MPI',
-                envs = dict(AMBERHOME = '/home/ishikura/opt/amber10.eth'),
-                path = '/home/ishikura/opt/amber10.eth/exe/sander.MPI',
-            ),
-            marvin = dict(
-                envs = {},
-                # path = '/home/hpcs/Nagara/app/bin/marvin',
-                path = '/home/ishikura/Nagara/app/bin/marvin',
-            ),
-            paics = dict(
-                # envs = dict(PAICS_HOME='/home/ishi/paics/paics-20081214'),
-                # path = '/home/ishi/paics/paics-20081214/main.exe',
-                envs = dict(PAICS_HOME='/home/ishi/paics/paics-20081214'),
-                path = '/home/ishi/paics/paics-20081214/main.exe',
-            ),
-        ),
-    ),
-    vlsn = dict(),
-    rccs = dict(),
-)
         #pass
         rec.save()
         
@@ -144,7 +87,7 @@ class SshSetPanel(wx.Panel):
         self.userLbl = wx.StaticText(self, -1, "User:")
         self.user = wx.TextCtrl(self, -1, "");
         self.passLbl = wx.StaticText(self, -1, "Password:")
-        self.password = wx.TextCtrl(self, -1, "",style =wx.PASSWORD);
+        self.passwd = wx.TextCtrl(self, -1, "",style =wx.PASSWORD);
         #self.okBtn = wx.Button(self, -1, "Save")
         #self.cancelBtn = wx.Button(self, -1, "Cancel")
         self.Dolayout()
@@ -167,7 +110,7 @@ class SshSetPanel(wx.Panel):
 
         fgsizer.Add(self.passLbl, 0,
                     wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        fgsizer.Add(self.password,0,wx.EXPAND)
+        fgsizer.Add(self.passwd,0,wx.EXPAND)
         #btsizer = wx.BoxSizer(wx.HORIZONTAL)
         #btsizer.Add(self.okBtn,-1,wx.ALIGN_RIGHT)
         #btsizer.Add(self.cancelBtn,-1,wx.ALIGN_RIGHT)
