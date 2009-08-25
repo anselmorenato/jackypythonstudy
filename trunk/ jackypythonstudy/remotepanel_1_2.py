@@ -43,7 +43,7 @@ ArtIDs = [ "None",
            "wx.ART_MISSING_IMAGE",
            "SmileBitmap"
            ]
-remote_configs = d4i.DictIni('remote_config.ini').remote_configs
+remote_configs = d4i.DictIni('remote_config.ini').remote_configs._items
 
 '''
 remote_configs = dict(
@@ -245,9 +245,11 @@ class RemotePanel(wx.Panel):
         """"""
         lb = event.GetEventObject()
         selection = lb.GetSelection()
+        sel_string = event.GetString()
+        
     
         import settingdlg
-        dlg = settingdlg.SettingDialog(None,-1,selection=selection)
+        dlg = settingdlg.SettingDialog(None,-1,selection=selection,target = sel_string)
         dlg.Show()
         event.Skip()
     def EvtListBox(self,event):
@@ -263,7 +265,7 @@ class RemotePanel(wx.Panel):
             self.tree.SetItemText(self.tree.GetRootItem(),event.GetString(),1)
         
         if self.tree.HasChildren(self.tree.GetRootItem())==True:
-            #self.tree.DeleteChildren(self.tree.GetRootItem())
+            self.tree.DeleteChildren(self.tree.GetRootItem())
             if remote_configs.has_key(event.GetString())==True and type(remote_configs[event.GetString()])==dict:
                 self.AddTreeNodes(self.tree.GetRootItem(),remote_configs[event.GetString()])
                 self.tree.Expand(self.tree.GetRootItem())
@@ -340,8 +342,7 @@ class RemotePanel(wx.Panel):
         ''''''
         self.root = parentItem
         for item, val in items.items():
-            print item
-            
+                        
             if not isinstance(val,dict):                      
                 self.child = self.tree.AppendItem(parentItem, item)
                 #self.tree.SetPyData(child, None)
