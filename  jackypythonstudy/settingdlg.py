@@ -58,7 +58,7 @@ class SettingDialog(wx.Frame):
         from modules import dict4ini as d4i
         rec = d4i.DictIni('remote_config.ini')
         
-        rec.local.ssh = remote_configs = dict(
+        rec.remote_configs = dict(
     # email = 'ishikura@gifu-u.ac.jp',
     local = dict(
         ssh = {},
