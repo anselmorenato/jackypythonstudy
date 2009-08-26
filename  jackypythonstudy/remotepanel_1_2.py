@@ -256,7 +256,7 @@ class RemotePanel(wx.Panel):
         #change the ItemText of root
         _root = self.tree.GetRootItem()
         _str = event.GetString()
-        _item = remote_configs[_str]
+        _item = remote_configs[str(_str)]
         self.tree.SetItemText(_root,_str)
         #self.AddTreeNodes(self.tree.GetRootItem(),remote_configs[event.GetString()])
         if remote_configs.has_key(event.GetString())==True and type(remote_configs[event.GetString()])==str:
@@ -333,10 +333,13 @@ class RemotePanel(wx.Panel):
         self.tree.SetColumnWidth(0, 200)
         self.tree.SetColumnWidth(1, 300)
         # Add a root node and assign it some images
-        self.root = self.tree.AddRoot("vlsn")
+        self.root = self.tree.AddRoot("local")
+        self.AddTreeNodes(self.root, remote_configs['local'])
+        self.tree.ExpandAll(self.root)
         self.tree.SetItemText(self.root, "Description", 1)
         #self.tree.SetItemImage(self.root, 24,which=wx.TreeItemIcon_Normal)
         #self.tree.SetItemImage(self.root, 13,which=wx.TreeItemIcon_Expanded)
+        
         
     def AddTreeNodes(self,parentItem,items):
         ''''''
@@ -347,8 +350,8 @@ class RemotePanel(wx.Panel):
                 self.child = self.tree.AppendItem(parentItem, item)
                 #self.tree.SetPyData(child, None)
                 #self.tree.SetItemText(child, item, 1)
-                if type(val)==str:
-                    self.tree.SetItemText(self.child,  val, 1)
+                #if type(val)==str:
+                self.tree.SetItemText(self.child,str(val), 1)
                 #self.tree.SetItemText(self.child, item + " (c2)", 1)
                 #self.tree.SetItemImage(self.child, 24, which=wx.TreeItemIcon_Normal)
                 #self.tree.SetItemImage(self.child, 13, which=wx.TreeItemIcon_Expanded)

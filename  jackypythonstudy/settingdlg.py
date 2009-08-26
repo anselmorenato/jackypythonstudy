@@ -12,7 +12,7 @@ class SettingDialog(wx.Frame):
 
         panel = wx.Panel(self)
         #panel.SetBackgroundColour('white')
-        nb = wx.Notebook(panel, id, size=(21,21), style=
+        self.nb = wx.Notebook(panel, id, size=(21,21), style=
                          wx.BK_DEFAULT
                          #wx.BK_TOP 
                          #wx.BK_BOTTOM
@@ -21,19 +21,19 @@ class SettingDialog(wx.Frame):
                          # | wx.NB_MULTILINE
                          )
 
-        self.ssh = SshSetPanel(nb)
-        nb.AddPage(self.ssh, "SSH")
+        self.ssh = SshSetPanel(self.nb)
+        self.nb.AddPage(self.ssh, "SSH")
 
-        self.path = PathSetPanel(nb)
-        nb.AddPage(self.path, "Path")
+        self.path = PathSetPanel(self.nb)
+        self.nb.AddPage(self.path, "Path")
 
-        self.jms = wx.Panel(nb)
-        nb.AddPage(self.jms,"Jms")
+        self.jms = wx.Panel(self.nb)
+        self.nb.AddPage(self.jms,"Jms")
 
-        self.command = wx.Panel(nb)
-        nb.AddPage(self.command,"Command")
+        self.command = wx.Panel(self.nb)
+        self.nb.AddPage(self.command,"Command")
 
-        #nb.SetSelection(min(selection,nb.GetPageCount()-1)) # the selection must smaller than pagecount.
+        #self.nb.SetSelection(min(selection,self.nb.GetPageCount()-1)) # the selection must smaller than pagecount.
         self.CenterOnParent()
         self.SetMinSize((300,250))
 
@@ -49,7 +49,7 @@ class SettingDialog(wx.Frame):
 
 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
-        mainsizer.Add(nb,1,wx.EXPAND,5)
+        mainsizer.Add(self.nb,1,wx.EXPAND,5)
         mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT,5)
 
         panel.SetSizer(mainsizer)
@@ -57,16 +57,18 @@ class SettingDialog(wx.Frame):
         mainsizer.SetSizeHints(panel)
     def OnOk(self,event):
         target = self.target
+        selection = self.nb.GetSelection()
         from modules import dict4ini as d4i
         rec = d4i.DictIni('remote_config.ini')
-        if target == 'vlsn':
-            rec.remote_configs.vlsn.ssh.address = self.ssh.host.GetValue()
-            rec.remote_configs.vlsn.ssh.port = self.ssh.port.GetValue()
-            rec.remote_configs.vlsn.ssh.user = self.ssh.user.GetValue()
-            rec.remote_configs.vlsn.ssh.passwd = self.ssh.passwd.GetValue()
+        #if target == 'vlsn':
+        rec['remote_configs'][target]['ssh']['address'] = self.ssh.host.GetValue()
+        rec['remote_configs'][target]['ssh']['port'] = self.ssh.port.GetValue()
+        rec['remote_configs'][target]['ssh']['user'] = self.ssh.user.GetValue()
+        rec['remote_configs'][target]['ssh']['passwd'] = self.ssh.passwd.GetValue()
         
         #pass
         rec.save()
+        self.Close(True)
         
     def OnCanel(self,event):
         wx.CloseEvent()
