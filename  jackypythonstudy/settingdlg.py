@@ -21,21 +21,21 @@ class SettingDialog(wx.Frame):
                          # | wx.NB_MULTILINE
                          )
 
-        self.ssh = SshSetPanel(self.nb)
-        self.nb.AddPage(self.ssh, "SSH")
+        self.ssh = SshSetPanel(self.nb,self.target)
+        self.nb.AddPage(self.ssh, "Ssh")
 
         self.path = PathSetPanel(self.nb)
         self.nb.AddPage(self.path, "Path")
-
+        
+        self.command = CmdSetPanel(self.nb)
+        self.nb.AddPage(self.command,"Command")
+        
         self.jms = wx.Panel(self.nb)
         self.nb.AddPage(self.jms,"Jms")
 
-        self.command = wx.Panel(self.nb)
-        self.nb.AddPage(self.command,"Command")
-
         #self.nb.SetSelection(min(selection,self.nb.GetPageCount()-1)) # the selection must smaller than pagecount.
         self.CenterOnParent()
-        self.SetMinSize((300,250))
+        self.SetMinSize((350,300))
 
         self.okBtn = wx.Button(panel, wx.ID_OK, "Ok")
         self.cancelBtn = wx.Button(panel, wx.ID_CANCEL, "Cancel")
@@ -53,8 +53,8 @@ class SettingDialog(wx.Frame):
         mainsizer.Add(sizer_2,0,wx.ALIGN_RIGHT,5)
 
         panel.SetSizer(mainsizer)
-        mainsizer.Fit(panel)
-        mainsizer.SetSizeHints(panel)
+        mainsizer.Fit(self)
+        #mainsizer.SetSizeHints(panel)
     def OnOk(self,event):
         target = self.target
         selection = self.nb.GetSelection()
@@ -71,17 +71,17 @@ class SettingDialog(wx.Frame):
         self.Close(True)
         
     def OnCanel(self,event):
-        wx.CloseEvent()
+        self.Close(True)
 
 ########################################################################
 class SshSetPanel(wx.Panel):
     #----------------------------------------------------------------------
-    def __init__(self,parent):
+    def __init__(self,parent,target=''):
         """Constructor"""
         wx.Panel.__init__(self,parent,-1)
+        target =target
         # create the controls
-        self.topLbl = wx.StaticText(self, -1, "Ssh Setting")
-        self.topLbl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+        
         self.hostLbl = wx.StaticText(self, -1, "Host:")
         self.host = wx.TextCtrl(self, -1, "");
         self.portLbl = wx.StaticText(self, -1, "Port:")
@@ -96,6 +96,8 @@ class SshSetPanel(wx.Panel):
 
     def Dolayout(self):
         self.mainsizer = wx.BoxSizer(wx.VERTICAL)
+        
+        sbsizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Path Setting'), orient=wx.VERTICAL)
         fgsizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         fgsizer.AddGrowableCol(1)
         fgsizer.Add(self.hostLbl, 0,
@@ -116,10 +118,8 @@ class SshSetPanel(wx.Panel):
         #btsizer = wx.BoxSizer(wx.HORIZONTAL)
         #btsizer.Add(self.okBtn,-1,wx.ALIGN_RIGHT)
         #btsizer.Add(self.cancelBtn,-1,wx.ALIGN_RIGHT)
-        self.mainsizer.Add(self.topLbl,0, wx.ALL, 5)
-        self.mainsizer.Add(wx.StaticLine(self), 0,
-                           wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
-        self.mainsizer.Add(fgsizer,1,wx.EXPAND|wx.ALL,5)
+        sbsizer.Add(fgsizer,0,wx.EXPAND)
+        self.mainsizer.Add(sbsizer,0,wx.EXPAND|wx.ALL,5)
         #self.mainsizer.Add(btsizer,0,wx.ALIGN_RIGHT,5)
         self.SetSizer(self.mainsizer)
 
@@ -129,8 +129,7 @@ class PathSetPanel(wx.Panel):
 
         wx.Panel.__init__(self,parent,-1)
             # create the controls
-        self.topLbl = wx.StaticText(self, -1, "Path Setting")
-        self.topLbl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+        
         self.localLbl = wx.StaticText(self, -1, "Locl Dir Path:")
         self.local = wx.TextCtrl(self, -1, "")
         self.remoteLbl = wx.StaticText(self, -1, "Remote Dir Path:")
@@ -139,6 +138,7 @@ class PathSetPanel(wx.Panel):
         self.Dolayout()
     def Dolayout(self):
         self.mainsizer = wx.BoxSizer(wx.VERTICAL)
+        sbsizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Path Setting'), orient=wx.VERTICAL)
         fgsizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         fgsizer.AddGrowableCol(1)
         fgsizer.Add(self.localLbl, 0,
@@ -151,18 +151,91 @@ class PathSetPanel(wx.Panel):
                     wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
         fgsizer.Add(self.remote,0,wx.EXPAND)       
 
-        self.mainsizer.Add(self.topLbl,0, wx.ALL, 5)
-        self.mainsizer.Add(wx.StaticLine(self), 0,
-                           wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
-        self.mainsizer.Add(fgsizer,1,wx.EXPAND|wx.ALL,5)
+        sbsizer.Add(fgsizer,0,wx.EXPAND)
+        self.mainsizer.Add(sbsizer,0,wx.EXPAND|wx.ALL,5)
         #self.mainsizer.Add(btsizer,0,wx.ALIGN_RIGHT,5)
         self.SetSizer(self.mainsizer)
+########################################################################
+class CmdSetPanel(wx.Panel):
+    """"""
+    #----------------------------------------------------------------------
+    def __init__(self,parent):
+        """Constructor"""
+        wx.Panel.__init__(self,parent)
+        self.cmdpanel = wx.Notebook(self, -1, size=wx.DefaultSize, style=
+                         wx.BK_DEFAULT
+                         #wx.BK_TOP 
+                         #wx.BK_BOTTOM
+                         #wx.BK_LEFT
+                         #wx.BK_RIGHT
+                         # | wx.NB_MULTILINE
+                         )
+        
+        self.subnb = CmdTagPanel(self.cmdpanel)
+        self.cmdpanel.AddPage(self.subnb,'noname')
+        self.addBtn = wx.Button(self, -1, "+",size=(18,18))
+        
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        mainsizer.Add(self.addBtn,0,wx.ALIGN_RIGHT,5)
+        mainsizer.Add(self.cmdpanel,1,wx.EXPAND,5)
+        
 
+        self.SetSizer(mainsizer)
+        mainsizer.Fit(self)
+        #mainsizer.SetSizeHints(panel)
 
+########################################################################
+class CmdTagPanel(wx.Panel):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self,parent):
+        """Constructor"""
+        wx.Panel.__init__(self,parent)
+        
+        self.nameLbl = wx.StaticText(self, -1, "Name:")
+        self.name = wx.TextCtrl(self, -1, "")
+        self.pathLbl = wx.StaticText(self, -1, "Path:")
+        self.path = wx.TextCtrl(self, -1, "")
+        
+        self.listctrl = wx.ListCtrl(self,-1,style = wx.LC_REPORT)
+        self.showlist()
+        
+        self.mainsizer = wx.BoxSizer(wx.VERTICAL)
+        sbsizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, ''), orient=wx.VERTICAL)
+        sbsizer_lc = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Environment'), orient=wx.VERTICAL)
+        fgsizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        fgsizer.AddGrowableCol(1)
+        fgsizer.Add(self.nameLbl, 0,
+                    wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        fgsizer.Add(self.name,0,wx.EXPAND)
+        #fgsizer.Add((-1,10),0)
+        #fgsizer.Add((-1,10),0)
+
+        fgsizer.Add(self.pathLbl, 0,
+                    wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        fgsizer.Add(self.path,0,wx.EXPAND)
+        
+        sbsizer.Add(fgsizer,0,wx.EXPAND)
+        sbsizer_lc.Add(self.listctrl,0,wx.EXPAND)
+
+        self.mainsizer.Add(sbsizer,0, wx.EXPAND|wx.ALL, 5)
+        #self.mainsizer.Add(wx.StaticLine(self), 0,
+                           #wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        self.mainsizer.Add(sbsizer_lc,0,wx.EXPAND|wx.ALL,5)
+        
+        #self.mainsizer.Add(btsizer,0,wx.ALIGN_RIGHT,5)
+        self.SetSizer(self.mainsizer)
+    def showlist(self):
+        self.listctrl.InsertColumn(0,'Variable',width = 150)
+        self.listctrl.InsertColumn(1,'Value',width = 150)
+        
+    
+    
 
 if __name__ =='__main__':
 
     app = wx.App()
-    frame = SettingDialog(None,-1,selection = 0)
+    frame = SettingDialog(None,-1,selection = 0,target = 'test')
     frame.Show()
     app.MainLoop()
