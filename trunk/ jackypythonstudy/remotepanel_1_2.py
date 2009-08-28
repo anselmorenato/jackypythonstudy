@@ -43,6 +43,7 @@ ArtIDs = [ "None",
            "wx.ART_MISSING_IMAGE",
            "SmileBitmap"
            ]
+rec = d4i.DictIni('remote_config.ini')
 remote_configs = d4i.DictIni('remote_config.ini').remote_configs._items
 
 '''
@@ -127,6 +128,8 @@ class RemotePanel(wx.Panel):
         
         self.okBtn = wx.Button(self, -1, "Ok")
         self.cancelBtn = wx.Button(self, -1, "Cancel")
+        self.applyBtn = wx.Button(self,-1,"Apply")
+        self.Bind(wx.EVT_BUTTON, self.OnApply, self.applyBtn)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelBtn)
         # create the edit button
         self.b1 = wx.Button(self, -1, "New")
@@ -170,6 +173,8 @@ class RemotePanel(wx.Panel):
 
         sizer_2.Add(self.okBtn,0,wx.ALIGN_RIGHT)
         sizer_2.Add(self.cancelBtn,0,wx.ALIGN_RIGHT)
+        sizer_2.Add(self.applyBtn,0,wx.ALIGN_RIGHT)
+        
 
         self.mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
         self.mainsizer.Add(self.tree,3,wx.EXPAND)
@@ -188,12 +193,12 @@ class RemotePanel(wx.Panel):
         # right click
         self.listbox.Bind(wx.EVT_RIGHT_UP, self.EvtRightClick)
 
-    def OnClick(self, event): 
+    def OnOk(self, event): 
         pass
 
         #sizer.Layout()
-    def OnClick(self, event): pass
-
+    def OnApply(self, event):
+        self.GetParent().Refresh()
     def OnCancel(self,event):
         self.GetParent().Close(True)
     
@@ -209,6 +214,9 @@ class RemotePanel(wx.Panel):
             else:
                 self.listbox.Insert(dlg.GetValue(),selection)
                 self.listbox.Select(selection)
+            rec['remote_configs'][dlg.GetValue()] = dict()
+            rec.save()
+            self.listbox.Refresh()
         dlg.Destroy()
     def OnEditListItem(self,event):
         selection = self.listbox.GetSelection()
@@ -223,6 +231,8 @@ class RemotePanel(wx.Panel):
                 #self.listbox.Insert(dlg.GetValue(),selection)
                 #self.listbox.Delete(selection+1)
                 self.listbox.Select(selection)
+                rec['remote_configs'][dlg.GetValue()] = dict()
+                rec.save()
                 dlg.Destroy()
     def OnCopyListItem(self,event):
         selection = self.listbox.GetSelection()
@@ -235,6 +245,8 @@ class RemotePanel(wx.Panel):
         dlg =wx.MessageDialog(self,'Do you real want to delete this item?','The Item Delete',style = wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if dlg.ShowModal()== wx.ID_OK:
             self.listbox.Delete(selection)
+            del rec[remote_configs][self.listbox.GetString(selection)]
+            rec.save()
             if selection+1 > self.listbox.GetCount():
                 self.listbox.Select(selection-1)
             else:

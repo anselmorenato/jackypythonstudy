@@ -1,6 +1,6 @@
 from modules import dict4ini as d4i
 
-rec = d4i.DictIni('remote_configback.ini')
+rec = d4i.DictIni('remote_config.ini')
 
 rec.remote_configs.comment = 'This file is created use "dict4ini"module. \n The detailed information for "dict4ini", please access this website http://code.google.com/p/dict4ini/'
               
