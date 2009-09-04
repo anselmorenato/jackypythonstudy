@@ -1,5 +1,7 @@
 import wx
-import htlpanel
+from modules import dict4ini as d4i
+
+rec = d4i.DictIni('remote_config.ini')
 
 ########################################################################
 class SettingDialog(wx.Frame):
@@ -24,10 +26,10 @@ class SettingDialog(wx.Frame):
         self.ssh = SshSetPanel(self.nb,self.target)
         self.nb.AddPage(self.ssh, "Ssh")
 
-        self.path = PathSetPanel(self.nb)
+        self.path = PathSetPanel(self.nb,self.target)
         self.nb.AddPage(self.path, "Path")
         
-        self.command = CmdSetPanel(self.nb)
+        self.command = CmdSetPanel(self.nb,self.target)
         self.nb.AddPage(self.command,"Command")
         
         self.jms = wx.Panel(self.nb)
@@ -35,7 +37,7 @@ class SettingDialog(wx.Frame):
 
         #self.nb.SetSelection(min(selection,self.nb.GetPageCount()-1)) # the selection must smaller than pagecount.
         self.CenterOnParent()
-        self.SetMinSize((350,300))
+        self.SetMinSize((400,380))
 
         self.okBtn = wx.Button(panel, wx.ID_OK, "Ok")
         self.cancelBtn = wx.Button(panel, wx.ID_CANCEL, "Cancel")
@@ -58,14 +60,17 @@ class SettingDialog(wx.Frame):
     def OnOk(self,event):
         target = self.target
         selection = self.nb.GetSelection()
-        from modules import dict4ini as d4i
-        rec = d4i.DictIni('remote_config.ini')
-        #if target == 'vlsn':
-        rec['remote_configs'][target]['ssh']['address'] = self.ssh.host.GetValue()
-        rec['remote_configs'][target]['ssh']['port'] = self.ssh.port.GetValue()
-        rec['remote_configs'][target]['ssh']['user'] = self.ssh.user.GetValue()
-        rec['remote_configs'][target]['ssh']['passwd'] = self.ssh.passwd.GetValue()
         
+        if selection ==0:
+            rec['remote_configs'][target]['ssh']['address'] = self.ssh.host.GetValue()
+            rec['remote_configs'][target]['ssh']['port'] = self.ssh.port.GetValue()
+            rec['remote_configs'][target]['ssh']['user'] = self.ssh.user.GetValue()
+            rec['remote_configs'][target]['ssh']['passwd'] = self.ssh.passwd.GetValue()
+        elif selection ==1:
+            rec['remote_configs'][target]['path']['localpath'] = self.path.local.GetValue()
+            rec['remote_configs'][target]['path']['remotepath'] = self.path.remote.GetValue()
+        elif selection ==2:
+            rec.save()
         #pass
         rec.save()
         self.Close(True)
@@ -125,12 +130,12 @@ class SshSetPanel(wx.Panel):
 
 class PathSetPanel(wx.Panel):
     #----------------------------------------------------------------------
-    def __init__(self,parent):
+    def __init__(self,parent,target=''):
 
         wx.Panel.__init__(self,parent,-1)
             # create the controls
         
-        self.localLbl = wx.StaticText(self, -1, "Locl Dir Path:")
+        self.localLbl = wx.StaticText(self, -1, "Local Dir Path:")
         self.local = wx.TextCtrl(self, -1, "")
         self.remoteLbl = wx.StaticText(self, -1, "Remote Dir Path:")
         self.remote = wx.TextCtrl(self, -1, "")
@@ -144,9 +149,7 @@ class PathSetPanel(wx.Panel):
         fgsizer.Add(self.localLbl, 0,
                     wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
         fgsizer.Add(self.local,0,wx.EXPAND)
-        fgsizer.Add((-1,10),0)
-        fgsizer.Add((-1,10),0)
-
+        
         fgsizer.Add(self.remoteLbl, 0,
                     wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
         fgsizer.Add(self.remote,0,wx.EXPAND)       
@@ -159,9 +162,12 @@ class PathSetPanel(wx.Panel):
 class CmdSetPanel(wx.Panel):
     """"""
     #----------------------------------------------------------------------
-    def __init__(self,parent):
+    def __init__(self,parent,target):
         """Constructor"""
         wx.Panel.__init__(self,parent)
+        self.target = target
+        #self.name = CmdTagPanel.name.GetValues()
+        
         self.cmdpanel = wx.Notebook(self, -1, size=wx.DefaultSize, style=
                          wx.BK_DEFAULT
                          #wx.BK_TOP 
@@ -171,35 +177,67 @@ class CmdSetPanel(wx.Panel):
                          # | wx.NB_MULTILINE
                          )
         
-        self.subnb = CmdTagPanel(self.cmdpanel)
-        self.cmdpanel.AddPage(self.subnb,'noname')
-        self.addBtn = wx.Button(self, -1, "+",size=(18,18))
+        #self.subnb = CmdTagPanel(self.cmdpanel)
+        if rec['remote_configs'][self.target]._items.has_key('commands') and not len(rec['remote_configs'][self.target]['commands'].values())==0:
+            for pagename in rec['remote_configs'][self.target]['commands'].keys():
+                self.subnb = CmdTagPanel(self.cmdpanel,self.target)
+                self.cmdpanel.AddPage(self.subnb,str(pagename))
+        else:
+            self.subnb = CmdTagPanel(self.cmdpanel,self.target)
+            self.cmdpanel.AddPage(self.subnb,'noname')
         
+        self.addBtn = wx.Button(self, -1, "+",size=(15,15))
+        self.Bind(wx.EVT_BUTTON,self.OnAddTag,self.addBtn)
+        
+        
+        
+        
+        
+                                 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         mainsizer.Add(self.addBtn,0,wx.ALIGN_RIGHT,5)
         mainsizer.Add(self.cmdpanel,1,wx.EXPAND,5)
+        #mainsizer.Add(btsizer,0,wx.ALIGN_LEFT,5)
         
 
         self.SetSizer(mainsizer)
         mainsizer.Fit(self)
         #mainsizer.SetSizeHints(panel)
+    def OnAddTag(self,event):
+        self.subnb = CmdTagPanel(self.cmdpanel)
+        self.cmdpanel.AddPage(self.subnb,'noname')
+        self.cmdpanel.SetSelection(self.cmdpanel.GetSelection()+1)
+    
 
 ########################################################################
 class CmdTagPanel(wx.Panel):
     """"""
 
     #----------------------------------------------------------------------
-    def __init__(self,parent):
+    def __init__(self,parent,target):
         """Constructor"""
         wx.Panel.__init__(self,parent)
-        
+        self.parent = parent
+        self.target = target
+        self.sel= self.parent.GetSelection()
         self.nameLbl = wx.StaticText(self, -1, "Name:")
         self.name = wx.TextCtrl(self, -1, "")
         self.pathLbl = wx.StaticText(self, -1, "Path:")
         self.path = wx.TextCtrl(self, -1, "")
         
+        self.name.Bind(wx.EVT_KILL_FOCUS,self.NameKillFocus,self.name)
+        self.path.Bind(wx.EVT_KILL_FOCUS,self.PathKillFocus,self.path)
+        
         self.listctrl = wx.ListCtrl(self,-1,style = wx.LC_REPORT)
         self.showlist()
+        
+        self.plusBtn = wx.Button(self,-1,"+",size=(22,15))
+        self.minusBtn = wx.Button(self,-1,"-",size=(22,15))
+        self.editBtn = wx.Button(self,-1,"Edit")
+        
+        self.Bind(wx.EVT_BUTTON,self.OnPlus,self.plusBtn)
+        self.Bind(wx.EVT_BUTTON,self.OnMinus,self.minusBtn)
+        self.Bind(wx.EVT_BUTTON,self.OnEdit,self.editBtn)
         
         self.mainsizer = wx.BoxSizer(wx.VERTICAL)
         sbsizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, ''), orient=wx.VERTICAL)
@@ -218,17 +256,47 @@ class CmdTagPanel(wx.Panel):
         
         sbsizer.Add(fgsizer,0,wx.EXPAND)
         sbsizer_lc.Add(self.listctrl,0,wx.EXPAND)
+        
+        btsizer = wx.BoxSizer(wx.HORIZONTAL)
+        btsizer.Add(self.plusBtn,0,wx.EXPAND,5)
+        btsizer.Add(self.minusBtn,0,wx.EXPAND,5)
+        btsizer.Add(self.editBtn,0,wx.ALIGN_LEFT,5)
+        
 
         self.mainsizer.Add(sbsizer,0, wx.EXPAND|wx.ALL, 5)
         #self.mainsizer.Add(wx.StaticLine(self), 0,
                            #wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
         self.mainsizer.Add(sbsizer_lc,0,wx.EXPAND|wx.ALL,5)
+        self.mainsizer.Add(btsizer,0,wx.ALIGN_LEFT,5)
         
-        #self.mainsizer.Add(btsizer,0,wx.ALIGN_RIGHT,5)
         self.SetSizer(self.mainsizer)
     def showlist(self):
         self.listctrl.InsertColumn(0,'Variable',width = 150)
         self.listctrl.InsertColumn(1,'Value',width = 150)
+        
+    def OnPlus(self,event): pass
+    def OnMinus(self,event): pass
+    def OnEdit(self,event):
+        #self.target = self.target
+        #self.command = CmdSetPanel(self,target='')
+        
+        self.sel = self.parent.GetSelection()
+        #self.parent.cmdpanel.Se
+        self.parent.SetPageText(self.sel,self.name.GetValue())
+        
+        #rec['remote_configs'][self.target]['commands']
+        
+    def NameKillFocus(self,event):
+        
+        self.sel = self.parent.GetSelection()
+        if not len(self.name.GetValue())==0:
+            self.parent.SetPageText(self.sel,self.name.GetValue())
+            rec['remote_configs'][self.target]['commands'][self.name.GetValue()]=dict()
+        
+        
+    def PathKillFocus(self,event):pass
+        
+        #rec['remote_configs'][self.target]['commands'][self.parent.GetPageText(self.sel)]['path']=self.path.GetValue()
         
     
     

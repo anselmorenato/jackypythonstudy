@@ -230,8 +230,8 @@ class RemotePanel(wx.Panel):
                 self.listbox.SetString(selection, dlg.GetValue()) 
                 #self.listbox.Insert(dlg.GetValue(),selection)
                 #self.listbox.Delete(selection+1)
-                self.listbox.Select(selection)
-                rec['remote_configs'][dlg.GetValue()] = dict()
+                #self.listbox.Select(selection)
+                rec['remote_configs'][self.listbox.GetString(selection)]=rec['remote_configs'][dlg.GetValue()] = dict()
                 rec.save()
                 dlg.Destroy()
     def OnCopyListItem(self,event):
@@ -244,8 +244,9 @@ class RemotePanel(wx.Panel):
             selection = selection-1
         dlg =wx.MessageDialog(self,'Do you real want to delete this item?','The Item Delete',style = wx.OK|wx.CANCEL|wx.ICON_WARNING)
         if dlg.ShowModal()== wx.ID_OK:
+            del rec['remote_configs'][self.listbox.GetString(selection)]
             self.listbox.Delete(selection)
-            del rec[remote_configs][self.listbox.GetString(selection)]
+            
             rec.save()
             if selection+1 > self.listbox.GetCount():
                 self.listbox.Select(selection-1)
@@ -268,7 +269,7 @@ class RemotePanel(wx.Panel):
         #change the ItemText of root
         _root = self.tree.GetRootItem()
         _str = event.GetString()
-        _item = remote_configs[str(_str)]
+        #_item = remote_configs[str(_str)]
         self.tree.SetItemText(_root,_str)
         #self.AddTreeNodes(self.tree.GetRootItem(),remote_configs[event.GetString()])
         if remote_configs.has_key(event.GetString())==True and type(remote_configs[event.GetString()])==str:
@@ -345,8 +346,8 @@ class RemotePanel(wx.Panel):
         self.tree.SetColumnWidth(0, 200)
         self.tree.SetColumnWidth(1, 300)
         # Add a root node and assign it some images
-        self.root = self.tree.AddRoot("local")
-        self.AddTreeNodes(self.root, remote_configs['local'])
+        self.root = self.tree.AddRoot(self.listbox.GetString(0))
+        self.AddTreeNodes(self.root, remote_configs[self.listbox.GetString(0)])
         self.tree.ExpandAll(self.root)
         self.tree.SetItemText(self.root, "Description", 1)
         #self.tree.SetItemImage(self.root, 24,which=wx.TreeItemIcon_Normal)
