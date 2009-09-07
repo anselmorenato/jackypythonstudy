@@ -1,5 +1,6 @@
 import wx
 from modules import dict4ini as d4i
+import sys
 
 rec = d4i.DictIni('remote_config.ini')
 
@@ -228,7 +229,7 @@ class CmdTagPanel(wx.Panel):
         self.name.Bind(wx.EVT_KILL_FOCUS,self.NameKillFocus,self.name)
         self.path.Bind(wx.EVT_KILL_FOCUS,self.PathKillFocus,self.path)
         
-        self.listctrl = wx.ListCtrl(self,-1,style = wx.LC_REPORT)
+        self.listctrl = wx.ListCtrl(self,-1,style = wx.LC_REPORT|wx.LC_EDIT_LABELS)
         self.showlist()
         
         self.plusBtn = wx.Button(self,-1,"+",size=(22,15))
@@ -273,8 +274,14 @@ class CmdTagPanel(wx.Panel):
     def showlist(self):
         self.listctrl.InsertColumn(0,'Variable',width = 150)
         self.listctrl.InsertColumn(1,'Value',width = 150)
-        
-    def OnPlus(self,event): pass
+        if rec['remote_configs'][self.target]['commands']['amber'].has_key('envs'):
+            for key,val in rec['remote_configs'][self.target]['commands']['amber']['envs'].items():
+                index = self.listctrl.InsertStringItem(0,key)
+                self.listctrl.SetStringItem(index,1,str(val))
+            
+    def OnPlus(self,event): 
+        index = self.listctrl.InsertStringItem(0,'AMBERHOME')
+        self.listctrl.SetStringItem(index,1,'abcdefg')
     def OnMinus(self,event): pass
     def OnEdit(self,event):
         #self.target = self.target
