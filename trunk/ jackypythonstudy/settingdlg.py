@@ -10,8 +10,9 @@ class SettingDialog(wx.Frame):
 
     #----------------------------------------------------------------------
     def __init__(self,parent,id,selection,target):
-        wx.Frame.__init__(self,parent,-1,'Setting Dialog',size=(-1,-1))
         self.target = target
+        wx.Frame.__init__(self,parent,-1,self.target,size=(-1,-1))
+        
 
         panel = wx.Panel(self)
         #panel.SetBackgroundColour('white')
@@ -205,7 +206,7 @@ class CmdSetPanel(wx.Panel):
         mainsizer.Fit(self)
         #mainsizer.SetSizeHints(panel)
     def OnAddTag(self,event):
-        self.subnb = CmdTagPanel(self.cmdpanel)
+        self.subnb = CmdTagPanel(self.cmdpanel,self.target)
         self.cmdpanel.AddPage(self.subnb,'noname')
         self.cmdpanel.SetSelection(self.cmdpanel.GetSelection()+1)
     
@@ -221,6 +222,8 @@ class CmdTagPanel(wx.Panel):
         self.parent = parent
         self.target = target
         self.sel= self.parent.GetSelection()
+        #self.tag = self.parent.GetPageText(0)
+        
         self.nameLbl = wx.StaticText(self, -1, "Name:")
         self.name = wx.TextCtrl(self, -1, "")
         self.pathLbl = wx.StaticText(self, -1, "Path:")
@@ -280,8 +283,12 @@ class CmdTagPanel(wx.Panel):
                 self.listctrl.SetStringItem(index,1,str(val))
             
     def OnPlus(self,event): 
-        index = self.listctrl.InsertStringItem(0,'AMBERHOME')
-        self.listctrl.SetStringItem(index,1,'abcdefg')
+        #dlg = wx.Dialog(None, -1, title='Envs Setting Dialog',size =(300,300),style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.OK|wx.CANCEL)
+        envs = EnvsPanel(None,self.target)
+        if envs.ShowModal()==wx.ID_OK:
+            index = self.listctrl.InsertStringItem(0,envs.variable.GetValue())
+            self.listctrl.SetStringItem(index,1,envs.value.GetValue())
+            rec['remote_configs'][self.target]['commands']['vlsn']['envs'][envs.variable.GetValue()]=envs.value.GetValue()
     def OnMinus(self,event): pass
     def OnEdit(self,event):
         #self.target = self.target
@@ -305,6 +312,51 @@ class CmdTagPanel(wx.Panel):
         
         #rec['remote_configs'][self.target]['commands'][self.parent.GetPageText(self.sel)]['path']=self.path.GetValue()
         
+########################################################################
+class EnvsPanel(wx.Dialog):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self,parent,target=''):
+
+        wx.Dialog.__init__(self,parent,-1,size =(300,200))
+            # create the controls
+        
+        self.variableLbl = wx.StaticText(self, -1, "Variable:")
+        self.variable = wx.TextCtrl(self, -1, "")
+        self.valueLbl = wx.StaticText(self, -1, "Value:")
+        self.value = wx.TextCtrl(self, -1, "")
+        
+        self.okBtn = wx.Button(self, wx.ID_OK, "Ok")
+        self.cancelBtn = wx.Button(self, wx.ID_CANCEL, "Cancel")
+        """"""
+        self.Dolayout()
+    def Dolayout(self):
+        self.mainsizer = wx.BoxSizer(wx.VERTICAL)
+        sbsizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Envs Setting'), orient=wx.VERTICAL)
+        fgsizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        fgsizer.AddGrowableCol(1)
+        fgsizer.Add(self.variableLbl, 0,
+                    wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        fgsizer.Add(self.variable,0,wx.EXPAND)
+        
+        fgsizer.Add(self.valueLbl, 0,
+                    wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        fgsizer.Add(self.value,0,wx.EXPAND)       
+
+        sbsizer.Add(fgsizer,0,wx.EXPAND)
+        
+        btsizer = wx.BoxSizer(wx.HORIZONTAL)
+        btsizer.Add(self.okBtn,0,wx.ALIGN_RIGHT,5)
+        btsizer.Add(self.cancelBtn,0,wx.ALIGN_RIGHT,5)
+        self.mainsizer.Add(sbsizer,0,wx.EXPAND|wx.ALL,5)
+        self.mainsizer.Add(btsizer,0,wx.ALIGN_RIGHT,5)
+        self.SetSizer(self.mainsizer)
+        self.SetAutoLayout(True)
+        
+        
+    
+    
     
     
 
