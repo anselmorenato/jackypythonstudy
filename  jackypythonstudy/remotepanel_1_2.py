@@ -198,7 +198,7 @@ class RemotePanel(wx.Panel):
 
         #sizer.Layout()
     def OnApply(self, event):
-        self.GetParent().Refresh()
+        pass
     def OnCancel(self,event):
         self.GetParent().Close(True)
     
