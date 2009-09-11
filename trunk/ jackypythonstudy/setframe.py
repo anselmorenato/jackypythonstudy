@@ -82,7 +82,7 @@ class LabelBook(wx.Frame):
          #   self.book.AddPage(TestPanel(self.book,_pageColours[i]),_pageTexts[0],True,i)
 
         self.book.AddPage(TestPanel(self.book,_pageColours[1]),_pageTexts[0],True,0)
-        self.book.AddPage(remotepanel_1_2.RemotePanel(self.book),_pageTexts[1],True,1)
+        self.book.AddPage(remotepanel_1_2.RemotePanel(self.book,log=None),_pageTexts[1],True,1)
         
         self.book.SetSelection(1)
         #self.book.SetWindowStyleFlag(style=LB.INB_FIT_BUTTON)

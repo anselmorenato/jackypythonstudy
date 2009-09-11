@@ -115,9 +115,10 @@ remote_configs = dict(
 choice =remote_configs.keys() #['vlsn','rccs','local','email','hpcs']
         
 class RemotePanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent,log):
         wx.Panel.__init__(self,parent,-1)
-        
+        self.parent = parent
+        self.log = log
         self.listbox = wx.ListBox(self, size = (130,50),choices=choice)
         index = self.listbox.SetSelection(0)
         self.listbox.SetFont(wx.Font(11,wx.SWISS,wx.NORMAL,wx.NORMAL))
@@ -129,8 +130,7 @@ class RemotePanel(wx.Panel):
         self.okBtn = wx.Button(self, -1, "Ok")
         self.cancelBtn = wx.Button(self, -1, "Cancel")
         self.applyBtn = wx.Button(self,-1,"Apply")
-        self.Bind(wx.EVT_BUTTON, self.OnApply, self.applyBtn)
-        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelBtn)
+        
         # create the edit button
         self.b1 = wx.Button(self, -1, "New")
         self.Bind(wx.EVT_BUTTON, self.OnAddNewListItem, self.b1)
@@ -192,13 +192,42 @@ class RemotePanel(wx.Panel):
         self.listbox.Bind(wx.EVT_LISTBOX, self.EvtListBox, self.listbox)
         # right click
         self.listbox.Bind(wx.EVT_RIGHT_UP, self.EvtRightClick)
+        
+        self.Bind(wx.EVT_BUTTON, self.OnOk, self.okBtn)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelBtn)
+        self.Bind(wx.EVT_BUTTON, self.OnApply, self.applyBtn)
 
     def OnOk(self, event): 
-        pass
-
-        #sizer.Layout()
+        rec.save()
+        self.parent.Close()
+        
     def OnApply(self, event):
-        pass
+        
+        
+        self.tree.DeleteAllItems()
+        #rec = d4i.DictIni('remote_config.ini')
+        #remote_configs = rec.remote_configs._items
+        self.root = self.tree.AddRoot(self.listbox.GetString(0))
+        
+        self.AddTreeNodes(self.root, remote_configs[self.listbox.GetString(0)])
+        
+        self.tree.ExpandAll(self.root)
+        self.tree.SetItemText(self.root, "Description", 1)
+        #rec.clear()
+        #rec = d4i.DictIni('remote_config.ini')
+        #rec.Refresh()
+        #self.parent.Close()
+        #dlg = wx.Dialog(None, -1, title='Remote Setting Dialog',size =(500,500),style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+        #remote = RemotePanel(dlg,self.log)
+        rec.save()
+        #dlg.SetSize(dlg.GetBestSize())
+        #sizer = wx.BoxSizer(wx.VERTICAL)
+        #sizer.Add(remote,1,wx.EXPAND)
+        #dlg.SetSizer(sizer)
+        #sizer.Fit(dlg)
+        #dlg.SetAutoLayout(True)
+        #dlg.ShowModal()
+        #dlg.Destroy()              
     def OnCancel(self,event):
         self.GetParent().Close(True)
     
@@ -215,7 +244,7 @@ class RemotePanel(wx.Panel):
                 self.listbox.Insert(dlg.GetValue(),selection)
                 self.listbox.Select(selection)
             rec['remote_configs'][dlg.GetValue()] = dict()
-            rec.save()
+            #rec.save()
             self.listbox.Refresh()
         dlg.Destroy()
     def OnEditListItem(self,event):
@@ -232,7 +261,7 @@ class RemotePanel(wx.Panel):
                 #self.listbox.Delete(selection+1)
                 #self.listbox.Select(selection)
                 rec['remote_configs'][self.listbox.GetString(selection)]=rec['remote_configs'][dlg.GetValue()] = dict()
-                rec.save()
+                #rec.save()
                 dlg.Destroy()
     def OnCopyListItem(self,event):
         selection = self.listbox.GetSelection()
@@ -247,7 +276,7 @@ class RemotePanel(wx.Panel):
             del rec['remote_configs'][self.listbox.GetString(selection)]
             self.listbox.Delete(selection)
             
-            rec.save()
+            #rec.save()
             if selection+1 > self.listbox.GetCount():
                 self.listbox.Select(selection-1)
             else:
@@ -255,7 +284,7 @@ class RemotePanel(wx.Panel):
             
     # Create the event handers for listbox
     def EvtListBoxDClick(self,event):
-        """"""
+        '''this method is to eject the setting dialog when doulue click the listitem'''
         lb = event.GetEventObject()
         selection = lb.GetSelection()
         sel_string = event.GetString()
@@ -384,8 +413,8 @@ def main():
     log = app.log
     frame = app.frame
 
-    dlg = wx.Dialog(None, -1, title='Remote Setting Dialog',size =(500,500),style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-    remote = RemotePanel(dlg)
+    dlg = wx.Dialog(frame, -1, title='Remote Setting Dialog',size =(500,500),style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+    remote = RemotePanel(dlg,log)
 
     #dlg.SetSize(dlg.GetBestSize())
     sizer = wx.BoxSizer(wx.VERTICAL)
