@@ -173,7 +173,8 @@ class CmdSetPanel(wx.Panel):
         
         wx.Panel.__init__(self,parent)
         self.target = target
-        #self.name = CmdTagPanel.name.GetValues()
+        
+        
         
         
         self.cmdpanel = wx.Notebook(self, -1, size=wx.DefaultSize, style=
@@ -200,8 +201,13 @@ class CmdSetPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON,self.OnDelTag,self.delBtn)
         
         
+        global sel
+        sel = self._GetSelection()
+        global page
+        page = self._GetPageText()
         
-        
+        print sel
+        print page
         
                                  
         mainsizer = wx.BoxSizer(wx.VERTICAL)
@@ -256,6 +262,7 @@ class CmdTagPanel(wx.Panel):
         
         self.parent = parent
         self.target = target
+        print self.parent.GetPageCount()
                 
         self.nameLbl = wx.StaticText(self, -1, "Name:")
         self.name = wx.TextCtrl(self, -1, "")
@@ -311,7 +318,11 @@ class CmdTagPanel(wx.Panel):
                   
         #self.sel= CmdSetPanel._GetSelection()
         #self.page = CmdSetPanel._GetPageText()
+        #sel = sel
+        #page = page
         
+       # print 'sel',sel
+        #print 'page',page
         self.listctrl.InsertColumn(0,'Variable',width = 150)
         self.listctrl.InsertColumn(1,'Value',width = 150)
         if rec['remote_configs'][self.target]['commands']['vlsn'].has_key('envs'):

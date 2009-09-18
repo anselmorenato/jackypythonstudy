@@ -43,8 +43,6 @@ ArtIDs = [ "None",
            "wx.ART_MISSING_IMAGE",
            "SmileBitmap"
            ]
-rec = d4i.DictIni('remote_config.ini')
-remote_configs = d4i.DictIni('remote_config.ini').remote_configs._items
 
 '''
 remote_configs = dict(
@@ -112,6 +110,8 @@ remote_configs = dict(
     rccs = dict(),
 )
 '''
+rec = d4i.DictIni('remote_config.ini')
+remote_configs = d4i.DictIni('remote_config.ini').remote_configs._items
 choice =remote_configs.keys() #['vlsn','rccs','local','email','hpcs']
         
 class RemotePanel(wx.Panel):
@@ -129,7 +129,7 @@ class RemotePanel(wx.Panel):
         
         self.okBtn = wx.Button(self, -1, "Ok")
         self.cancelBtn = wx.Button(self, -1, "Cancel")
-        self.applyBtn = wx.Button(self,-1,"Apply")
+        #self.applyBtn = wx.Button(self,-1,"Apply")
         
         # create the edit button
         self.b1 = wx.Button(self, -1, "New")
@@ -173,7 +173,7 @@ class RemotePanel(wx.Panel):
 
         sizer_2.Add(self.okBtn,0,wx.ALIGN_RIGHT)
         sizer_2.Add(self.cancelBtn,0,wx.ALIGN_RIGHT)
-        sizer_2.Add(self.applyBtn,0,wx.ALIGN_RIGHT)
+        #sizer_2.Add(self.applyBtn,0,wx.ALIGN_RIGHT)
         
 
         self.mainsizer.Add(sizer_1,0,wx.ALIGN_CENTER, 5)
@@ -195,39 +195,27 @@ class RemotePanel(wx.Panel):
         
         self.Bind(wx.EVT_BUTTON, self.OnOk, self.okBtn)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelBtn)
-        self.Bind(wx.EVT_BUTTON, self.OnApply, self.applyBtn)
+        #self.Bind(wx.EVT_BUTTON, self.OnApply, self.applyBtn)
 
     def OnOk(self, event): 
         rec.save()
         self.parent.Close()
         
     def OnApply(self, event):
-        
-        
+                
         self.tree.DeleteAllItems()
-        #rec = d4i.DictIni('remote_config.ini')
-        #remote_configs = rec.remote_configs._items
-        self.root = self.tree.AddRoot(self.listbox.GetString(0))
+        rec = d4i.DictIni('remote_config.ini')
+        remote_configs = rec.remote_configs._items
+        sel = self.listbox.GetSelection()
+        self.root = self.tree.AddRoot(self.listbox.GetString(sel))
         
-        self.AddTreeNodes(self.root, remote_configs[self.listbox.GetString(0)])
+        self.AddTreeNodes(self.root, remote_configs[self.listbox.GetString(sel)])
         
-        self.tree.ExpandAll(self.root)
+        self.tree.ExpandAll(self.tree.GetRootItem())
         self.tree.SetItemText(self.root, "Description", 1)
-        #rec.clear()
-        #rec = d4i.DictIni('remote_config.ini')
-        #rec.Refresh()
-        #self.parent.Close()
-        #dlg = wx.Dialog(None, -1, title='Remote Setting Dialog',size =(500,500),style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-        #remote = RemotePanel(dlg,self.log)
+      
         rec.save()
-        #dlg.SetSize(dlg.GetBestSize())
-        #sizer = wx.BoxSizer(wx.VERTICAL)
-        #sizer.Add(remote,1,wx.EXPAND)
-        #dlg.SetSizer(sizer)
-        #sizer.Fit(dlg)
-        #dlg.SetAutoLayout(True)
-        #dlg.ShowModal()
-        #dlg.Destroy()              
+        
     def OnCancel(self,event):
         self.GetParent().Close(True)
     
@@ -295,6 +283,11 @@ class RemotePanel(wx.Panel):
         dlg.Show()
         event.Skip()
     def EvtListBox(self,event):
+        
+        
+        rec = d4i.DictIni('remote_config.ini')
+        remote_configs = d4i.DictIni('remote_config.ini').remote_configs._items
+
         #change the ItemText of root
         _root = self.tree.GetRootItem()
         _str = event.GetString()
@@ -310,10 +303,10 @@ class RemotePanel(wx.Panel):
             self.tree.DeleteChildren(self.tree.GetRootItem())
             if remote_configs.has_key(event.GetString())==True and type(remote_configs[event.GetString()])==dict:
                 self.AddTreeNodes(self.tree.GetRootItem(),remote_configs[event.GetString()])
-                self.tree.Expand(self.tree.GetRootItem())
+                self.tree.ExpandAll(self.tree.GetRootItem())
         elif remote_configs.has_key(event.GetString())==True and type(remote_configs[event.GetString()])==dict:
             self.AddTreeNodes(self.tree.GetRootItem(),remote_configs[event.GetString()])
-            self.tree.Expand(self.tree.GetRootItem())
+            self.tree.ExpandAll(self.tree.GetRootItem())
     def EvtRightClick(self,event):
         
         self.popupID1 = wx.NewId()
@@ -377,8 +370,9 @@ class RemotePanel(wx.Panel):
         # Add a root node and assign it some images
         self.root = self.tree.AddRoot(self.listbox.GetString(0))
         self.AddTreeNodes(self.root, remote_configs[self.listbox.GetString(0)])
-        self.tree.ExpandAll(self.root)
+        
         self.tree.SetItemText(self.root, "Description", 1)
+        self.tree.ExpandAll(self.tree.GetRootItem())
         #self.tree.SetItemImage(self.root, 24,which=wx.TreeItemIcon_Normal)
         #self.tree.SetItemImage(self.root, 13,which=wx.TreeItemIcon_Expanded)
         

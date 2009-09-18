@@ -72,15 +72,7 @@ class LabelBook(wx.Frame):
         self.imagelist = self.CreateImageList()
         self.book.AssignImageList(self.imagelist)
         self.Refresh()
-        '''
-        for indx, txts in enumerate(_pageTexts):
-            #label = "This is panel number %d"%(indx+1)
-            self.book.AddPage(TestPanel(self.book,_pageColours[indx]),
-                              txts, True, indx)
-        '''
-        #for i in range(3):
-         #   self.book.AddPage(TestPanel(self.book,_pageColours[i]),_pageTexts[0],True,i)
-
+        
         self.book.AddPage(TestPanel(self.book,_pageColours[1]),_pageTexts[0],True,0)
         self.book.AddPage(remotepanel_1_2.RemotePanel(self.book,log=None),_pageTexts[1],True,1)
         
