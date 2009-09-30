@@ -34,22 +34,33 @@ class MyFrame(wx.Frame):
 
         btn = wx.Button(panel, -1, 'Run Test Wizard', pos=(50,50))
         panel.Bind(wx.EVT_BUTTON, self.OnRunWizard, btn)
+        self.Bind(wiz.EVT_WIZARD_CANCEL, self.on_wiz_cancel)
+    def on_wiz_cancel(self,evt):
+        dlg = wx.MessageDialog(None,'''Setup is not complete.If you exit now,the program will not be installed.
+You may run Setup again at another time to complete the installation.
+Exit Setup?''','Exit Setup',
+              style = wx.OK|wx.CANCEL|wx.ICON_QUESTION
+                          )
+        if dlg.ShowModal()==wx.ID_CANCEL:
+            pass
     
-    def OnRunWizard(self, evt):
+    def OnRunWizard(self,evt):
         # Create the wizard and the pages
         image = wx.Bitmap('..\images\Nagara_setup.jpg',wx.BITMAP_TYPE_JPEG)
-        wizard = wiz.Wizard(self, -1, "Simple Wizard", image)
-        page1 = TitledPage(wizard, "Page 1")
+        wizard = wiz.Wizard(self, -1, "Nagara Setup Wizard", image)
+        page1 = TitledPage(wizard, "Welcome to the Nagara Setup Wizard")
         page2 = TitledPage(wizard, "License Agreement")
         page3 = TitledPage(wizard, "Page 3")
         page4 = TitledPage(wizard, "Page 4")
         self.page1 = page1
 
         page1.sizer.Add(wx.StaticText(page1, -1, """
-This wizard is totally useless, but is meant to show how to
-chain simple wizard pages together in a non-dynamic manner.
-IOW, the order of the pages never changes, and so the
-wxWizardPageSimple class can easily be used for the pages."""))
+  This will install Nagara on your computer.
+
+  It is recommended that you close all other applitions 
+  before continue.
+  
+  Click Next to continue or Cancel to exit Setup."""))
         wizard.FitToPage(page1)
         page2.sizer.Add(wx.StaticText(page2,-1,'''License Agreement
         
@@ -64,14 +75,17 @@ wxWizardPageSimple class can easily be used for the pages."""))
         wizard.GetPageAreaSizer().Add(page1)
         if wizard.RunWizard(page1):
             wx.MessageBox("Wizard completed successfully", "That's all folks!")
+        
         else:
-            dlg = wx.MessageDialog(self,'''Setup is not complete.If you exit now,the program will not be installed.
-You may run Setup again at another time to complete the installation.
-Exit Setup?''','Exit Setup',
-              style = wx.OK|wx.CANCEL|wx.ICON_QUESTION
-                          )
-            if dlg.ShowModal()== wx.ID_OK:
-                wx.MessageBox("Wizard was cancelled", "That's all folks!")
+            #dlg = wx.MessageDialog(self,'''Setup is not complete.If you exit now,the program will not be installed.
+#You may run Setup again at another time to complete the installation.
+#Exit Setup?''','Exit Setup',
+              #style = wx.OK|wx.CANCEL|wx.ICON_QUESTION
+             #             )
+           # if dlg.ShowModal()== wx.ID_OK:
+             
+            wx.MessageBox("Wizard was cancelled", "That's all folks!")
+            
 
         
 def main():
