@@ -20,6 +20,8 @@ class DataShapeSimple(ogl.RectangleShape):
         self.AddText(text)
         
 class DataShape(ogl.CompositeShape,ogl.DrawnShape):
+    """ this is the composite data shape.
+    """
     def __init__(self, canvas, name=''):
         ogl.CompositeShape.__init__(self)
         ogl.DrawnShape.__init__(self)
@@ -48,22 +50,23 @@ class DataShape(ogl.CompositeShape,ogl.DrawnShape):
 
 class TaskShape(ogl.CompositeShape):
     """
-    This shape is Consists of three parts, InputSocketShape, 
+    This shape is Consists of three parts, InputSocketShape, Middleshape and OutputsocketShape.
     """
     def __init__(self, canvas,name =''):
         ogl.CompositeShape.__init__(self)
         self.SetCanvas(canvas)
         self.taskobject_name = name
-        #shape1 = MiddleShape(canvas)
 
         middleshape = MiddleShape(100,120,canvas,self.taskobject_name)  # this is the  the constraining shape
 
         inputshape = InputSocketShape(30,120)
-        inputshape.SetBrush(wx.WHITE_BRUSH)
+        # set the inputsocket background color
+        inputshape.SetBrush(wx.GREEN_BRUSH)
 
         outputshape = OutputSocketShape()
-        outputshape.SetDrawnBrush(wx.GREEN_BRUSH)
-        outputshape.DrawPolygon([(0,60),(0,0),(0,-60),(30,0)])
+        # set the outputsocket background color
+        outputshape.SetDrawnBrush(wx.GREY_BRUSH)
+        outputshape.DrawPolygon([(0,60),(0,-60),(30,0)])
 
         self.AddChild(inputshape)
         self.AddChild(middleshape)
@@ -75,7 +78,7 @@ class TaskShape(ogl.CompositeShape):
         inputshape.SetDraggable(True)
         outputshape.SetDraggable(True)
 
-        # ------------------------------------------------------------
+        # control the layout of inputsocket and outputsocket with middleshape
         constraint = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF,middleshape, [inputshape])
         constraint.SetSpacing(0.2,0)
         constraint2 = ogl.Constraint(ogl.CONSTRAINT_MIDALIGNED_RIGHT,middleshape,[outputshape])
@@ -147,10 +150,12 @@ class OutputSocketShape(ogl.DrawnShape):
     """this shape is one part of the TaskShape"""
     def __init__(self):
         ogl.DrawnShape.__init__(self)
-        
-        
-# TaskShape is end.
+                
+# TaskShape is end here
+#----------------------------------------------------------------------
 class Linker(ogl.LineShape):
+    """ the link line from datashape to taskshape.
+    """
     def __init__(self,fromShape,toShape,*args,**cwdargs):
         ogl.LineShape.__init__(self)
        
@@ -160,14 +165,15 @@ class Linker(ogl.LineShape):
         self.SetPen(wx.BLACK_PEN)
         self.SetBrush(wx.BLACK_BRUSH)
         self.AddArrow(ogl.ARROW_ARROW)
-        self.MakeLineControlPoints(2)
+        self.MakeLineControlPoints(4)
         fromShape.AddLine(self, toShape)
         #self.Show(True)
     def _delete(self):
         self.Delete()
 
-class EvtHander(ogl.ShapeEvtHandler):
-    
+class EvtHandler(ogl.ShapeEvtHandler):
+    """ 
+    """
     def __init__(self, frame, canvas):
         ogl.ShapeEvtHandler.__init__(self)
         #self.log = log
@@ -239,7 +245,7 @@ class EvtHander(ogl.ShapeEvtHandler):
         _shape,attachment = self.canvas.FindShape(x,y)
         print 'shape is ',_shape,'the type is',type(_shape)
         ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
-        if isinstance(_shape,InputSocketShape):
+        if isinstance(_shape,InputSocketShape)& isinstance(shape,DataShape):
             print 'now task is start'
             print shape
             fromShape = shape
@@ -296,8 +302,8 @@ class FlowCanvas(ogl.ShapeCanvas):
     def __init__(self, parent,frame):
         ogl.ShapeCanvas.__init__(self, parent)
 
-        maxWidth  = 500
-        maxHeight = 500
+        maxWidth  = 1500
+        maxHeight = 1500
         self.SetScrollbars(20, 20, maxWidth/20, maxHeight/20)
 
         #self.log = log
@@ -318,21 +324,63 @@ class FlowCanvas(ogl.ShapeCanvas):
         #self.Bind(wx.EVT_LEFT_DOWN,self.on_left)
         #self.Bind(wx.EVT_ENTER_WINDOW,self.on_motion)
 
-        # Begin here add the shape to shapecanvas
-        # add the data shape1 to shapecanvas, the position x=80,y=158
-       
-        # begin here is add the linkline to shapecanvas
-
+    def make_popmenu(self):
+        """ creat the popup menu when right click on shape.
+        """
+        deleteID = wx.NewId()
+        
+        popmenu = wx.Menu()
+        item_delete =popmenu.Append(deleteID,'Delete')
+        
+        self.Bind(wx.EVT_MENU,self.on_delete_shape,item_delete)
+        
+        self.PopupMenu(popmenu)
+        popmenu.Destroy()
+        
+    def make_popmenu_2(self):
+        """ creat the popup menu when right click on canvas(not on shape).
+        """
+        
+        newtaskID = wx.NewId()
+        newdataID = wx.NewId()
+        deleteID = wx.NewId()
+        taskID1 = wx.NewId()
+        taskID2= wx.NewId()
+        taskID3 = wx.NewId()
+        taskID4 = wx.NewId()
+        
+        menu = wx.Menu()
+        item_newdata = menu.Append(newdataID, 'New Data')
+                
+        submenu = wx.Menu()
+        task1 = submenu.Append(taskID1,'Task1')
+        task2 = submenu.Append(taskID2,'Task2')
+        task3 = submenu.Append(taskID3,'Task3')
+        task4 = submenu.Append(taskID4,'Task4')
+        
+        menu.AppendMenu(newtaskID,'New Task',submenu)
+        #for i in list(('task1','task2','task3','task4')):
+        self.Bind(wx.EVT_MENU,self.on_add_task,id= taskID1,id2=taskID4)
+        self.Bind(wx.EVT_MENU,self.on_add_data,item_newdata)
+        
+        self.PopupMenu(menu)
+        menu.Destroy()
+        
     def add_linker(self,fromShape,toShape):
+        """ creat the link between the data shape and task shape.
+        """
         line = Linker(fromShape,toShape)
         
         line.Show(True)
         self.diagram.AddShape(line)
         fromShape.SetDraggable(True)
         self.Refresh()
-        
+        if fromShape==None:
+            line.Delete()
 
     def add_shape(self, shape, x, y, pen, brush, text):
+        """ creat the shape on canvas, and add the new shape in shapes list.
+        """
         # Composites have to be moved for all children to get in place
         if isinstance(shape, ogl.CompositeShape):
             dc = wx.ClientDC(self)
@@ -354,65 +402,68 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.diagram.AddShape(shape)
         shape.Show(True)
 
-        self.evthandler = EvtHander( frame=self.frame,canvas=self)
+        self.evthandler = EvtHandler( frame=self.frame,canvas=self)
         self.evthandler.SetShape(shape)
         self.evthandler.SetPreviousHandler(shape.GetEventHandler())
         shape.SetEventHandler(self.evthandler)
 
         self.shapes.append(shape)
         return shape
-    def delete_shape(self,event):
-        
-        shape = self.__selected_shape
-        print shape,'is selected by delete_shape()'
+    def on_delete_shape(self,event):
+        """ event handler for delete shape.
+        """
+        shape = self.__selected_shape  
+        print shape.GetParent(),'is deleted by delete_shape()'
+        dc =wx.ClientDC(self)
+        self.PrepareDC(dc)
         try:
-            shape.GetParent().DeleteControlPoints()
-            shape.GetParent().Delete()
+            self.shapes.remove(shape.GetParent())  # remove the shape from the shapes list
+            shape.GetParent().DeleteControlPoints()  # if we donot do it , the controlpoints will be remained
+            shape.EraseLinks(dc)
+            shape.GetParent().Delete() 
+            
         except:
             shape.Delete()
             
+        print len(self.shapes),'shapes still in shapeslist'
         
         self.Refresh()
     
     @property
     def selected_shape(self):
         return self.__selected_shape
-    
+    """
     def on_select(self, event):
         x,y = event.GetPosition()
         sx, sy = self.CalcUnscrolledPosition(x, y)
         shape = self.FindShape(sx, sy)
         print x,y
         self.__selected_shape = shape
-    
+    """
     def on_right(self,event):
+        """ event handler of right click on canvas or shape
+        """
         x,y = event.GetPosition()
         sx, sy = self.CalcUnscrolledPosition(x, y)
-        shape, attachment = self.FindShape(sx, sy)
+        
+        #in ogl.CompositeShape, the getted shape is the child shape
+        # we can use the shape.GetParent() get the parent shape.
+        shape, attachment = self.FindShape(sx, sy)  
         self.__selected_shape = shape
         print x,y,shape,'is on_right'
-        #print shape
         self.__x = sx
-        self.__y = sy
-        #def on_delete(event):
-            #x,y = event.GetEventObject().GetPosition()
-            #sx, sy = self.CalcUnscrolledPosition(x, y)
-            #self.shape, attachment = self.FindShape(sx, sy)
-            #print x,y
-            #print shape        
-            #if not self.shape == None :
-         #   shape.GetParent().DeleteControlPoints()
-          #  shape.GetParent().Delete()
-           # self.Refresh()
-            
+        self.__y = sy           
 
         if shape:
+            # creat the popupmenu when right click on shape
             popmenu = self.make_popmenu()
-            #self.frame.Bind(wx.EVT_MENU,on_delete,id=popmenu)
         else:
+            # creat the popupmenu when right click on canvas
             popmenu2 = self.make_popmenu_2()
             
     def on_motion(self,event):
+        """ event handler of mouse moving on canvas
+        """
         x,y = event.GetPosition()
         sx, sy = self.CalcUnscrolledPosition(x, y)
         shape, attachment = self.FindShape(sx, sy)
@@ -422,6 +473,8 @@ class FlowCanvas(ogl.ShapeCanvas):
             print "the mouse in input"
             
     def on_left(self,event):
+        """ event handler when left click on canvas 
+        """
         x,y = event.GetPosition()
         sx, sy = self.CalcUnscrolledPosition(x, y)
         shape, attachment = self.FindShape(sx, sy)
@@ -441,45 +494,10 @@ class FlowCanvas(ogl.ShapeCanvas):
         else:
             pass
             
-    def make_popmenu(self):
-        deleteID = wx.NewId()
-        
-        popmenu = wx.Menu()
-        item_delete =popmenu.Append(deleteID,'Delete')
-        
-        self.Bind(wx.EVT_MENU,self.delete_shape,item_delete)
-        
-        self.PopupMenu(popmenu)
-        popmenu.Destroy()
-        
-    def make_popmenu_2(self):
 
-        newtaskID = wx.NewId()
-        newdataID = wx.NewId()
-        deleteID = wx.NewId()
-        taskID1 = wx.NewId()
-        taskID2= wx.NewId()
-        taskID3 = wx.NewId()
-        taskID4 = wx.NewId()
-        
-        menu = wx.Menu()
-        item_newdata = menu.Append(newdataID, 'New Data')
-                
-        submenu = wx.Menu()
-        task1 = submenu.Append(taskID1,'Task1')
-        task2 = submenu.Append(taskID2,'Task2')
-        task3 = submenu.Append(taskID3,'Task3')
-        task4 = submenu.Append(taskID4,'Task4')
-        
-        menu.AppendMenu(newtaskID,'New Task',submenu)
-        
-        self.Bind(wx.EVT_MENU,self.on_add_task,task1)
-        self.Bind(wx.EVT_MENU,self.on_add_data,item_newdata)
-        
-        self.PopupMenu(menu)
-        menu.Destroy()
-        
     def on_add_data(self,event):
+        """ event handler for add data 
+        """
         x = self.__x
         y = self.__y
         print 'add data'
@@ -488,16 +506,22 @@ class FlowCanvas(ogl.ShapeCanvas):
             )
         self.Refresh()
     def on_add_task(self,event):
+        """ event handler for add task
+        """
         x = self.__x
         y = self.__y
-        #print event.GetEventObject,type(event.GetEventObject)
-        #name = self.make_menu().GetLableText(event.GetId())
-        
-        self.add_shape(TaskShape(self,'name'), 
+        # get the menu label
+        menu_id = event.GetId()
+        menu_obj = event.GetEventObject()
+        menu_label = menu_obj.GetLabel(menu_id)
+        # add task shape
+        self.add_shape(TaskShape(self,name = menu_label), 
                 x,y, wx.BLACK_PEN, wx.WHITE_BRUSH, ''
             )
         self.Refresh()
 class TempCanvas(ogl.ShapeCanvas):
+    """ the templete canvas.(now it's not used)
+    """
     def __init__(self, parent,frame):
         ogl.ShapeCanvas.__init__(self, parent)
 
@@ -536,7 +560,7 @@ class TempCanvas(ogl.ShapeCanvas):
         self.diagram.AddShape(shape)
         shape.Show(True)
 
-        evthandler = EvtHander( self.frame)
+        evthandler = EvtHandler( self.frame)
         evthandler.SetShape(shape)
         evthandler.SetPreviousHandler(shape.GetEventHandler())
         shape.SetEventHandler(evthandler)
@@ -545,7 +569,8 @@ class TempCanvas(ogl.ShapeCanvas):
         return shape
 
 class TaskShapeDropTarget(wx.PyDropTarget):
-    
+    """ this is a customs class for drag the text from the tempcanvas.
+    """
     def __init__(self, canvas):
         wx.PyDropTarget.__init__(self)
         #self.log = log
@@ -559,33 +584,35 @@ class TaskShapeDropTarget(wx.PyDropTarget):
         
         self.canvas.Refresh()
     def OnData(self, x, y, d):
-        
-
         # copy the data from the drag source to our data object
         if self.GetData():
             # convert it back to a list of lines and give it to the viewer
             self.text = self.data.GetText()
-            
-        self.canvas.add_shape(TaskShape(self.canvas,self.text),x,y, wx.BLACK_PEN, wx.WHITE_BRUSH, '')
+        sx,sy =self.canvas.CalcUnscrolledPosition(x, y)
+        self.canvas.add_shape(TaskShape(self.canvas,self.text),sx,sy, wx.BLACK_PEN, wx.WHITE_BRUSH, '')
             
         # what is returned signals the source what to do
         # with the original data (move, copy, etc.)  In this
         # case we just return the suggested value given to us.
         return d  
 class FlowFrame(wx.Frame):
+    """ the main frame of this flowcanvas 
+    """
     def __init__(self, *args, **kwds):
         wx.Frame.__init__(self, *args, **kwds)
-        #panel = wx.Panel(self)
-        
-        self.menu = self.make_menu()
-        
+        # creat the statusbar
+        self.StatusBar = wx.StatusBar(self)     
+
+        #self.menu = self.make_menu()
+        # creat the toolbar
         self.make_toolbar()
-        
+        # split the frame into two parts
         splitter1 = wx.SplitterWindow(self, -1, style=wx.SP_3D)
         splitter2 = wx.SplitterWindow(splitter1, -1, style=wx.SP_3D)
-        #log = open('log.log')
-
-        self.SetTitle("OGL TEST")
+        splitter1.SetSashGravity(0.8)
+        splitter2.SetSashGravity(0.2)
+        
+        self.SetTitle("Flow Work Canvas")
         self.SetSize((800,600))
         self.SetBackgroundColour(wx.Colour(8, 197, 248))
         
@@ -600,14 +627,16 @@ class FlowFrame(wx.Frame):
             
         self.temp_canvas.Bind(wx.EVT_LIST_BEGIN_DRAG, self.on_drag_start)
         
-        splitter1.SplitVertically(self.work_canvas, splitter2,500)
+        splitter1.SplitVertically(self.work_canvas, splitter2,600)
         splitter2.Initialize(self.temp_canvas)
         self.Center()
+        # creat the droptarget 
         self.shapetaget = TaskShapeDropTarget(self.work_canvas)
         self.work_canvas.SetDropTarget(self.shapetaget)  
         
     def make_menu(self):
-       
+        """ creat the menu bar in frame
+        """
         newtaskID = wx.NewId()
         newdataID = wx.NewId()
         deleteID = wx.NewId()
@@ -634,14 +663,16 @@ class FlowFrame(wx.Frame):
         menubar.Append(menu,'New')
         menubar.Append(menu2,'Edit')
         self.SetMenuBar(menubar)
-        self.StatusBar = wx.StatusBar(self)
-        #for i in ('task1','task2','task3','task4'):
-        self.Bind(wx.EVT_MENU,self.on_add_task,task1)
+        
+        for i in ('task1','task2','task3','task4'):
+            self.Bind(wx.EVT_MENU,self.on_add_task,i)
         self.Bind(wx.EVT_MENU,self.on_add_data,item_newdata)
         self.Bind(wx.EVT_MENU,self.on_remove_shape,item_delete)
     
         
     def make_toolbar(self):
+        """ creat the toolbar in frame.
+        """ 
         toolbar = self.CreateToolBar()
         
         tsize = (24,24)
@@ -652,7 +683,7 @@ class FlowFrame(wx.Frame):
 
         toolbar.SetToolBitmapSize(tsize)
         
-        #tb.AddSimpleTool(10, new_bmp, "New", "Long help for 'New'")
+        
         toolbar.AddLabelTool(10, "New Date", new_bmp, shortHelp="Add new date", longHelp="Long help for 'New'")
         self.Bind(wx.EVT_TOOL, self.on_tool_click, id=10)
         #self.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick, id=10)
@@ -672,7 +703,26 @@ class FlowFrame(wx.Frame):
         if id == 10:
             self.on_add_data(event)
             self.work_canvas.Refresh()
-        
+        elif id ==20:
+            print 'hello'
+            import os
+            wildcard = "Python source (*.py)|*.py|"     \
+                     "Compiled Python (*.pyc)|*.pyc|" \
+                     "SPAM files (*.spam)|*.spam|"    \
+                     "Egg file (*.egg)|*.egg|"        \
+                     "All files (*.*)|*.*"
+            dlg = wx.FileDialog(
+                self, message="Choose a file",
+                defaultDir=os.getcwd(), 
+                defaultFile="",
+                wildcard=wildcard,
+                style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+                )
+            if dlg.ShowModal() == wx.ID_OK:
+            # This returns a Python list of files that were selected.
+                paths = dlg.GetPaths()
+                print paths
+            dlg.Destroy()
     def on_drag_start(self,event):
         
         self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
@@ -742,15 +792,10 @@ def main():
     frame = app.frame
 
     dlg = FlowFrame(None, -1, title='OGl Test', size=(600, 600))
-   
     dlg.Center()
-
-
     dlg.Show()
     #dlg.Destroy()
-
-    # app.MainLoop()
-
+    
     try:
         app.MainLoop()
     except:
