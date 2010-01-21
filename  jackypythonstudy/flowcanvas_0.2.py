@@ -2,6 +2,7 @@
 # _*_ coding: utf-8 _*_
 # Copyright (C)  2009 Biao Ma
 
+
 # work_flow_canvas.py
 
 """
@@ -167,6 +168,8 @@ class Linker(ogl.LineShape):
         self.AddArrow(ogl.ARROW_ARROW)
         self.MakeLineControlPoints(4)
         fromShape.AddLine(self, toShape)
+        if toShape==None:
+            self.Delete()
         #self.Show(True)
     def _delete(self):
         self.Delete()

@@ -19,10 +19,9 @@ class DataShapeSimple(ogl.RectangleShape):
         self.SetCornerRadius(-0.3)
         self.AddText(text)
         
-class DataShape(ogl.CompositeShape,ogl.DrawnShape):
+class DataShape(ogl.CompositeShape):
     def __init__(self, canvas, name=''):
         ogl.CompositeShape.__init__(self)
-        ogl.DrawnShape.__init__(self)
 
         self.SetCanvas(canvas)        
         
@@ -30,15 +29,14 @@ class DataShape(ogl.CompositeShape,ogl.DrawnShape):
         self.AddChild(shape1)
         shape2 = ogl.CircleShape(10)
         shape2.SetBrush(wx.GREEN_BRUSH)
-        #shape2.SetY(-35)
+        shape2.SetY(-35)
         #shape2.Select(select)
         self.AddChild(shape2)
-        shape2.SetDraggable(1)
+        shape2.SetDraggable(0)
         constraint = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF ,shape1, [shape2])
         self.AddConstraint(constraint)
         self.Recompute()
         shape1.SetSensitivityFilter(0)
-        shape2.SetSensitivityFilter(0)
     def _delete(self):
         self.Delete()
         
@@ -208,15 +206,11 @@ class EvtHander(ogl.ShapeEvtHandler):
         canvas = shape.GetCanvas()
         dc = wx.ClientDC(canvas)
         canvas.PrepareDC(dc)
-        sx,sy = self.canvas.CalcUnscrolledPosition(x, y) 
-        if isinstance(self.canvas.FindShape(x,y),wx.lib.ogl._basic.CircleShape):
-            print 'iam circle'
-        print self.canvas.FindShape(sx,sy)[0],sx,sy
+
         if shape.Selected():
             shape.Select(False, dc)
             #canvas.Redraw(dc)
             canvas.Refresh(False)
-            
         else:
             redraw = False
             shapeList = canvas.GetDiagram().GetShapeList()
@@ -237,26 +231,15 @@ class EvtHander(ogl.ShapeEvtHandler):
 
                 ##canvas.Redraw(dc)
                 canvas.Refresh(True) #Flase 
-        
+
         self.up_data_statusbar(shape)
-    def OnBeginDragLeft(self,x,y,key=0,attachment=0):
-        print 'drag begin at',x,y
-        ogl.ShapeEvtHandler.OnBeginDragLeft(self, x, y, keys = 0, attachment = 0)
-        if isinstance(self.canvas.FindShape(x,y),(wx.lib.ogl._basic.CircleShape)):
-            #x=old_x 
-            #y=old_y            
-            print 'hello'
-            ogl.ShapeEvtHandler.OnBeginDragLeft(self, x, y, keys = 0, attachment = 0)          
-    
         
     def OnEndDragLeft(self, x, y, keys=0, attachment=0):
         shape = self.GetShape()
-        sx,sy = self.canvas.CalcUnscrolledPosition(x, y)
-        _shape = self.canvas.FindShape(x,y)
-        print 'shape is ',_shape,'the type is',type(_shape)
         ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
-        if isinstance(self.canvas.FindShape(sx,sy)[0],InputSocketShape):
-            print 'now task is start'
+
+        if not shape.Selected():
+            self.OnLeftClick(x, y, keys, attachment)
         
         self.up_data_statusbar(shape)
 
@@ -280,10 +263,9 @@ class EvtHander(ogl.ShapeEvtHandler):
         if "wxMac" in wx.PlatformInfo:
             shape.GetCanvas().Refresh(False)
     def OnRightClick(self,x,y,keys = 0, attachment =0): 
-        pass
-        #popmenu = self.frame.make_popmenu()
-        #self.canvas.Bind(wx.EVT_MENU,self.on_menu_delete)
+        shape = self.GetShape()
         
+        self.frame.make_popmenu()
         #if shape.Haschild
         #if shape == TaskShape(shape.GetCanvas()):
         #print 'this is right ckick',shape
@@ -296,13 +278,6 @@ class EvtHander(ogl.ShapeEvtHandler):
         self.canvas.diagram.RemoveShape(shape)
         self.canvas.Refresh()
         
-        print shape ,'is deleted'
-    def on_menu_delete(self,event):
-        shape = self.GetShape()
-        
-        shape.DeleteControlPoints()
-        shape.Delete()
-        self.canvas.Refresh()
         print shape ,'is deleted'
 class FlowCanvas(ogl.ShapeCanvas):
     #def __init__(self, parent, log, frame):
@@ -328,9 +303,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         
         self.Bind(wx.EVT_RIGHT_DOWN,self.on_right)
         self.Bind(wx.EVT_MOTION,self.on_motion)
-        #self.Bind(wx.EVT_CHILD_FOCUS,self.on_motion)
-        #self.Bind(wx.EVT_LEFT_DOWN,self.on_left)
-        #self.Bind(wx.EVT_ENTER_WINDOW,self.on_motion)
+        
 
         # Begin here add the shape to shapecanvas
         # add the data shape1 to shapecanvas, the position x=80,y=158
@@ -381,67 +354,42 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.shapes.append(shape)
         return shape
     def delete_shape(self):
-        pass
         shape = self.shapes[0]
         print shape
         self.diagram.RemoveShape(shape)
         
         self.Refresh()
-    
-    @property
-    def selected_shape(self):
-        return self.__selected_shape
-    
-    def on_select(self, event):
-        x,y = event.GetPosition()
-        sx, sy = self.CalcUnscrolledPosition(x, y)
-        shape, attachment = self.FindShape(sx, sy)
-        print x,y
-        self.__selected_shape = shape
-    
     def on_right(self,event):
+        
+        
         x,y = event.GetPosition()
         sx, sy = self.CalcUnscrolledPosition(x, y)
-        shape, attachment = self.FindShape(sx, sy)
+        self.shape, attachment = self.FindShape(sx, sy)
         print x,y
-        #print shape
-        
-        def on_delete(event):
-            #x,y = event.GetEventObject().GetPosition()
-            #sx, sy = self.CalcUnscrolledPosition(x, y)
-            #self.shape, attachment = self.FindShape(sx, sy)
-            #print x,y
-            #print shape        
-            #if not self.shape == None :
-            shape.GetParent().DeleteControlPoints()
-            shape.GetParent().Delete()
+        print self.shape
+        if not self.shape == None :
+            #popmenu = self.frame.make_popmenu()
+            #self.frame.Bind(wx.EVT_MENU,self.on_delete)
+   # def on_delete(self,event):
+       # x,y = event.GetEventObject().GetPosition()
+       # sx, sy = self.CalcUnscrolledPosition(x, y)
+       # self.shape, attachment = self.FindShape(sx, sy)
+       # print x,y
+       # print self.shape        
+       # if not self.shape == None :
+            self.shape.GetParent().DeleteControlPoints()
+            self.shape.GetParent().Delete()
+            #shape.
             self.Refresh()
-            
-
-        if shape:
-            popmenu = self.frame.make_popmenu()
-            #self.frame.Bind(wx.EVT_MENU,on_delete,id=popmenu)
-  
     def on_motion(self,event):
         x,y = event.GetPosition()
         sx, sy = self.CalcUnscrolledPosition(x, y)
         shape, attachment = self.FindShape(sx, sy)
-        print sx,sy
-        if isinstance(shape, InputSocketShape):
-        #if not shape ==None:
+        #if shape ==InputSocketShape:
+        if not shape ==None:
             print "the mouse in input"
             
-    def on_left(self,event):
-        x,y = event.GetPosition()
-        sx, sy = self.CalcUnscrolledPosition(x, y)
-        shape, attachment = self.FindShape(sx, sy)
-        if isinstance(shape,wx.lib.ogl._basic.CircleShape):
-            shape.GetParent().SetDraggable(False)
-            #shape.SetDraggable(True)
-            print 'i am circle' 
-        else: 
-            self.Unbind(wx.EVT_LEFT_DOWN)
-            shape.GetParent().SetDraggable(True)
+
 class TempCanvas(ogl.ShapeCanvas):
     def __init__(self, parent,frame):
         ogl.ShapeCanvas.__init__(self, parent)
@@ -586,7 +534,17 @@ class FlowFrame(wx.Frame):
         self.Bind(wx.EVT_MENU,self.on_add_task,task1)
         self.Bind(wx.EVT_MENU,self.on_add_data,item_newdata)
         self.Bind(wx.EVT_MENU,self.on_remove_shape,item_delete)
-    
+    def make_popmenu(self):
+        deleteID = wx.NewId()
+        
+        popmenu = wx.Menu()
+        
+        item_delete =popmenu.Append(deleteID,'Delete')
+        
+        #self.Bind(wx.EVT_MENU,self.on_remove_shape,item_delete)
+        
+        self.PopupMenu(popmenu)
+        popmenu.Destroy()
         
     def make_toolbar(self):
         toolbar = self.CreateToolBar()

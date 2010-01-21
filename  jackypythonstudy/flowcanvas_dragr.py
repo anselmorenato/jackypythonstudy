@@ -37,6 +37,9 @@ class DataShape(ogl.CompositeShape):
         self.AddConstraint(constraint)
         self.Recompute()
         shape1.SetSensitivityFilter(0)
+    def _delete(self):
+        self.Delete()
+        
 
 #----------------------------------------------------------------------
 # Begin here make the shapes for TaskShape
@@ -83,6 +86,9 @@ class TaskShape(ogl.CompositeShape):
         middleshape.SetSensitivityFilter(0)
         inputshape.SetSensitivityFilter(0)
         outputshape.SetSensitivityFilter(0)
+
+    def _delete(self):
+        self.Delete()
         
 class InputSocketShape(ogl.RectangleShape):
     """this shape is one part of the TaskShape"""
@@ -294,6 +300,10 @@ class FlowCanvas(ogl.ShapeCanvas):
 
         rRectBrush = wx.Brush("GREEN", wx.SOLID)
         dsBrush = wx.Brush("WHEAT", wx.SOLID)
+        
+        self.Bind(wx.EVT_RIGHT_DOWN,self.on_right)
+        self.Bind(wx.EVT_MOTION,self.on_motion)
+        
 
         # Begin here add the shape to shapecanvas
         # add the data shape1 to shapecanvas, the position x=80,y=158
@@ -349,6 +359,36 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.diagram.RemoveShape(shape)
         
         self.Refresh()
+    def on_right(self,event):
+        
+        
+        x,y = event.GetPosition()
+        sx, sy = self.CalcUnscrolledPosition(x, y)
+        self.shape, attachment = self.FindShape(sx, sy)
+        print x,y
+        print self.shape
+        if not self.shape == None :
+            #popmenu = self.frame.make_popmenu()
+            #self.frame.Bind(wx.EVT_MENU,self.on_delete)
+   # def on_delete(self,event):
+       # x,y = event.GetEventObject().GetPosition()
+       # sx, sy = self.CalcUnscrolledPosition(x, y)
+       # self.shape, attachment = self.FindShape(sx, sy)
+       # print x,y
+       # print self.shape        
+       # if not self.shape == None :
+            self.shape.GetParent().DeleteControlPoints()
+            self.shape.GetParent().Delete()
+            #shape.
+            self.Refresh()
+    def on_motion(self,event):
+        x,y = event.GetPosition()
+        sx, sy = self.CalcUnscrolledPosition(x, y)
+        shape, attachment = self.FindShape(sx, sy)
+        #if shape ==InputSocketShape:
+        if not shape ==None:
+            print "the mouse in input"
+            
 
 class TempCanvas(ogl.ShapeCanvas):
     def __init__(self, parent,frame):
@@ -501,7 +541,7 @@ class FlowFrame(wx.Frame):
         
         item_delete =popmenu.Append(deleteID,'Delete')
         
-        self.Bind(wx.EVT_MENU,self.on_remove_shape,item_delete)
+        #self.Bind(wx.EVT_MENU,self.on_remove_shape,item_delete)
         
         self.PopupMenu(popmenu)
         popmenu.Destroy()
@@ -586,9 +626,14 @@ class FlowFrame(wx.Frame):
             )
         self.work_canvas.Refresh()
     def on_remove_shape(self,event):
-        
+        x,y = event.GetPosition()
+        sx, sy = self.CalcUnscrolledPosition(x, y)
+        shape, attachment = self.FindShape(sx, sy)
+        if shape.Selected():
+            shape.Delete()
+            self.work_canvas.Refresh()
         #shape = self.work_canvas.GetShape()
-        self.work_canvas.delete_shape()
+        #self.work_canvas.delete_shape()
         #self.work_canvas.Refresh()
 #-------------------------------------------------------------------------------
 
