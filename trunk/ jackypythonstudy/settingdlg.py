@@ -263,8 +263,7 @@ class CmdTagPanel(wx.Panel):
         self.parent = parent
         self.target = target
         print self.parent.GetPageCount()
-                
-        self.nameLbl = wx.StaticText(self, -1, "Name:")
+
         self.name = wx.TextCtrl(self, -1, "")
         self.pathLbl = wx.StaticText(self, -1, "Path:")
         self.path = wx.TextCtrl(self, -1, "")
