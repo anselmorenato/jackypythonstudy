@@ -1,0 +1,15 @@
+name: REMD
+description: This object is replica exchange MD.
+input:
+    system: {type: System, multi: Single, optional: false}
+    restraint: {type: Group, multi: Single, optional: true}
+    fmm: {type: Group, multi: Single, optional: true}
+setting: standard
+log: {type: Log, multi: Sequence}
+concomitance:
+    restart: {type: System, multi: Sequence, optional: false}
+output:
+    system: {type: System, multi: Single, optional: false}
+    trajectory: {type: Trajectory, multi: Single, optiona: true}
+command: [Presto, amber_remd, Gromacs] 
+

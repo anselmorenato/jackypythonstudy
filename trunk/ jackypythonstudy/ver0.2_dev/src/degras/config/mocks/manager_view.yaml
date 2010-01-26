@@ -1,0 +1,22 @@
+class_name: ConfigManagerView
+events:
+    - ok
+    - cancel
+    - close
+    - remote_delete
+    - remote_create
+    - remote_copy
+    - remote_default
+    - show_remote
+
+getsets:
+    loc_name_list:
+
+properties:
+    - remote_default
+
+enables:
+    - is_selected
+
+methods:
+

@@ -1,0 +1,133 @@
+
+object_type:
+    [dynamics, minimize, energy, opt, docking]
+
+
+optimize:
+    optimizer:
+        [conjugate_gradient, steepest_descent, newton_raphson, low_mode]
+    step_number:
+    criteria:
+        energy:
+        gradient:
+        other:
+
+    restraint: &restraint
+
+
+dynamics:
+    restart: 
+        value: true
+        restart_generator: boltzmann
+
+    velocity:
+
+    integrator:
+        - flog
+        - leap flog
+        - gear
+        - predictor corrector
+    ensemble1:
+        - NEV
+        - NVT
+        - NPT
+        - NPTA
+    ensemble2(details):
+        - templeture(T)
+            - Langevin
+            - Nose
+            - weak coupling
+            - Andersen
+            - 
+        - energy
+        - pressure(P)
+            - Parrinelo Ramann
+            - Hoover
+        - volume(V)
+    property:
+        templeture
+        pressure
+
+
+
+    long range:
+        - PME
+        - Ewald
+        - PPPC
+        - FMM
+
+    restraint:
+        group1:
+            restraint_method:
+                shake:
+                other1:
+                other2:
+        group2: 
+
+    
+    random seed: [true, false]
+
+
+
+
+    output:
+
+
+
+        
+
+
+chemical shift:
+    output atoms:
+
+
+
+potential:
+    protein:
+    nucleotide:
+    lipid:
+    sugar:
+        GlyCAM2002
+        GlyCAM2006
+    ligand:
+    solvent:
+    water:
+    other:
+
+
+    carse_grained:
+        go
+    unit atom:
+        gromos
+    all atom:
+        amber96
+        amber99
+        amber99SB
+        amber2003
+        opls2001
+        opls2002
+    semi emperical qm:
+        MNDO
+        AM1
+        PM3
+    ab initio:
+        STO-3G
+        6-31G
+
+
+    solvent:
+        explicit
+        implicit:
+            poisson boltzmann:
+            generalized born:
+            
+            
+        lipid implicit
+    
+fragment:
+    use_fragment
+
+group:
+
+replica:
+

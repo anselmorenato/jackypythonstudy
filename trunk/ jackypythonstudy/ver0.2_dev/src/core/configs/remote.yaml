@@ -1,0 +1,57 @@
+
+nagara:
+    user plugin: /absolute/path/to/user_plugin
+    email: ishikura@gifu-u.ac.jp
+    rootdir: /absolute/path/to/nagara/root
+
+location:
+    local:
+        workdir: /absolute/path/to/working/directory
+        ssh: 
+        jms: 
+            Single:
+                envs:
+                path:
+            Thread:
+        commands:
+
+    hpcs:
+        workdir: /home/ishikura/Nagara/projects
+        ssh:
+            address: '133.66.117.139'
+            username: ishikura
+            password: '*********' 
+            port: 22
+            # jms = ['Single', 'MPI', 'LSF'], #Local
+        jms:
+            default: LSF
+            Single:
+                envs:
+                path:
+            MPI:
+                envs:
+                path:
+            LSF:
+                envs:
+                path:
+                script:
+        commands:
+            amber:
+                # envs = dict(AMBERHOME = '/home/hpc/opt/amber10.eth'),
+                # path = '/home/hpcs/opt/amber10.eth/exe/sander.MPI',
+                envs:
+                    AMBERHOME: /home/ishikura/opt/amber10.eth
+                path: /home/ishikura/opt/amber10.eth/exe/sander.MPI
+            marvin:
+                envs:
+                # path = '/home/hpcs/Nagara/app/bin/marvin',
+                path:  /home/ishikura/Nagara/app/bin/marvin
+            paics:
+                # envs = dict(PAICS_HOME='/home/ishi/paics/paics-20081214'),
+                # path = '/home/ishi/paics/paics-20081214/main.exe',
+                envs:
+                    PAICS_HOME: /home/ishi/paics/paics-20081214
+                path: /home/ishi/paics/paics-20081214/main.exe
+        vlsn:
+        rccs:
+

@@ -1,0 +1,26 @@
+command:
+    amber_md: Amber
+    amber_remd: AmberREMD
+    divcon: Divcon
+
+converter:
+    parser:
+        - format: AMBER_RESTART
+          type:   Restart
+          class:  AMBER_RESTART_Parser
+
+    formatter:
+        - format: AMBER_RESTART
+          type:   Restart
+          class:  AMBER_RESTART_Formatter
+    allow:
+    deny:
+#     arrow:
+#     deny: 
+#         - [[AMBER_PRMTOP, AMBER_RESTART], AMBER_LIB]
+          
+taskobject command:
+    energy: amber_md
+    optimize: amber_md
+    dynamics: amber_md
+    remd: amber_remd

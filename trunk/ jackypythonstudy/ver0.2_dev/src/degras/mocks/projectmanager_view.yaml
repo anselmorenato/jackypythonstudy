@@ -1,0 +1,23 @@
+class_name: ProjectManagerView
+events:
+    - sort_by
+    - sort_reverse
+    - delete
+    - select
+    - popup
+    - copy
+    - show_info
+    - rename
+
+getsets:
+    name: project 1
+    piece_name: name
+
+properties:
+    project
+
+enables:
+    - is_selected
+
+methods:
+

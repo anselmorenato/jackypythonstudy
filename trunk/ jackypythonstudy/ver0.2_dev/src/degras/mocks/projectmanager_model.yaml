@@ -1,0 +1,29 @@
+class_name: ProjectManagerModel
+events:
+    - selected
+    - sorting_update
+    - created
+
+    - delete
+    - select
+    - popup
+    - copy
+    - show_info
+    - rename
+
+getsets:
+    name: project 1
+    task_dict:
+    data_dict:
+
+
+properties:
+
+enables:
+    - is_selected
+
+methods:
+    - sort_reverse
+    - sort_by
+    - 
+

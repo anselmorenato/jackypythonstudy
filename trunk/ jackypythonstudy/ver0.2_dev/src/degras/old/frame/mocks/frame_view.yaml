@@ -1,0 +1,18 @@
+class_name: FrameView
+events:
+    - close
+
+getsets:
+    title: title
+
+properties:
+
+enables:
+
+methods:
+    - get_view
+    - append_panel
+    - set_menubar
+    - set_statusbar
+    - set_toolbar
+

@@ -1,0 +1,18 @@
+class_name: ConfigManagerModel
+events:
+    - init
+    - state_changed
+    - update
+
+getsets:
+    jobname: jobname
+
+properties:
+    finish_time: 100
+
+enables:
+    - is_selected
+
+methods:
+    - get_menu_dict
+

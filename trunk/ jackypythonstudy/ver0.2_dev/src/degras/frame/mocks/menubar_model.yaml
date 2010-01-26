@@ -1,0 +1,27 @@
+class_name: MenubarModel
+events:
+    - update_file
+    - update_project
+    - update_edit
+    - update_view
+    - update_workflow
+    - update_tool
+    - update_plugin
+
+getsets:
+    nagara_menu:
+    file_menu:
+    project_menu:
+    edit_menu:
+    view_menu:
+    workflow_menu:
+    tool_menu:
+    plugin_menu:
+    help_menu:
+
+properties:
+
+enables:
+
+methods:
+

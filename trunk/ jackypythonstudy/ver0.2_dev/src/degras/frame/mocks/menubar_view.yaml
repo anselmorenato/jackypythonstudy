@@ -1,0 +1,22 @@
+class_name: MenubarView
+events:
+    - test
+
+getsets:
+
+properties:
+
+enables:
+
+methods:
+    - set_nagara_menu
+    - set_file_menu
+    - set_project_menu
+    - set_edit_menu
+    - set_view_menu
+    - set_workflow_menu
+    - set_tool_menu
+    - set_plugin_menu
+    - set_help_menu
+    - get_menubar
+

@@ -1,0 +1,15 @@
+taskobject:
+    energy: Energy
+    optimize: Optimize
+    screening: Screening
+    dynamics: Dynamics
+    remd: REMD
+
+command:
+    a: A
+    b: B
+
+setting:
+    standart: standad
+
+taskobject command:

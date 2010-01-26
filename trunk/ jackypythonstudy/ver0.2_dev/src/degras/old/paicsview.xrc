@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="PAICSView">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxGridSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Task name :</label>
+                </object>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="wxComboBox" name="task_name">
+                  <value>paics-test</value>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>input file :</label>
+                </object>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="wxFilePickerCtrl" name="paics_input_file">
+                  <value>ifie.inp</value>
+                  <wildcard>*.in|*.inp</wildcard>
+                </object>
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+              </object>
+              <cols>2</cols>
+              <rows>2</rows>
+              <vgap>4</vgap>
+              <hgap>5</hgap>
+            </object>
+            <option>1</option>
+          </object>
+          <label>Basic Settings</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="run_PAICS">
+              <label>Run PAICS</label>
+            </object>
+            <option>0</option>
+            <flag>wxALL</flag>
+            <border>3</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxGauge" name="process_gauge"/>
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <border>2</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText" name="process_log">
+                  <label>current = 30 iterations</label>
+                </object>
+                <option>0</option>
+                <flag>wxALL|wxEXPAND</flag>
+                <border>2</border>
+              </object>
+              <orient>wxVERTICAL</orient>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <label>Run</label>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="view_log">
+              <label>View Log</label>
+            </object>
+            <option>1</option>
+            <flag>wxALL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxButton" name="download_log">
+                  <label>Downlog Log</label>
+                </object>
+                <option>0</option>
+                <flag>wxALL</flag>
+                <border>3</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxFilePickerCtrl" name="select_logfile"/>
+                <option>1</option>
+                <flag>wxALL|wxEXPAND</flag>
+                <border>3</border>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <label>Log operations</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <label>PaicsView</label>
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="run_PaicsView">
+              <label>run</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxFilePickerCtrl" name="select_PaicsView_exe"/>
+            <option>1</option>
+            <border>3</border>
+          </object>
+        </object>
+        <option> </option>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+</resource>

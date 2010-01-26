@@ -1,0 +1,9 @@
+converter:
+    parser:
+        - format: PDB
+          type:   System
+          class:  PDB_Parser
+    formatter:
+        - format: PDB
+          type:   System
+          class:  PDB_Formatter

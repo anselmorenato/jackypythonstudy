@@ -1,0 +1,42 @@
+class_name: LocationModel
+events:
+    - init
+    - update 
+
+getsets:
+    name: hpcs
+    workdir: /home/ishikura/Nagara/projects
+    shell: 
+    init_file: /etc/profile.local
+    environ_dict:
+    mpi: mpijob mpirun
+
+    ssh_address: hpcs.med.nagaoya-u.ac.jp
+    ssh_username: ishikura
+    ssh_password: aaaaaaa
+    ssh_port: 22
+
+    jms_dict:
+    command_dict:
+    jms_default:
+
+properties:
+
+enables:
+
+methods:
+    - start
+    - set_config
+    - close
+    - append_command
+    - delete_command
+    - append_env_for_command
+    - delete_env_for_command
+    - edit_env_for_command
+    - append_jms
+    - delete_jms
+    - append_env_for_jms
+    - delete_env_for_jms
+    - edit_env_for_jms
+
+

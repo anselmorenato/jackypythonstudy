@@ -1,0 +1,32 @@
+converter:
+#     parser:
+#         - format: AMBER_RESTART
+#           type:   Restart
+#           class:  AMBER_RESTART_Parser
+# 
+#     formatter:
+#         - format: AMBER_RESTART
+#           type:   Restart
+#           class:  AMBER_RESTART_Formatter
+# 
+    command:
+        - format: PDB
+          type:   System
+          class:  Tleap
+
+        - format: [AMBER_PRMTOP, AMBER_RESTART]
+          type:   System
+          class:  Tleap
+
+        - format: AMBER_OFF
+          type:   System
+          class:  Tleap
+
+#     allow:
+    deny:
+        - [[AMBER_RESTART, AMBER_PRMTOP], AMBER_OFF]
+        - [[AMBER_RESTART, AMBER_PRMTOP], PDB]
+        - [[PDB], [AMBER_OFF]]
+        - [[AMBER_OFF], [PDB]]
+#     arrow:
+#     deny: 

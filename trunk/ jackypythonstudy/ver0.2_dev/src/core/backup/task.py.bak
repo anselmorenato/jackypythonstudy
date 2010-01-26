@@ -1,0 +1,1298 @@
+#!/usr/bin/env python
+#  -*- encoding: utf-8 -*-
+# Copyright (C)  2009 Takakazu Ishikura
+
+# standard modules
+import os, sys
+from abc import ABCMeta, abstractmethod, abstractproperty
+
+# nagara modules
+from exception import NagaraException
+# if __name__ == '__main__':
+#     sys.path.append('../')
+from dataconverter   import DataConverter
+from log             import Log
+
+
+CHECK_TIME=1
+SYNC_TIME_LIMIT=1000
+
+################################################################################
+# Task
+################################################################################
+
+# Task Class ===================================================================
+# operations
+# prepare
+# run
+# stop
+# delete
+class TaskException(NagaraException): pass
+class Task(object):
+
+    """
+    Class to define tasks that perform each calculation.
+    """
+
+    def __init__(self, project, configs, name=None,
+                 taskobject=None, description='', log=None):
+
+        self.__project = project
+        self.__log = log
+        # configs
+        self.__configs = configs
+        path = ''
+        self.__configs['nagara']['plugin']['path'] = path
+
+        # default configs
+        self.__configs = configs
+        # task's configs
+        self.__task_configs = configs['nagara']
+
+        # task name
+        if name:
+            self.__name = name
+        else:
+            self.__name = 'task' + ' ' + str(self.__id)
+        self.__id = self.__parent.get_hightest_id()
+
+        # description
+        self.__description = description
+
+    # property: task_object
+    def get_object(self):
+        return self.__object
+    def set_object(self, task_object):
+        self.__object = task_object
+    taskobject = property(get_object, set_object)
+
+    # property: default_configs
+    def get_default_configs(self):
+        return self.__configs
+    def set_default_configs(self, configs):
+        self.__configs = configs
+    default_configs = property(get_default_configs, set_default_configs)
+
+    # property: name
+    def get_name(self):
+        return self.__name
+    def set_name(self, name):
+        self.__name = name
+    name = property(get_name, set_name)
+
+    # property: path
+    def get_path(self):
+        return self.__path
+    def set_path(self, path):
+        self.__path = path
+    path = property(get_path, set_path)
+
+    @property
+    def id(self):
+        return self.__id
+
+    def inputs(self):
+        return self.__inputs
+
+    def outputs(self):
+        return self.__outputs
+
+    def log(self):
+        return self.__calclog
+
+    def concomitance(self):
+        return self.__concomitance
+
+    def setting(self):
+        return self.__setting
+
+    def create_outputs(self):
+        self.object
+
+    # property: command
+    def get_command(self):
+        return self.__command or None
+    def set_command(self, cmd_str):
+        if cmd_str in self.avalable_commands():
+            cmd_class = command.command_dict.get(cmd_str)
+            if cmc_class:
+                self.__command = cmd_class()
+            else:
+                raise CommandNotFound()
+        else:
+            raise CommandInvalid()
+    command = property(get_command, set_command)
+    
+    # state
+    def get_state(self):
+        return self.__state
+    def set_state(self, state):
+        self.__state = state
+    state = property(get_state, set_state)
+
+    # property: description
+    def get_desc(self):
+        return self.__description
+    def set_desc(self, desc):
+        self.__description = desc
+    description = property(get_desc, set_desc)
+    
+    @property
+    def project(self):
+        return self.__project
+
+    @property
+    def settings(self):
+        return self.__settings
+
+    # ok version method
+    def initialize(self):
+
+        self.local  = TaskLocal(self)
+        self.remote = TaskRemote(self)
+        self.job    = Job(self)
+
+        # templates
+        # self.__taskobject.input_types
+        # self.__taskobject.output_types
+        # self.__taskobject.comcomitances
+        # self.__taskobject.setting_type
+
+        # datas (input, output, setting, concomitance)
+        self.__inputs       = {}
+        self.__outputs      = {}
+        self.__concomitance = {}
+        self.__calclog      = {}
+        self.__setting      = None
+        # self.__inputs = {'system': SystemData, 'data':Data}
+        # self.__outputs = {naem1: SystemData, name2: Data, name3: Data}
+        # self.__concomitance = {log:LogData}
+
+        # command
+        self.__command = None
+        # self.__command.input_formats
+        # self.__command.output_formats
+
+        # create the task states
+        self.__generate_all_states()
+
+    def any_operations(self):
+        self.state.request_any_operations()
+
+    def is_prepared(self):
+        # self.__input_sockets
+        # self.__
+        self.__inputs,
+        self.__socket_settings
+
+    def setup(self):
+        pass
+
+    def prepare_input(self):
+        if self.__object:
+            self.__object.outputs
+
+    def setup_convert(self):
+        pass
+
+    def create_outputs_data(self):
+        names = set(self.__outputs) ^ set(self.__object.outputs)
+        for name in names:
+            type = self.__object.outputs[name]
+            if type['optional']: continue
+            self.__outputs[name] = Data(
+                self.__project, type=types['type'], multiplicity=type['multi']
+            )
+
+    def prepare_setting(self):
+        setting_class = settingdata.setting_dict[self.__object.setting]
+        datas = self.__settings['datas']
+        for option, value in datas.items():
+            if value:
+                if self.__object.inputs.get(option):
+                    self.__object.inputs[option] = value
+                if self.__object.outputs.get(option):
+                    self.__object.outputs[option] = value
+
+    def change_data_settings(self):
+        self.prepare_data_settings()
+        self.prepare_output()
+
+
+    def write(self, message):
+        """Write the message."""
+        if self.__log: self.__log.write(message)
+
+    def tail_log(self, output):
+        log = self.__concomitance['log']
+        for line in log.tail():
+            output.write(line)
+
+    def available_commands(self):
+        avalable_commands = []
+        for cmd_str in self.__object.commands:
+            cmd_class = command.command_dict.get(cmd_str)
+            if cmd_class:
+                if cmd_class.is_available(settings):
+                    avalable_commands.append(cmd_str)
+            else:
+                raise CommandNotFound()
+        return available_commands
+    
+
+    def prepare_setting(self):
+        if not self.__setting:
+            format = self.__object.setting
+            self.__setting = SettingData(format)
+    
+    def check_settings(self, setting_data):
+        if setting_data.type == self.__object.setting:
+            return True
+        else:
+            return False
+
+    def convert_input_data(self):
+        # {system: Data, restraint
+        self.state.preparing
+        for socket_name, data in self.inputs.items():
+            formats = self.__command.type_format_table.get(data.type)
+            if formats:
+                dc = DataConverter(data, formats, user_command=False)
+                dc.set_filename
+                dc.convert()
+                datas = dc.get_datas()
+
+        rev_formats = dict([ (format, key) for key, format
+                            in self.__command.input_formats.items() ])
+        for data in datas:
+             key = rev_formats.get(data.format)
+             if key:
+                 filename = self.__command.default_options[key]
+                 file_abspath = os.path.join(self.path, filename)
+                 data.dump(file_abspath)
+             else:
+                 raise DataException()
+
+    def check_input_data(self):
+        for key, fmt in self.__command.input_formats.items():
+            formats = [ data.type for data in datas ]
+            if fmt in formats:
+                pass
+            else:
+                raise DataException()
+                
+    def convert_setting(self):
+        pass
+
+    def check_setting(self):
+        pass
+
+    def run(self, input_fn=None):
+        self.setup()
+        if self.remote.isReady():
+            # self.__cmd.run(input_fn=input_fn)
+            self.__cmd.run()
+            # self.remote.setRunnning()
+            self.remote.setDone()
+        ##self.setup(input_fn=input_fn)
+
+    def setup(self):
+        """Setup the task."""
+        self.setupLocal()
+        self.setupRemote()
+
+    def delete(self):
+        self.remote.delete()
+        # self.local.delete()
+        self.log('delete the task: '+ str(self) + '\n')
+
+    def move(self):
+        pass
+
+    def copy(self):
+        pass
+
+    def deepcopy(self):
+        pass
+
+    def save_file(self):
+        pass
+
+    def __setCmd_cmd(self, cmd):
+        """Set a command to this task."""
+        cmd_configs = self.__configs[self.__host]['commands']
+        c = cmd_configs[cmd.getName()]
+        cmd.setPath(c['path'])
+        cmd.setEnvs(c['envs'])
+        self.__cmd = cmd
+
+    def check_ready(self):
+        for name in self.__object.input_types:
+            data = self.__inputs.get(name)
+            if data:
+                if data.is_empty(): 
+                    return False
+            else:
+                return False
+        return True
+
+
+    def setupLocal(self):
+        if self.local.isNone():
+            self.local.create()
+            self.local.setCreated()
+            self.__cmd.setup()
+            self.local.setReady()
+            return True
+        elif self.local.isCreated():
+            self.__cmd.setup()
+            self.local.setReady()
+            return True
+        else:
+            return False
+
+    def setupRemote(self):
+        self.remote.put()
+        self.remote.setReady()
+
+    # from command.py
+    def set_input_data(self, **kwds):
+        for key, data in kwds.items():
+            if key in self.input_types.keys():
+                self.__inputs[key] = data
+
+    def set_output_data(self, **kwds):
+        for key, data in kwds.items():
+            if key in self.output_types.keys():
+                self.__outputs[key] = data
+
+
+
+    # def copy(self, dst):
+    #     return shutil.copytree(src, dst)
+
+#-------------------------------------------------------------------------------
+
+
+# Task State Class =============================================================
+class TaskStateException(TaskException): pass
+class TaskState(object):
+
+    def __init__(self, task):
+        self.__task = task
+        self.__generate_all_states()
+        self.change_to_none_object()
+
+    def __generate_all_states(self):
+        # standard states
+        self.__NONE_OBJECT_STATE = NoneObjectTaskState()
+        self.__INIT_STATE        = InitTaskState()
+        self.__PREPARING_STATE   = PreparingTaskState()
+        self.__PREPARED_STATE    = PreparedTaskState()
+        self.__READY_STATE       = ReadyTaskState()
+        self.__WORKING_STATE     = WorkingTaskState()
+        self.__PENDING_STATE     = PendingTaskState()
+        self.__RUNNABLE_STATE    = RunnableTaskState()
+        self.__RUNNING_STATE     = RunningTaskState()
+        self.__STOPPING_STATE    = StoppingTaskState()
+        self.__ABORTING_STATE    = AbortingTaskState()
+        self.__DONE_STATE        = DoneTaskState()
+        self.__RECEIVING_STATE   = ReceivingTaskState()
+        self.__COMPLETE_STATE    = CompleteTaskState()
+        
+        # error states
+        self.__READY_ERROR_STATE   = ReadyErrorTaskState()
+        self.__WORKING_ERROR_STATE = WorkingErrorTaskState()
+        self.__RUNNING_ERROR_STATE = RunningErrorTaskState()
+
+    def get_available_request(self):
+        """Return available request in this state."""
+        for med in self.__state.__class__.__dict__:
+            if med.startswith('request_'): yield med
+
+    def entry(self):
+        self.log()
+        self.write_state()
+        try:
+            getattr(self.__state, 'entry')
+            self.__state.entry(self.__task)
+        except AttributeError:
+            pass
+
+    @property
+    def previous(self):
+        return self.__previous
+
+    def change_to_none_object(self):
+        self.__previous = None
+        self.__state = self.__NONE_OBJECT_STATE
+        self.entry()
+
+    def change_to_init(self):
+        self.__previous = self.__state
+        self.__state = self.__INIT_STATE
+        self.entry()
+
+    def change_to_preparing(self):
+        self.__previous = self.__state
+        self.__state = self.__PREPARING_STATE
+        self.entry()
+
+    def change_to_prepared(self):
+        self.__previous = self.__state
+        self.__state = self.__PREPARED_STATE
+        self.entry()
+
+    def change_to_ready(self):
+        self.__previous = self.__state
+        self.__state = self.__READY_STATE
+        self.entry()
+
+    def change_to_working(self):
+        self.__previous = self.__state
+        self.__state = self.__WORKING_STATE
+        self.entry()
+
+    def change_to_runnable(self):
+        self.__previous = self.__state
+        self.__state = self.__RUNNABLE_STATE
+        self.entry()
+
+    def change_to_pending(self):
+        self.__previous = self.__state
+        self.__state = self.__PENDING_STATE
+        self.entry()
+
+    def change_to_running(self):
+        self.__previous = self.__state
+        self.__state = self.__RUNNING_STATE
+        self.entry()
+
+    def change_to_stopping(self):
+        self.__previous = self.__state
+        self.__state = self.__STOPPING_STATE
+        self.entry()
+
+    def change_to_aborting(self):
+        self.__previous = self.__state
+        self.__state = self.__ABORTING_STATE
+        self.entry()
+
+    def change_to_done(self):
+        self.__previous = self.__state
+        self.__state = self.__DONE_STATE
+        self.entry()
+
+    def change_to_receiving(self):
+        self.__previous = self.__state
+        self.__state = self.__RECEIVING_STATE
+        self.entry()
+
+    def change_to_complete(self):
+        self.__previous = self.__state
+        self.__state = self.__COMPLETE_STATE
+        self.entry()
+        
+    def change_to_ready_error(self):
+        self.__previous = self.__state
+        self.__state = self.__READY_ERROR_STATE
+        self.entry()
+
+    def change_to_working_error(self):
+        self.__previous = self.__state
+        self.__state = self.__WORKING_ERROR_STATE
+        self.entry()
+
+    def change_to_running_error(self):
+        self.__previous = self.__state
+        self.__state = self.__RUNNING_ERROR_STATE
+        self.entry()
+
+    def log(self):
+        name = self.__state.__class__.__name__
+        message = name + ' was set.'
+        Log(message)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.__state, attr)
+        except AttributeError:
+            pass
+
+
+# Concrete Task State Class ====================================================
+class NoneObjectTaskStateException(TaskStateException): pass
+class NoneObjectTaskState(object):
+
+    def request_set_taskobject(self, task, taskobject):
+        task.taskobject = taskobject
+        task.state.change_to_init()
+
+
+class InitTaskStateException(TaskStateException): pass
+class InitTaskState(object):
+
+    def entry(self, task):
+        task.initialize()
+
+    def request_any_operations(self, task):
+        task.state.change_to_preparing()
+
+
+class PreparingTaskStateException(TaskStateException): pass
+class PreparingTaskState(object):
+
+    def entry(self, task):
+        task.local.state.change_to_preparing()
+        task.job.state.change_to_preparing()
+        task.create_output_data()
+
+    def request_change_socket_setting(self, task, socket_setting):
+        task.socket_setting = socket_setting
+        self.request_any_operations()
+
+    def request_any_operations(self, task):
+        if task.is_prepared():
+            task.state.change_to_prepared()
+        else:
+            pass
+
+
+class PreparedTaskStateException(TaskStateException): pass
+class PreparedTaskState(object):
+
+    def entry(self, task):
+        task.job.state.change_to_prepared()
+
+    def request_change_socket_setting(self, task, socket_setting):
+        task.socket_setting = socket_setting
+        task.change_to_preparing()
+
+    def request_any_operations(self, task):
+        if task.is_ready():
+            task.state.change_to_ready()
+        else:
+            pass
+
+
+class ReadyTaskStateException(TaskStateException): pass
+class ReadyTaskState(object):
+
+    def request_setup(self, task):
+        # from job_state, too
+        task.state.change_to_working()
+    
+
+class WorkingTaskStateException(TaskStateException): pass
+class WorkingTaskState(object):
+
+    def entry(self, task):
+        task.job.state.change_to_converting()
+        self.request_convert(task)
+
+        while True:
+            if task.local.has_all_files(): # and event
+                task.local.state.change_to_ready()
+                break
+
+        task.remote.state.change_to_init()
+        task.job.state.change_to_sending()
+        task.remote.state.change_to_receiving()
+
+    def request_convert(self, task):
+        task.convert_data()
+        task.convert_setting()
+        task.generate_script()
+
+    def request_abort(self, task):
+        task.state.change_to_abort()
+
+
+class RunnableTaskStateException(TaskStateException): pass
+class RunnableTaskState(object):
+
+    def entry(self, task):
+        pre = task.state.previous
+        if isinstance(pre, WorkingTaskState):
+            task.job.state.change_to_runnable()
+        else:
+            task.remote.state.change_to_runnable()
+
+
+class PendingTaskStateException(TaskStateException): pass
+class PendingTaskState(object):
+
+    def request_abort(self, task):
+        task.state.change_to_abort()
+
+
+class RunningTaskStateException(TaskStateException): pass
+class RunningTaskState(object):
+
+    def entry(self, task):
+        task.remote.state.change_to_running()
+
+    def request_abort(self, task):
+        task.state.change_to_abort()
+
+
+class StoppingTaskStateException(TaskStateException): pass
+class StoppingTaskState(object):
+
+    def request_run(self):
+        pass
+
+
+class AbortingTaskStateException(TaskStateException): pass
+class AbortingTaskState(object): pass
+
+class DoneTaskStateException(TaskStateException): pass
+class DoneTaskState(object):
+
+    def entry(self, task):
+        task.remote.state.change_to_done()
+
+    def request_fetch(self, task, data):
+        task.remote.state.change_to_sending()
+        task.remote.fetch(data)
+
+
+class ReceivingTaskStateException(TaskStateException): pass
+class ReceivingTaskState(object): pass
+
+class CompleteTaskStateException(TaskStateException): pass
+class CompleteTaskState(object): pass
+       
+class ReadyErrorTaskStateException(TaskStateException): pass
+class ReadyErrorTaskState(object): pass
+
+class WorkingErrorTaskStateException(TaskStateException): pass
+class WorkingErrorTaskState(object): pass
+
+class RunningErrorTaskStateException(TaskStateException): pass
+class RunningErrorTaskState(object): pass
+
+
+# Error States =================================================================
+class RunningErrorTaskState(TaskState):
+    pass
+
+class ErrorTaskState(TaskState):
+    pass
+
+
+################################################################################
+# Task Local
+################################################################################
+
+# Task Local Class =============================================================
+class TaskLocalException(TaskException): pass
+class TaskLocal(object):
+
+    """
+    The class to perform the local operations for task.
+    """
+
+    state_fn = '.nagara'
+
+    def __init__(self, task):
+        """Constructor."""
+        self.__task = task
+
+        # set the local path
+        local_root = self.__task.project.path
+        date = datetime.datetime.today().strftime('%Y%m%d-%H%M%S')
+        dirname = '{0}.{1}'.format(self.__date, self.__id)
+        self.__path = os.path.join(local_root, dirname)
+        
+        # set local state
+        self.__state = LocalState(self)
+
+    # property: path
+    @property
+    def path(self):
+        return self.__path
+
+    # property: state
+    def get_state(self):
+        return self.__state
+    def set_state(self, state):
+        self.__state = __state
+    state = property(get_state, set_state)
+
+    def get_task(self):
+        return self.__task
+
+    # operations
+    def create(self):
+        """Make a local directory for task."""
+        self.state.request_create(self)
+
+    def convert(self):
+        """Convert the datas for the input socket."""
+        # convert statememt
+        self.state.request_convert(self)
+
+    def prepare(self):
+        # generate all data and script 
+        self.state.request_prepare(self)
+
+    def transmit(self):
+        # transmit all data of this task.
+        self.state.request_transmit(self)
+
+    def run(self):
+        self.state.request_run(self)
+
+    def stop(self):
+        self.state.request.stop(self)
+
+    def copy(self, dst_path):
+        self.state.request_copy(self, dst_path)
+
+    def move(self, dst_path):
+        """Move the local directory to dst_path."""
+        self.state.request_move(self, dst_path)
+
+    def delete(self):
+        """Delete the local directory."""
+        self.state.request_delete(self)
+
+    def show(self):
+        pass
+
+    def tail(self):
+        pass
+
+    # other methods
+    def putFile(self, src_path, dst_fn):
+        """Copy the external file to the task directory with dst_fn."""
+        ldir = self.__path
+        dst_base = os.path.basename(dst_fn)
+        dst_path = os.path.join(ldir, dst_base)
+
+        src_file = open(src_path, 'rb')
+        dst_file = open(dst_path, 'wb')
+        dst_file.write(src_file.read())
+        src_file.close()
+        dst_file.close()
+        pass
+
+    def save_data(self):
+        pass
+
+    def restore(self):
+        pass
+
+    def getFiles(self):
+        pass
+
+    def request_move(self, dst_abspath):
+        if not os.path.exists(dst_abspath):
+            os.rename(local_task.path, dst_path)
+        else:
+            raise CreatedLocalStateException()
+
+    def request_clear(self):
+        shutil.rmtree(task_local.path)
+        task_local.state.change_to_init()
+
+    # request_operations
+    def is_converted(self):
+        pass
+
+    def is_received_calculated_files(self):
+        pass
+
+    def check_files(self):
+        pass
+
+    def check_calculated_files(self):
+        pass
+
+    def create(self):
+        if not os.path.exists(self.__path):
+            os.mkdir(self.__path)
+        else:
+            message = 'Local task directory already exists.'
+            raise TaskLocalException(message)
+
+
+# operations
+# create, convert, prepare, transmit, run, stop, move, delete, copy, 
+# show, tail
+
+# Task Local State Class =======================================================
+class LocalStateException(TaskLocalException): pass
+class LocalState(object):
+
+    __state_fn = '.nagara'
+
+    def __init__(self, task_local):
+        self.__task_local = task_local
+        self.__generate_all_states()
+        self.change_to_init()
+
+    def __generate_all_states(self):
+        self.__INIT_STATE      = InitLocalState()
+        self.__PREPARING_STATE = PreparingLocalState()
+        self.__READY_STATE     = ReadyLocalState()
+        self.__RECEIVING_STATE = ReceivingLocalState()
+        self.__COMPLETE_STATE  = CompleteLocalState()
+        self.__ERROR_STATE     = ErrorLocalState()
+
+    def get_available_request(self):
+        """Return available request in this state."""
+        for med in self.__state.__class__.__dict__:
+            if med.startswith('request_'): yield med
+
+    def entry(self):
+        self.log()
+        self.write_state()
+        try:
+            getattr(self.__state, 'entry')
+            self.__state.entry(self.__task_local)
+        except AttributeError:
+            pass
+
+    @property
+    def previous(self):
+        return self.__previous
+
+    def change_to_init(self):
+        self.__previous = None
+        self.__state = self.__INIT_STATE
+        self.entry()
+
+    def change_to_preparing(self):
+        self.__previous = self.__state
+        self.__state = self.__PREPARING_STATE
+        self.entry()
+
+    def change_to_ready(self):
+        self.__previous = self.__state
+        self.__state = self.__READY_STATE
+        self.entry()
+
+    def change_to_receiving(self):
+        self.__previous = self.__state
+        self.__state = self.__RECEIVING_STATE
+        self.entry()
+
+    def change_to_complete(self):
+        self.__previous = self.__state
+        self.__state = self.__COMPLETE_STATE
+        self.entry()
+
+    def change_to_error(self):
+        self.__previous = self.__state
+        self.__state = self.__ERROR_STATE
+        self.entry()
+
+    def log(self):
+        name = self.__state.__class__.__name__
+        message = name + ' was set.'
+        Log(message)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.__state, attr)
+        except AttributeError:
+            pass
+
+    def write_state(self):
+        state = self.__state
+        state_path = os.path.join(self.__task_local.path, self.__state_fn)
+        with open(state_path, 'wb') as f:
+            f.write(state.__class__.__name__)
+
+    def read_state(self):
+        if os.path.exists(self.__task_local.path):
+            state_path = os.path.join(self.__task_local.path, self.__state_fn)
+            with open(state_path, 'rb') as f:
+                state = f.read()
+            return state
+        else:
+            return 'NoneLocalState'
+
+
+# Concrete Local States ========================================================
+class InitLocalState(object):
+
+    def entry(self, task_local):
+        task_local.create()
+
+
+class PreparingLocalState(object):
+
+    def receive_converted_event(self, task_local):
+        task_local.state.change_to_ready()
+
+
+class ReadyLocalState(object):
+
+    def entry(self, task_local):
+        task_local.get_task().state.change_to_converted()
+
+
+class ReceivingLocalState(object):
+
+    def receive_received_event(self, task_local):
+        task_local.state.change_to_complete()
+
+
+class CompleteLocalState(object):
+
+    def entry(self, task_local):
+        task_local.get_task().state.change_to_complete()
+
+
+class ErrorLocalStateException(LocalStateException): pass
+class ErrorLocalState(object): pass
+
+
+################################################################################
+# Task Remote 
+################################################################################
+
+# Task Remote Exceptions =======================================================
+class TaskRemoteException(TaskException): pass
+
+# Task Remote Class ============================================================
+class TaskRemote(object):
+
+    """
+    The class to perform the remote operations for task.
+    """
+    state_fn = '.nagara'
+
+    def __init__(self, task, use_network=True):
+        """Constructor."""
+        self.__task = task
+        configs = self.__task.get_configs()
+        self.__channel = task.get_channel()
+
+        hosts = self.__task.get_configs
+        config = configs[host]
+        remote_root = configs[host]['rootdir']
+        self.__path = remote_root + '/' + self.__task.getLabel()
+
+        self.__host = self.__task.getHost()
+        # if self.__task.getConnection():
+        #     self.__conn = self.__task.getConnection()
+        self.__configs = self.__task.getConfigs()
+        
+        self.__state.change_to_none()
+
+    # property: path
+    @property
+    def path(self):
+        return self.__path
+
+    def connect(self):
+        if not self.__task.getConnection():
+            host = self.__task.getHost()
+            if  self.__task.getConfigs().get(host):
+                configs = self.__task.getConfigs()[host]
+                import connection
+                conn = connection.Connection(
+                    host = configs[ssh][addr],
+                    password = configs[ssh][passwd],
+                    user = configs[ssh][user]
+                )
+                self.__task.setConnection(conn)
+
+
+    def create(self):
+        """Create the remote task directory."""
+        configs = self.__task.get_configs()
+        host = self.__task.host
+        remote_root = configs[host]['rootdir']
+        chan = self.__task.get_channel()
+
+        if not chan.exists(remote_root):
+            chan.mkdir(remote_root)
+
+        if not chan.exists(self.__path):
+            chan.mkdir(self.__path)
+
+    # def setConnection(self, conn):
+    #     """Set the connection to remote host."""
+    #     self.__conn = conn
+
+    # def getConnection(self):
+    #     """Get the connection to remote host."""
+    #     return self.__conn
+
+    def put(self, force=False):
+        """Put the local task to a directory on the remote project dir."""
+        if self.isNone():
+            local = self.__task.local
+            ldir = local.getPath()
+            if local.isReady():
+                self.create()
+                conn =  self.__task.getConnection()
+                conn.putDir(ldir, self.__path)
+                self.setReady()
+                return True
+            raise 'not already put the local dir to remote dir.'
+        else:
+            return False
+
+    def get(self):
+        local = self.__task.local
+        if self.isDone() and local.isReady():
+            ldir = local.getPath()
+            rdir = self.__path
+            conn = self.__task.getConnection()
+            conn.getDir(rdir, ldir)
+
+    def getPath(self):
+        """Return the remote absolute path."""
+        return self.__path
+
+    def checkState(self):
+        return True if self.getState() == self.__state else False
+
+    def syncState(self, state):
+        self.__setState( self.__state )
+
+    def delete(self):
+        """Delete the remote directory."""
+        if not self.isNone():
+            self.__task.getConnection().execute('rm -rf '+self.__path)
+            self.setNone()
+
+    def getFile(self, remote_fn):
+        conn = self.__task.getConnection()
+        return conn.get(remote_fn, self.__task.local.getPath())
+
+    def tail(self, remote_fn, output):
+        conn = self.__task.getConnection()
+        rfile = conn.open(remote_fn, mode='r', pipeline=True)
+        while True:
+            where = rfile.tell()
+            line = rfile.readline()
+            if not line:
+                time.sleep(10)
+                rfile.seek(where)
+            else:
+                output.write(line), # already has newline
+                # or + generator + external method
+
+    def is_local(self):
+        return False
+
+    def do_excecutable(self):
+        conn.execute('chmod u+x '+ run_script)
+
+    @threaded
+    def check_files(self):
+        # task_remote.receive_all_files()
+        time_sum = 0
+        while True:
+            if self.is_received_all_files(): break
+            time.sleep(CHECK_TIME)
+            time_sum += CHECK_TIME
+            if time_sum >= SYNC_TIME_LIMIT:
+                raise ReceivingRemoteStateException()
+
+        self.__state.change_to_runnable()
+
+    def define_host(self):
+        pass
+
+
+
+        
+        
+
+        
+
+
+# Remote State Class ===========================================================
+class RemoteStateException(TaskRemoteException): pass
+class RemoteState(object):
+
+    __state_fn = '.nagara'
+
+    def __init__(self, task_remote):
+        self.__task_remote = task_remote
+        self.__generate_all_states()
+        self.change_to_none()
+
+    def __generate_all_states(self):
+        self.__NONE_STATE      = NoneRemoteState()
+        self.__INIT_STATE      = InitRemoteState()
+        self.__RECEIVING_STATE = ReceivingRemoteState()
+        self.__RUNNABLE_STATE  = RunnableRemoteState()
+        self.__RUNNING_STATE   = RunningRemoteState()
+        self.__DONE_STATE      = DoneRemoteState()
+        self.__SENDING_STATE   = SendingRemoteState()
+        self.__ERROR_STATE     = ErrorRemoteState()
+
+    def get_available_request(self):
+        """Return available request in this state."""
+        for med in self.__state.__class__.__dict__:
+            if med.startswith('request_'): yield med
+
+    def log(self):
+        name = self.__state.__class__.__name__
+        message = name + ' was set.'
+        Log(message)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.__state, attr)
+        except AttributeError:
+            pass
+
+    @property
+    def previous(self):
+        return self.__previous
+
+    def entry(self):
+        self.log()
+        self.write_state()
+        try:
+            getattr(self.__state, 'entry')
+            self.__state.entry(self.__task_remote)
+        except AttributeError:
+            pass
+
+    def change_to_none(self):
+        self.__previous = None
+        self.__state = self.__NONE_STATE
+        self.entry()
+
+    def change_to_init(self):
+        self.__previous = self.__state
+        self.__state = self.__INIT_STATE
+        self.entry()
+
+    def change_to_receiving(self):
+        self.__previous = self.__state
+        self.__state = self.__RECEIVING_STATE
+        self.entry()
+
+    def change_to_runnable(self):
+        self.__previous = self.__state
+        self.__state = self.__RUNNABLE_STATE
+        self.entry()
+
+    def change_to_running(self):
+        self.__previous = self.__state
+        self.__state = self.__RUNNING_STATE
+        self.entry()
+
+    def change_to_done(self):
+        self.__previous = self.__state
+        self.__state = self.__DONE_STATE
+        self.entry()
+
+    def change_to_sending(self):
+        self.__previous = self.__state
+        self.__state = self.__SENDING_STATE
+        self.entry()
+
+    def change_to_error(self):
+        self.__previous = self.__state
+        self.__state = self.__ERROR_STATE
+        self.entry()
+
+    def write_state(self, state):
+        chan = self.__task_remote.channel
+        if self.__task_remote.is_local():
+            state_path = os.path.join(self.__task_remote.path, self.__state_fn)
+        else:
+            state_path = self.__task_remote.path + '/' + self.__state_fn
+        file = chan.open(state_path, 'wb')
+        file.write(state.__class__.__name__)
+        file.close()
+
+    def read_state(self):
+        chan = self.__task_remote.channel
+        if chan.exists(self.__path):
+            if self.__task_remote.is_local():
+                state_path = os.path.join(
+                    self.__task_remote.path, self.__state_fn)
+            else:
+                state_path = self.__task_remote.path + '/' + self.__state_fn
+            rfile = open(state_path, 'rb')
+            state = rfile.read()
+            rfile.close()
+            return state
+        else:
+            return 'NoneRemoteState'
+
+
+# Concrete Remote States =======================================================
+class NoneRemoteState(object):
+
+
+class InitRemoteState(object):
+
+    def entry(self, task_remote):
+        task_remote.define_host()
+        task_remote.create()
+
+
+class ReceivingRemoteStateException(RemoteStateException): pass
+class ReceivingRemoteState(object):
+
+    def entry(self, task_remote):
+
+
+        task_remote.state.change_to_runnable()
+
+
+class RunnableRemoteStateException(RemoteStateException): pass
+class RunnableRemoteState(object):
+
+    def entry(self, task_remote):
+        name = task_remote.get_task().name
+        Log(name + ': all files sended.')
+        task_remote.do_excutable()
+        task_remote.get_task().state.change_to_runnable()
+
+
+class RunningRemoteStateException(RemoteStateException): pass
+class RunningRemoteState(object): pass
+
+
+class DoneRemoteStateException(RemoteStateException): pass
+class DoneRemoteState(object):
+
+    def entry(self, task_remote):
+        if isinstance(task_remote.state.previous, SendingLocalState):
+            task = task_remote.get_task()
+            task.local.state.change_to_complete()
+        else:
+            pass
+
+    def request_receive(self, task_remote):
+        task_remote.send_all_files()
+
+
+class SendingRemoteStateException(RemoteStateException): pass
+class SendingRemoteState(object):
+
+    def entry(self, task_remote):
+        task = task_remote.get_task()
+        task.state.change_to_receiving()
+        task_remote.send_all_files()
+
+
+class ErrorRemoteStateException(RemoteStateException): pass
+class ErrorRemoteState(object): pass
+
+
+def main():
+    pass
+    # Task()
+    # LocalState()
+
+if __name__ == '__main__':
+    main()
+
+

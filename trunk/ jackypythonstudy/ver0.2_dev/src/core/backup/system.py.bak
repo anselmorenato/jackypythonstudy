@@ -1,0 +1,215 @@
+#! /opt/python2.6/bin/python
+#  -*- encoding: utf-8 -*-
+
+import re
+import exception
+from systeminfo import *
+import copy
+
+class SystemException(exception.NagaraException): pass
+
+class GroupKeyError(SystemException): pass
+
+class System(object):
+
+    def __init__(self, name=''):
+        self.__header     = ""    # PDB header
+        self.__title      = ""    # Title of this system
+        self.__name       = name  # Name for this system
+        self.__atom_list  = []    # All of atoms in this system : [Atom]
+        self.__group_list = {}    # All of groups in this system : {type:Group}
+        self.__trajectory = []    # Trajectory info : [Trajectory]
+
+    # def readMolecule(self, file_name):
+    #     """Read molecule data from the molecule file according to a suffix.
+
+    #     file_name -- molecule data file : String
+    #     """
+
+    #     # parse a file name
+    #     name, suffix = file_name.rsplit('.',1)
+    #     self.name = name
+    #     pdb = re.compile("[pP][dD][bB]")
+    #     mol2 = re.compile("[mM][oO][lL]2")
+    #     xyz = re.compile("[xX][yY][zZ]")
+    #     amber_prmtop = re.compile("[pP][rR][mM][tT][oO][pP]")
+
+    #     format_dict = dict(
+    #         pdb = m.PDB(),
+    #         xyz = m.XYZ(),
+    #     )
+
+    #     format_dict[]
+    #     if pdb.match(suffix):
+    #         self = m.PDB().read(filename).getSystem()
+
+    #     if pdb.match(suffix):
+    #         self.__readPDB(filename)
+    #     elif mol2.match(suffix):
+    #         self.__readMol2(filename)
+    #     elif xyz.match(suffix):
+    #         self.__readXYZ(file_name)
+    #     elif amber_prmtop.match(suffix):
+    #         self.__readAmberParm(file_name)
+    #     else:
+    #         raise MoleculeFileTypeError(suffix)
+
+    def __str__(self):
+        names = [ atom.name for atom in self.__atoms ]
+        return names
+
+    # def __str__(self):
+    #     """Return the pdb-formatted data of the molecules."""
+    #     return self.__tostr(self.trajectory[0]) 
+
+    # def __repr__(self):
+    #     """Return the data of the molecules in detail."""
+    #     pass
+
+    # name property
+    def get_name(self):
+        """Get the system name."""
+        return self.__name
+    def set_name(self,name):
+        """Set the name to system object."""
+        self._name = __name
+    name = property(get_name, set_name)
+
+    def write_molecule(self, filename):
+        """"""
+        pass
+                                       
+    @property
+    def size(self):
+        """Return the number of atoms in the system."""
+        return len(atoms)
+
+    def get_group_types(self):
+        """Return the information for group type and name."""
+        pass
+
+    def search(self): pass
+    
+    def get_atominfo(self): pass 
+
+    def position(self):
+        """Return the position of atom specified by argument."""
+        pass
+
+    def make_group(self):
+        pass
+
+    def make_group_by_group(self):
+        pass
+
+    def __make_group_by_res(self, group_name, name_list):
+        """Make a group named by group_name from the residue groups."""
+        if group_name not in self.groups:
+            res_group = self.group['Residue'].getChildGrps()
+            groups = [ res for res in res_groups if res.name in name_list ]
+            new_group = Group(parent=[], id=-1, type=group_name, childs=groups)
+            self.groups[group_name] = new_group
+
+    def __make_group_by_atom(self, group_name, name_list):
+        """Make a group named by group_name."""
+        pass
+
+    def make_group_by_keyword(self, keyword):
+        """Make user defined groups by keyword."""
+        pass
+
+    def make_protein_group(self):
+        """Make a protein group from residue groups."""
+        prot_names = [
+            'Ala', 'Arg', 'Asn', 'Asp', 'Cys', 'Gln', 'Glu',
+            'Gly', 'His', 'Ile', 'Leu', 'Lys', 'Met', 'Phe',
+            'Pro', 'Ser', 'Thr', 'Trp', 'Tyr', 'Val'
+        ]
+        self.__make_group_by_res('Protein', prot_names)
+
+    def make_water_group(self):
+        """Make water group from the residue type groups."""
+        waters_names = ['SPC', 'TIP3', 'TIP4', 'TIP5', 'WAT']
+        self.__mkGroupByRes('Water', water_names)
+
+    def make_CA_group(self):
+        """Make CA group from All atoms."""
+        if 'CA' not in self.groups:
+            if 'Protein' not in self.groups:
+                self.mkProteinGrp()
+            atoms = self.groups('Protein').getChildGrps().getAtoms
+            groups = [ atom for atom in atoms if atom.name == 'CA' ]
+            self.mkGroup('CA', groups)
+
+    def make_solvent_group(self):
+        """Make a solvent group."""
+        solv_names = ['SPC', 'TIP3', 'TIP4', 'TIP5', 'WAT', 'Na+', 'Cl-']
+        self.__mkGroupByRes('Solvent', solv_names)
+
+    def get_group_atoms(self, group_name):
+        """Return atoms by the list in the specified group."""
+        return self.groups[group_name].getAtoms()
+
+    @property
+    def trajectory(self):
+        return self.__trajectory
+    @trajectory.setter
+    def trajectory(self, trajectory):
+        """Set trajectory."""
+        self.__trajectory = trajectory
+    
+    @property
+    def crd(self):
+        """Get the first frame of the trajectory."""
+        return self.__trajectory[0]
+
+    # atoms property
+    def get_atoms(self):
+        """Get atoms object."""
+        return self.__atoms
+    def set_atoms(self, atoms):
+        """Set atoms as new list."""
+        self.__atoms = atoms
+    atoms = property(get_atoms, set_atoms)
+    
+    def append_groups(self, name, groups):
+        """Set groups as a list and its name."""
+        self.__groups[name] = groups
+
+
+    def get_groups(self, group_name):
+        """Get the group list by group name."""
+        assert group_name in self.groups.keys(), group_name
+        try:
+            group_list = self.groups[group_name]
+        except KeyError:
+            raise GroupKeyError()
+        return group_list
+
+    def get_group_names(self):
+        """Get the all group names."""
+        return self.groups.keys()
+
+
+    def copy(self):
+        """Return the copied system object."""
+        return copy.copy(self)
+
+    @property
+    def header(self):
+        """Return the header of system data."""
+        return self.__header
+
+
+def main():
+    # import molformat
+    # filename = 'user-dir/1ag2.pdb'
+    # system = molformat.PDB(filename).read()
+    
+    residues = system.getGroups('Residues')
+    for res in residues:
+        print res
+        print res.getAtoms()
+
+if __name__ == '__main__':
+    pass

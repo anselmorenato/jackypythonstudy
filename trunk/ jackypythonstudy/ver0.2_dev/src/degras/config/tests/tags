@@ -1,0 +1,48 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+Config	test_locationmanager_model.py	/^        from core.config import Config$/;"	i
+LocationShower	test_locationmanager_model.py	/^        class LocationShower:$/;"	c	function:TestNoLocation.setUp
+TestNoLocation	test_locationmanager_model.py	/^class TestNoLocation:$/;"	c
+TestOneLocation	test_locationmanager_model.py	/^class TestOneLocation:$/;"	c
+TestPresenter	test_locationmanager_presenter.py	/^class TestPresenter:$/;"	c
+__init__	test_locationmanager_model.py	/^            def __init__(self): pass$/;"	m	class:TestNoLocation.setUp.LocationShower
+m	test_locationmanager_model.py	/^import locationmanager_model as m$/;"	i
+m	test_locationmanager_presenter.py	/^        import locationmanager_model     as m$/;"	i
+nagara_path	test_locationmanager_model.py	/^nagara_path = os.environ['NAGARA_PATH']$/;"	v
+nagara_path	test_locationmanager_presenter.py	/^nagara_path = os.environ['NAGARA_PATH']$/;"	v
+os	test_locationmanager_model.py	/^import os, sys$/;"	i
+os	test_locationmanager_presenter.py	/^import os, sys$/;"	i
+p	test_locationmanager_presenter.py	/^        import locationmanager_presenter as p$/;"	i
+setUp	test_locationmanager_model.py	/^    def setUp(self):$/;"	m	class:TestNoLocation
+setUp	test_locationmanager_model.py	/^    def setUp(self):$/;"	m	class:TestOneLocation
+setUp	test_locationmanager_presenter.py	/^    def setUp(self):$/;"	m	class:TestPresenter
+sys	test_locationmanager_model.py	/^import os, sys$/;"	i
+sys	test_locationmanager_presenter.py	/^import os, sys$/;"	i
+tearDown	test_locationmanager_model.py	/^    def tearDown(self):$/;"	m	class:TestNoLocation
+tearDown	test_locationmanager_model.py	/^    def tearDown(self):$/;"	m	class:TestOneLocation
+tearDown	test_locationmanager_presenter.py	/^    def tearDown(self):$/;"	m	class:TestPresenter
+test_copy	test_locationmanager_model.py	/^    def test_copy(self):$/;"	m	class:TestNoLocation
+test_copy	test_locationmanager_model.py	/^    def test_copy(self):$/;"	m	class:TestOneLocation
+test_create	test_locationmanager_model.py	/^    def test_create(self):$/;"	m	class:TestNoLocation
+test_create	test_locationmanager_model.py	/^    def test_create(self):$/;"	m	class:TestOneLocation
+test_delete	test_locationmanager_model.py	/^    def test_delete(self):$/;"	m	class:TestNoLocation
+test_delete	test_locationmanager_model.py	/^    def test_delete(self):$/;"	m	class:TestOneLocation
+test_destroy	test_locationmanager_model.py	/^    def test_destroy(self):$/;"	m	class:TestNoLocation
+test_edit	test_locationmanager_model.py	/^    def test_edit(self):$/;"	m	class:TestNoLocation
+test_edit	test_locationmanager_model.py	/^    def test_edit(self):$/;"	m	class:TestOneLocation
+test_get_config	test_locationmanager_model.py	/^    def test_get_config(self):$/;"	m	class:TestNoLocation
+test_init	test_locationmanager_model.py	/^    def test_init(self):$/;"	m	class:TestNoLocation
+test_init	test_locationmanager_model.py	/^    def test_init(self):$/;"	m	class:TestOneLocation
+test_init_in_view	test_locationmanager_presenter.py	/^    def test_init_in_view(self):$/;"	m	class:TestPresenter
+test_set_config	test_locationmanager_model.py	/^    def test_set_config(self):$/;"	m	class:TestNoLocation
+test_set_current	test_locationmanager_model.py	/^    def test_set_current(self):$/;"	m	class:TestNoLocation
+test_set_default	test_locationmanager_model.py	/^    def test_set_default(self):$/;"	m	class:TestNoLocation
+test_set_default_location	test_locationmanager_model.py	/^    def test_set_default_location(self):$/;"	m	class:TestOneLocation
+test_set_name	test_locationmanager_model.py	/^    def test_set_name(self):$/;"	m	class:TestNoLocation
+test_set_name	test_locationmanager_model.py	/^    def test_set_name(self):$/;"	m	class:TestOneLocation
+test_update_in_view	test_locationmanager_presenter.py	/^    def test_update_in_view(self):$/;"	m	class:TestPresenter
+v	test_locationmanager_presenter.py	/^        import locationmanager_view      as v$/;"	i

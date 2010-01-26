@@ -1,0 +1,38 @@
+class_name: JobModel
+events:
+    - init
+    - state_changed
+    - update
+    - delete
+
+getsets:
+
+properties:
+    project: project
+    id: 1
+    name: task name
+    jms:   jms
+    location: local
+    expected_time: 100
+    start_time: 1
+    finish_time: 100
+
+enables:
+    - is_selected
+
+methods:
+    - get_available_request_dict
+    - get_state
+    - request_submit
+    - request_convert
+    - request_send
+    - request_run
+    - request_stop
+    - request_rerun
+    - request_cancel
+    - request_delete
+    - request_receive
+    - request_sync
+    - set_auto
+
+
