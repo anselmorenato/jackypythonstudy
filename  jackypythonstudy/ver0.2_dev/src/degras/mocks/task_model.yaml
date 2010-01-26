@@ -1,0 +1,31 @@
+class_name: JobView
+events:
+    - submit
+    - run
+    - stop
+    - rerun
+    - cancel
+    - set_auto
+    - delete
+    - popup
+
+getsets:
+    jobname: jobname
+
+properties:
+    project: project
+    id: 1
+    name: task name
+    state: state
+    jms:   jms
+    location: local
+    expected_time: 100
+    start_time: 1
+    finish_time: 100
+    available_request:
+
+enables:
+    - is_selected
+
+methods:
+

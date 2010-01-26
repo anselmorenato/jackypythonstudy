@@ -1,0 +1,14 @@
+name: Dynamics
+description: This object is Dynamics
+input:
+    system: {type: System, multi: Single, optional: false}
+    restraint: {type: Group, multi: Single, optional: true}
+    fmm: {type: Group, multi: Single, optional: true}
+setting: standard
+log: {type: Log, multi: Single}
+concomitance:
+    restart: {type: System, multi: Sequence}
+output:
+    system: {type: System, multi: Single, optional: false}
+    trajectory: {type: Trajectory, multi: Single, optiona: true}
+command: [Presto, amber_md, Gromacs, Marvin] 

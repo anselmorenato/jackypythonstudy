@@ -1,0 +1,14 @@
+name: Optimize
+description: This object is optimization.
+input:
+    system: {type: System, multi: Single, optional: false}
+    restraint: {type: Group, multi: Single, optional: true}
+    fmm: {type: Group, multi: Single, optional: true}
+setting: standart
+log: {type: Log, multi: Single}
+concomitance:
+output:
+    system: {type: System, multi: Single, optional: false}
+    trajectory: {type: Trajectory, multi: Single, optional: true}
+    energy: {type: Energy, multi: Sequence, optional: true}
+command: [Presto, amber_md, Gromacs]

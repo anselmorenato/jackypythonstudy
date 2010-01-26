@@ -1,0 +1,36 @@
+class_name: JobView
+events:
+    - submit
+    - convert
+    - send
+    - run
+    - stop
+    - rerun
+    - cancel
+    - set_auto
+    - delete
+    - receive
+    - sync
+
+getsets:
+    project: project
+    id: 1
+    name: task name
+    jms:   jms
+    location: hpcs
+    expected_time: 100
+    start_time: 1
+    finish_time: 100
+    elasped_time: 15:00
+
+properties:
+
+enables:
+    - selected
+
+methods:
+    - set_request_dict
+    - set_state
+    - get_state
+    - on_popup
+

@@ -1,0 +1,643 @@
+#! /opt/python2.6/bin/python
+#  -*- encoding: utf-8 -*-
+
+# available classes
+__all__ =['DataConverter', 'ToNDO_Parser', 'FromNDO_Formatter']
+
+# Standard modules
+import os, sys
+from abc import ABCMeta, abstractmethod, abstractproperty
+
+# additional modules
+
+# Nagara  modules
+# sys.path.append('..')
+if __name__ == '__main__':
+    sys.path.append('../utils')
+from data import Data
+from deco import threaded
+from exception  import NagaraException
+from config     import Config
+from plugin     import load_converter_module
+
+user_plugin = Config().get_user_plugin()
+converter_module = load_converter_module(user_plugin)
+print converter_module.parser_dict
+# print converter_module.converter_dict
+
+((PDB), (AMBER_PRMTOP, AMBER_RESTART)) = 
+    PDB_AMBER_PRMTOP_AMBER_RESTART_Converter
+
+((PDB), (AMBER_LIB)) = PDB_AMBER_LIB_Converter
+
+
+
+
+# exceptions ===================================================================
+class DataConvertException(NagaraException): pass
+class DataNotFoundException(DataConvertException): pass
+
+# abstract class, algorithm convertion only
+class DataConverter(object):
+
+    data_context = [
+        'IntFileData', 'ExtFileData', 'NagaraData', 'FormattedStringData',
+        'RemoteFileData', 'ExtRemoteData', 'ExtDBData'
+    ]
+
+    def __init__(self, input_data_list, output_format_list=[],
+                 output_filename_list=[], command=None, setting=None):
+        """Constructor."""
+        # if formats == [], then format will be nagara object
+
+        if len(output_filename_list) != 0:
+            if len(output_format_list) != len(output_filename_list):
+                mes = ('the number of format list '
+                       'and file list for output is different.')
+                raise DataConveterException(mes)
+
+        in_fmt_set  = set([ data.format for data in input_data_list ])
+        out_fmt_set = set(output_format_list)
+        converter_dict = converter_module.converter_dict
+
+        for in_out_fmt in converter_dict:
+            in_fmt, out_fmt = in_out_fmt
+            if set(in_fmt) == in_fmt_set and set(out_fmt) == out_fmt_set:
+                conv_cls_list = converter_dict[in_out_fmt]
+                break
+        else:
+            raise FormatCannotConvertError()
+
+        in_out_fmt, conv_cls_list
+
+
+        if len(conv_cls_list) == 1:
+            conv_cls = conv_cls_list[0]
+            if issubclass(conv_cls, IConverterCommand):
+            elif (issubclass(conv_cls, IParser) or
+                  issubclass(conv_cls, IFormatter)):
+            else:
+                raise DataConveterException()
+
+        if len(conv_cls_list) >= 2:
+            for conv_cls in conv_cls_list:
+
+
+
+        raise FormatCannotConvertError()
+
+        in_fmt_set  = set(input_format_list)
+        out_fmt_set = set(output_format_list)
+
+        com_dict = converter_module.command_dict
+        for in_out in com_dict:
+            in_fmt, out_fmt = in_out
+            if set(in_fmt) == in_fmt_set and set(out_fmt) == out_fmt_set:
+                if issubclass(com_dict[in_out], IConverterCommand):
+
+
+                converter_obj = com_dict[in_out]()
+                converter_obj.set_input(
+                    format_list=input_format_list,
+                    filename_list=input_filename_list
+                )
+                converter_obj.set_output(
+                    format_list=output_format_list,
+                    filename_list=output_filename_list
+                )
+                self.__converter_obj = converter_obj
+                break
+        else:
+            raise FormatCannotConvertError()
+        
+
+        
+
+        self.__input_data_list = input_data_list
+        self.__output_format_list = output_format_list
+        self.__command = command
+        self.__converted = False
+
+        self.__set_strategy()
+
+    # @threaded
+    def __set_strategy(self):
+        idata_list = self.__input_data_list
+        oformat_list = self.__output_format_list
+        ndata = len(self.__input_data_list)
+        nformat = len(self.__output_format_list)
+
+        if nformat == 1 and self.__output_format_list[0] == 'NagaraData':
+            nformat = 0
+
+        if ndata == 0:
+            raise DataNotFoundException()
+
+        elif ndata == 1 and nformat == 0:
+            self.__convert_strategy = Converter10(
+                idata_list[0], command=self.__command)
+
+        elif ndata == 1 and nformat == 1:
+            self.__convert_strategy = Converter11(
+                idata_list[0], oformat_list[0], command=self.__command)
+
+        elif ndata == 1 and nformat >= 2:
+            self.__convert_strategy = Converter12(
+                idata_list[0], oformat_list, command=self.__command)
+
+        elif ndata >= 2 and nformat == 0:
+            self.__convert_strategy = Converter20(
+                idata_list, command=self.__command)
+
+        elif ndata >= 2 and nformat == 1:
+            self.__convert_strategy = Converter21(
+                idata_list, oformat_list[0], command=self.__command)
+
+        elif ndata >= 2 and nformat >= 2:
+            self.__convert_strategy = Converter21(
+                idata_list, oformat_list, command=self.__command)
+
+        else:
+            pass
+
+    # @threaded
+    def convert(self):
+        if not self.__converted:
+            self.__convert_strategy.convert()
+
+    def set_property(self):
+        self.__convert_strategy.copy_property()
+
+    def get_data_list(self):
+        self.convert()
+        self.__converted = True
+        return self.__convert_strategy.get_data_list()
+    
+
+# Interface
+class IConverterStrategy(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def convert(self): pass
+
+    @abstractmethod
+    def set_property(self): pass
+
+    @abstractmethod
+    def get_data_list(self): pass
+
+
+class Converter10(IConverterStrategy):
+
+    """
+    The output data format is certainly 'NagaraData'.
+    """
+
+    def __init__(self, data, command=None):
+        self.__data = data
+        self.__command = command
+        self.__output_data = None
+
+    def convert(self):
+        if self.__data.is_ndo():
+            # It isn't expected in the case of same NagaraData.
+            pass
+        else: # not idata.is_ndo(),
+            # In this case format is implicitly NDO.
+            self.__convert_from_ndo()
+
+    def set_property(self):
+        self.__output_data.multiplicity = self.__data.multiplicity
+
+    def get_data_list(self):
+        return [self.__output_data]
+
+    def __convert_from_ndo(self):
+        odata = Data( self.__data.project, type=self.__data.type )
+        odata.format = self.__data.format
+        parser = ToNDO_Parser(self.__data.get_file(), [self.__data.format])
+        odata.data = parser.get_ndo()
+        self.__output_data = odata
+
+    def __convert_from_ndo_tmp(self):
+        odata = Data(self.__data.project,
+                     type=self.__data.type, format='NagaraData')
+        parser = ToNDO_Parser(self.__data.get_file(), [self.__data.format])
+        odata.ndo = parser.get_ndo()
+        self.__output_data = odata
+
+class Converter11(IConverterStrategy):
+
+    def __init__(self, data, format, command=None):
+        self.__data = data
+        self.__format = format
+        self.__command = command
+        self.__output_data = None
+
+    def convert(self):
+        if self.__data.format == self.__format:
+            self.__convert_same_format()
+
+        elif self.__command:
+            # need to code this block
+            # not implemented
+            pass
+
+        else:
+            if self.__data.is_ndo():
+                self.__convert_from_ndo()
+
+            elif not self.__data.is_ndo():
+                self.__convert_from_nondo()
+            else:
+                pass
+
+    def set_property(self):
+        self.__output_data.multiplicity = self.__data.multiplicity
+
+    def get_data_list(self):
+        return [self.__output_data]
+
+    def __convert_same_format(self):
+        odata = Data( self.__data.project, type=self.__data.type )
+        odata.format = self.__data_format
+        odata.data = self.__data.data
+        self.__output_data = odata
+
+    def __convert_from_ndo(self):
+        odata = Data( self.__data.project, type=self.__data.type )
+        odata.format = self.__format
+        formatter = FromNDO_Formatter(
+            self.__data.get_ndo(), [self.__format])
+        odata.file = formatter.get_file()
+        self.__output_data = odata
+
+    def __convert_from_nondo(self):
+        odata = Data( self.__data.project, type=self.__data.type )
+        odata.format = format=self.__format
+        parser = ToNDO_Parser( self.__data.file, [self.__data.format])
+        formatter = FromNDO_Formatter(parser.get_ndo(), [self.__format])
+        odata.file = formatter.get_file()
+        self.__output_data = odata
+    
+
+class Converter12(IConverterStrategy):
+
+    def __init__(self, data, format_list, command=None):
+        self.__data             = data_list
+        self.__format_list      = format_list
+        self.__command          = command
+        self.__output_data_list = None
+
+    def convert(self):
+        if self.__command:
+            # not implemented
+            pass
+        else:
+            if self.__data.is_ndo():
+                self.__convert_from_ndo()
+            elif not self.__data.is_ndo():
+                self.__convert_from_nondo()
+            else:
+                pass
+
+    def set_property(self):
+        # self.__output_data.multiplicity = self.__data.multiplicity
+        pass
+
+    def get_data_list(self):
+        return self.__output_data_list
+        
+    def __convert_from_ndo(self):
+        odata_dict = {}
+        for f in self.__format_list:
+            odata_dict[f] = Data( self.__data.project, type=self.__data.type )
+            odata_dict[f].format = f
+
+        formatter = FromNDO_Formatter(
+            self.__data.get_ndo(), self.__format_list)
+
+        for fmt, file in formatter.to_file_dict().items():
+            odata_dict[fmt].file = file
+
+        self.__output_data_list = odata_dict.values()
+
+    def __convert_from_nondo(self):
+        # make output data
+        odata_dict = {}
+        for f in self.__format_list:
+            odata_dict[f] = Data( self.__data.project, type=self.__data.type )
+            odata_dict[f].format = f 
+
+        # generate parser
+        parser = ToNDO_Parser( self.__data.file, [self.__data.format] )
+        # generate formatter
+        formatter = FromNDO_Formatter( parser.get_ndo(), self.__format_list )
+
+        for fmt, file in formatter.get_file_dict().items():
+            odata_dict[fmt].file = file
+
+        self.__output_data_list = odata_dict.values()
+
+
+class Converter20(IConverterStrategy):
+
+    def __init__(self, data_list, command=None):
+        self.__data_list = data_list
+        self.__command = command
+
+    def convert(self):
+        data_ndo_set = set( [ data.is_ndo() for data in self.__data_list ] )
+        if len(data_ndo_set) == 1:
+            is_ndo_data = True if data_ndo_set else False
+        else: # shouldn't be the mixed datas
+            raise DataConvertException()
+
+        if is_ndo_data:
+            # It isn't expected in the case of same NagaraData.
+            # this block need to code later, specification too.
+            pass
+
+        elif not is_ndo_data:
+            # In this case format is implicitly NDO.
+            self.__convert_from_nondo()
+        else:
+            pass
+
+    def set_property(self):
+        # self.__output_data.multiplicity = self.__data.multiplicity
+        pass
+
+    def get_data_list(self):
+        return [self.__output_data]
+
+    def __convert_from_nondo(self):
+        # In this case format is implicitly NDO.
+        odata = Data( self.__data_list[0].project, type=self.__data.type )
+        odata.set_format_ndo()
+        parser = ToNDO_Parser(self.__data_list, format='NagaraData')
+        odata.ndo = parser.get_ndo()
+        self.__output_data = odata
+
+
+class Converter21(IConverterStrategy):
+
+    def __init__(self, data_list, format, command=None):
+        self.__data_list = data_list
+        self.__format = format
+        self.__command = command
+
+    def convert(self):
+
+        if self.__command:
+            # need to code this block
+            # not implemented
+            pass
+
+        else:
+            odata = Data( self.__data_list[0].project, type=self.__data.type )
+            odata.set_format_ndo()
+            parser = ToNDO_Parser(self.__data_list, format='NagaraData')
+            odata.ndo = parser.get_ndo()
+            self.__output_data = odata
+            
+
+
+            if self.__data.is_ndo():
+                self.__convert_from_ndo()
+
+            elif not self.__data.is_ndo():
+                self.__convert_from_nondo()
+            else:
+                pass
+
+
+        data_ndo_set = set( [ data.is_ndo() for data in self.__data_list ] )
+
+        if len(data_ndo_set) == 1:
+            is_ndo_data = True if data_ndo_set else False
+        else: # shouldn't be the mixed datas
+            raise DataConvertException()
+
+        if self.__command:
+            # need to code this block
+            # not implemented
+            pass
+
+        else:
+            if self.__data.is_ndo():
+                odata = Data(self.__data.project,
+                             type=self.__data.type, format=self.__format)
+                formatter = FromNDO_Formatter(
+                    self.__data.get_ndo(), self.__format)
+                odata.data = formatter._file()
+                self.__output_data = odata
+
+            elif not self.__data.is_ndo():
+                odata = Data(self.__data.project,
+                             type=self.__data.type, format=self.__format)
+                parser = ToNDO_Parser(
+                    self.__data.file, [self.__data.format])
+                formatter = FromNDO_Formatter(parser.get_ndo(), self.__format)
+                odata.data = formatter.to_file()
+                self.__output_data = odata
+            else:
+                pass
+
+    def set_property(self):
+        self.__output_data.multiplicity = self.__data.multiplicity
+
+    def get_data_list(self):
+        return [self.__output_data]
+
+
+class Converter22(IConverterStrategy):
+
+    def __init__(self, data_list, format_list):
+        pass
+
+
+
+class SystemConvertor(object):
+
+    data_types = ['IntFileData', 'ExtFileData', 'NagaraData',
+                  'RemoteFileData', 'ExtRemoteData', 'ExtDBData']
+
+
+    data_formats = ['System', 'PDB']
+    # data_formats[0]: The system format for NDO 
+
+    def __init__(self, input=None, output=None, use_babel=False):
+        self.__input  = input
+        self.__outout = output
+        self.__use_babel = use_babel
+
+        self.__make_convert_dict()
+
+    # @threaded
+    def convert(self):
+        inp, out = self.__input, self.__output
+
+        self.check_type()
+        self.check_format()
+
+        if inp.format == out.format:
+            out.data = inp.data
+        else:
+            if inp.type == 'NagaraData':
+                Formatter = getattr(systemconverter, out.format+'_Formatter')
+                out.data = Formatter(inp.ndo).get_file()
+            elif out.type == 'NagaraData':
+                Parser = getattr(systemconverter, inp.format+'_Parser')
+                out.ndo  = Parser(inp.data).get_ndo()
+            else:
+                Parser    = getattr(systemconverter, inp.format+'_Parser')
+                Formatter = getattr(systemconverter, out.format+'_Formatter')
+                ndo_system = Parser(data).get_ndo()
+                out.data   = Formatter(ndo_system).get_file()
+
+    def check_format(self):
+        inp, out = self.__input, self.__output
+        formats = self.__data_formats
+        
+        if inp.format in formats and out.format in formats:
+            return ret
+        else:
+            raise DataFormatError()
+
+    def check_type(self):
+        inp, out = self.__input, self.__output
+        if inp.type == out.type:
+            raise DataTypeError()
+
+#    def __make_convert_dict(self):
+#        convert_dict = {}
+#        inp, out = self.__input, self.__output
+#        for inpfmt in self.data_formats[1:]:
+#            inpfun = inpfmt.lower().title()
+#            for outfmt in self.data_formats[1:]:
+#                if inpfmt == outfmt: continue
+#                outfun = outfmt.lower().title()
+#                convfun = '{0}2{1}'.format(inpfun, outfun)
+#                self.convert_dict[inpfmt, outfmt] = convfun
+#                # getattr(self, convfun)
+
+class DataConverterCommand(object): pass
+
+
+class Babel(object):
+    """Class to convert the file formats using Open Babel Package."""
+    def __init__(self):
+        pass
+
+    def set_intype(self, type):
+        self.__intype = type
+
+    def set_outtype(self, type):
+        self.__outtype = type
+        
+class ICommandConverter(object):
+    pass
+
+class ParserNotFoundException(DataConvertException): pass
+import plugin
+# create converter module
+converter = plugin.load_converter_module(
+    Config().get_common()['nagara']['plugin path']
+) 
+class ToNDO_Parser(object):
+    """
+    The class that parse the formatted content
+    and convert it to Nagara Data Object.
+    """
+
+    def __init__(self, file_set, format_list):
+        """Constructor."""
+        # determine Parser to use by analysis of format
+        # number of file set == number of format set
+        format_list.sort()
+        Parser = converter.parser_dict.get( tuple(format_list) )
+        if not Parser: raise ParserNotFoundException()
+        self.__parser_obj = Parser( file_set )
+
+    def get_ndo(self):
+        return self.__parser_obj.get_ndo()
+
+    def get_ndo_dict(self):
+        # {type: ndo}
+        return self.__parser_obj.get_ndo_dict()
+
+
+class FormatterNotFoundException(DataConvertException): pass
+import cStringIO as sio
+class FromNDO_Formatter(object):
+    """
+    The class to convert Nagara Data Object to a formatted content.
+    """
+
+    def __init__(self, ndo_set, format_list):
+        """Constructor."""
+        format_list.sort()
+        Formatter = converter.formatter_dict.get( tuple(format_list) )
+        if not Formatter: raise FormatterNotFoundException()
+        self.__formatter_obj = Formatter( ndo_set )
+
+    def get_file(self):
+        return self.__formatter_obj.get_file()
+
+    def get_file_list(self):
+        return self.__formatter_obj.get_file_dict()
+
+
+class ConverterCommand(object):
+
+    def __init__(self, input_format_list, input_filename_list,
+                 output_format_list, output_filename_list):
+
+        in_fmt_set  = set(input_format_list)
+        out_fmt_set = set(output_format_list)
+
+        com_dict = converter_module.command_dict
+        for in_out in com_dict:
+            in_fmt, out_fmt = in_out
+            if set(in_fmt) == in_fmt_set and set(out_fmt) == out_fmt_set:
+                issubclass(com_dict[in_out], IConverterCommand)
+
+                converter_obj = com_dict[in_out]()
+                converter_obj.set_input(
+                    format_list=input_format_list,
+                    filename_list=input_filename_list
+                )
+                converter_obj.set_output(
+                    format_list=output_format_list,
+                    filename_list=output_filename_list
+                )
+                self.__converter_obj = converter_obj
+                break
+        else:
+            raise FormatCannotConvertError()
+
+    def get_file_list(self):
+        return self.__converter_obj.get_file_dict()
+
+
+class IConveterCommand(object):
+
+    @abstractmethod
+    def set_input(self, format_list, filename_list): pass
+    
+    @abstractmethod
+    def set_output(self, format_list, filename_list): pass
+    
+    
+
+
+
+
+
+class DataTypeChecker(object):
+    """Class to inspect the data type."""
+    def __init__(self):
+        pass
+        

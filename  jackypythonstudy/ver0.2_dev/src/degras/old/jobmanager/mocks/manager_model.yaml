@@ -1,0 +1,20 @@
+class_name: ManagerModel
+events:
+    - init
+    - created
+    - delete
+    - update
+
+getsets:
+
+properties:
+
+enables:
+
+methods:
+    - get_newjobview
+    - get_job_dict
+    - get_jobview
+    - set_selected_jobid_list
+    - delete
+

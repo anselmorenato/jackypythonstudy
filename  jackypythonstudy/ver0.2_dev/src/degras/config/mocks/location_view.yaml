@@ -1,0 +1,62 @@
+class_name: LocationView
+events:
+    - close
+    - update
+
+    - add_command
+    - del_command
+    - add_command_env
+    - del_command_env
+    - edit_command_env
+
+    - add_jms
+    - del_jms
+    - add_jms_env
+    - del_jms_env
+    - edit_jms_env
+
+getsets:
+    name: hpcs
+    workdir: /home/ishikura/Nagara/projects
+    shell: 
+    init_file: /etc/profile.local
+    environ_dict:
+        #env1: value1
+        #env2: value2
+        #env3: value3
+    mpi: mpijob mpirun
+
+    ssh_address: hpcs.med.nagaoya-u.ac.jp
+    ssh_username: ishikura
+    ssh_password: aaaaaaa
+    ssh_port: 22
+
+    command_dict:
+#         name:
+#         enable:
+#         path:
+#         environ:
+#             variable: value
+#             variable: value
+#             variable: value
+
+    jms_dict:
+#         name:
+#         enable:
+#         path:
+#         environ:
+#             variable: value
+#             variable: value
+#             variable: value
+#
+    jms_default:
+
+properties:
+
+enables:
+
+methods:
+    - show
+    - close
+
+

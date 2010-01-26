@@ -1,0 +1,14 @@
+name: Docking
+description: This object is Docking simulation.
+input:
+    receptor: {type: System, multi: Single, optional: false}
+    ligands: {type: Ligand, multi: Multiple, optional: false}
+setting: docking
+log: {type: Log, multi: Multiple}
+concomitance:
+output:
+    system: {type: System, multi: Sequence, optional: false}
+    energy: {type: Energy, multi: Sequence, optional: false}
+    otherdata: {type: , multi: Sequence, optional: true}
+command: [Presto, AutoDock] 
+

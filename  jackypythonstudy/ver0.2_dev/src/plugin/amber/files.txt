@@ -1,0 +1,21 @@
+[molecule topology]
+AMBER_PRMTOP
+
+[crd + vel + pbc]
+AMBER_RESTART 
+
+[coordinate trajectory]
+AMBER_CRD_TRAJECTORY
+
+
+[coordinate velocity]
+AMBER_VEL_TRAJECTORY
+AMBER_VEL_TRAJECTORY_Parser
+
+
+[coordinate energy]
+AMBER_ENE_TRAJECTORY
+
+[log data]
+AMBER_LOG
+

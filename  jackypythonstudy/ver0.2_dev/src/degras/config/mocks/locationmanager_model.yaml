@@ -1,0 +1,25 @@
+class_name: LocationManagerModel
+events:
+    - init
+    - update
+    - select
+
+getsets:
+
+properties:
+
+enables:
+
+methods:
+    - get_location_list
+    - destroy
+    - create
+    - edit
+    - delete
+    - copy
+    - set_name
+    - set_default
+    - set_current
+    - get_config
+
+

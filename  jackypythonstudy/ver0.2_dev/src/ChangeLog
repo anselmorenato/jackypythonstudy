@@ -1,0 +1,43 @@
+0000-00-00 (Todo)
+
+	*	Todo: 分子ツリー表示ルーチン
+
+	*	Todo: Docking部分の設定ウィザード
+
+	*	Todo: Docking部分の設定View
+
+	*	Todo: AutoDockToolsのインストール
+
+	*	Todo: ミニマム・フローのドッキング部分をコーディング
+
+	*	Todo: サーバスクリプトのサーバへの配置
+
+	*	Todo: ミニマム・フローのMD部分をコーディング
+
+2009-03-04 (Wed) Takakazu Ishikura <ishikura@gifu-u.ac.jp>
+	*	Nagara: molviewモジュールのマージ。
+	*	Nagara: パッケージングした時のプログラム名を正常に取得するコードを追加。
+
+2008-11-19 (Wed) Takakazu Ishikura <ishikura@gifu-u.ac.jp>
+	*	Nagara: ファイルを整理した
+
+2008-06-09 (Mon) Takakazu Ishikura <ishikura@gifu-u.ac.jp>
+
+	*	config.py:	loadConfig, saveConfig, getConfig, setConfig, syncConfigメソ        ッドを追加。
+
+2008-05-29 (Thu) Takakazu Ishikura <ishikura@gifu-u.ac.jp>
+
+	* 	
+
+2008-05-28 (Wed) Takakazu Ishikura <ishikura@gifu-u.ac.jp>
+
+	*	GProject: v2-2008-05-28を作成
+
+	*	GProject: パッケージの ChangeLogを作成 (GProject-current)
+
+	*	現時点の状況:
+		- 単機能用、デバッグ用メニューがある
+		- 簡単なXMLRPCssh用の設定と接続ができる
+		- MolTree関係のソースがあるが、現在は使わない
+
+	*	GProject: 暫定アイコンを追加(gproject.ico)

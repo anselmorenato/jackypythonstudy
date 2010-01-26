@@ -1,0 +1,28 @@
+class_name: LocationManagerView
+
+events:
+    - close
+    - create
+    - edit
+    - delete
+    - copy
+    - rename
+    - set_default
+    - select
+
+getsets:
+
+properties:
+
+enables:
+
+methods:
+    - init
+    - set_location_list
+    - close
+    - rename
+    - get_name
+    - get_default
+    - get_current
+    - show_config
+

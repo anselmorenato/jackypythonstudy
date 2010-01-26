@@ -1,0 +1,11 @@
+name: Energy
+description: This object is energy.
+input:
+    system: {type: System, multi: Single, optional: false}
+    fmm:  {type: Group,  multi: Single, optional: true}
+setting: standard
+log: {type: Log, multi: Single}
+concomitance:
+output:
+    system: {type: System, multi: Single, optional: false}
+command: [Presto, amber_md, Gromacs, Paics, Marvin]

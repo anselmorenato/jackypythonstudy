@@ -1,0 +1,110 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxMenuBar" name="MenuBar">
+    <object class="wxMenu" name="MenuFile">
+      <object class="wxMenuItem" name="NewProject">
+        <label>New Project</label>
+      </object>
+      <object class="wxMenuItem" name="LoadProject">
+        <label>Load Project</label>
+      </object>
+      <object class="wxMenuItem" name="OpenMolecule">
+        <label>Open Molecule</label>
+      </object>
+      <object class="wxMenuItem" name="SaveProject">
+        <label>Save Project</label>
+      </object>
+      <object class="wxMenuItem" name="SaveAs">
+        <label>Save As...</label>
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="Exit">
+        <label>&amp;Exit</label>
+        <bitmap stock_id="wxART_QUIT"/>
+        <accel>Ctrl-W</accel>
+        <help>Exit Nagara</help>
+      </object>
+      <label>File</label>
+    </object>
+    <object class="wxMenu" name="MenuEdit">
+      <label>Edit</label>
+    </object>
+    <object class="wxMenu" name="MenuView">
+      <object class="wxMenuItem" name="ProjectTree">
+        <label>Project tree</label>
+        <checkable>1</checkable>
+        <checked>1</checked>
+      </object>
+      <object class="wxMenuItem" name="MoleculeView">
+        <label>Molecule Viewer</label>
+        <checkable>1</checkable>
+        <checked>1</checked>
+      </object>
+      <object class="wxMenuItem" name="WorkflowView">
+        <label>Work flow View</label>
+        <checkable>1</checkable>
+      </object>
+      <label>View</label>
+    </object>
+    <object class="wxMenu" name="MenuProject">
+      <label>Project</label>
+      <object class="wxMenuItem" name="Screening">
+        <label>In silico screenng</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="MenuTask">
+      <label>Task</label>
+      <object class="wxMenuItem" name="Marvin">
+        <label>Marvin</label>
+      </object>
+      <object class="wxMenuItem" name="Paics">
+        <label>Paics</label>
+      </object>
+      <object class="wxMenuItem" name="Amber">
+        <label>Amber</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="MenuHelp">
+      <object class="wxMenuItem" name="About">
+        <label>About...</label>
+      </object>
+      <object class="wxMenuItem" name="Activate">
+        <label>Activate</label>
+      </object>
+      <object class="wxMenuItem" name="Help">
+        <label>Help</label>
+      </object>
+      <label>Help</label>
+    </object>
+    <object class="wxMenu" name="MenuDebug">
+      <object class="wxMenuItem" name="RunPaics">
+        <label>run Paics</label>
+      </object>
+      <object class="wxMenuItem" name="RunMarvin">
+        <label>run Marvin</label>
+      </object>
+      <object class="wxMenuItem" name="RunAmber">
+        <label>run Amber</label>
+      </object>
+      <object class="wxMenuItem" name="RunAD4">
+        <label>run AutoDock4</label>
+      </object>
+      <object class="wxMenuItem" name="RunProjectDlg">
+        <label>project configure</label>
+      </object>
+      <object class="wxMenuItem" name="RunRemoteRootDlg">
+        <label>remote root configure</label>
+      </object>
+      <object class="wxMenuItem" name="ShowConfigs">
+        <label>Setting configuration</label>
+      </object>
+      <object class="wxMenuItem" name="ConfigRemote">
+        <label>remote configure</label>
+      </object>
+      <object class="wxMenuItem" name="Debug">
+        <label>ShowDebugLog</label>
+      </object>
+      <label>Debug</label>
+    </object>
+  </object>
+</resource>

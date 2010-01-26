@@ -1,0 +1,33 @@
+class_name: ManagerView
+events:
+    - request
+    - submit
+    - convert
+    - send
+    - run
+    - stop
+    - rerun
+    - cancel
+    - receive
+    - sync
+
+    - rename
+    - select
+    - set_auto
+    - delete
+    - update
+
+getsets:
+
+properties:
+
+enables:
+    - auto
+
+methods:
+    - append
+    - update_all
+    - get_selected_jobid_list
+    - get_jobname
+    - popup_jobmenu
+
