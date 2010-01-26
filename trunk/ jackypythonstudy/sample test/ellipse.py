@@ -31,7 +31,11 @@ class MyFrame(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(canvas, 1, wx.GROW)
         self.SetSizer(sizer)
-
+        #canvas.Bind(wx.EVT_MOTION,self.on_motion)
+    def on_motion(self,evt):
+        x,y = evt.GetPosition()
+        print x,y
+        
 
 
 app = wx.App(0)
