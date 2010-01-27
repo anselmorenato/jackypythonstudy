@@ -1,8 +1,8 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-26 15:36:28 +0900 (火, 26 1 2010) $
-# $Rev: 69 $
+# $Date: 2010-01-27 15:22:38 +0900 (水, 27 1 2010) $
+# $Rev: 70 $
 # $Author: ma $
 #
 import os, sys
@@ -19,7 +19,7 @@ class DataPiece(object):
         self.model = model
         self.model_view = model_view
         self.__view = DataPieceView()
-        self.__presenter = DataPiecePresenter(model, model_view, self.view)
+        self.__presenter = DataPiecePresenter(model, self.view, model_view)
         interacter = DataPieceInteractor(view, presenter)
         
     def get_view(self):
