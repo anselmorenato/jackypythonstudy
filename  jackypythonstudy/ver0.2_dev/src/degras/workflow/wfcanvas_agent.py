@@ -1,11 +1,17 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-26 15:36:28 +0900 (火, 26 1 2010) $
-# $Rev: 69 $
+# $Date: 2010-01-27 15:22:38 +0900 (水, 27 1 2010) $
+# $Rev: 70 $
 # $Author: ma $
 #
+# standard modules
 import os, sys
+
+# nagara modules
+from wfcanvas_view import WorkFlowCanvasView
+from  wfcanvas_presenter import WorkFlowCanvasPresenter
+from wfcanvas_view import WorkFlowCanvasInteractor as wfcInteractor
 
 class WorkFlowCanvas(object):
 
@@ -18,18 +24,23 @@ class WorkFlowCanvas(object):
             parent_view = parent
 
         self.__model = model
-        from wfcanvas_view import WorkFlowCanvasView
         self.__view = WorkFlowCanvasView(parent_view)
-        from  wfcanvas_presenter import WorkFlowCanvasPresenter
+        # setup presenter
         self.__presen = WorkFlowCanvasPresenter( self.__model, self.get_view())
+        # setup interactor
+        self.__interactor = wfcInteractor(self.__view,self.__presen)
+        
         #from flowcanvas import FlowCanvas
         #self.__view = FlowCanvas( parent_view )
-        
-        from wfcanvas_view import WorkFlowCanvasInteractor as wfcInteractor
-        self.__inerractor = wfcInteractor(self.__view,self.__presen)
 
     def get_view(self):
         return self.__view
+    
+    def get_presenter(self):
+        return self.__presen
+
+    def get_interactor(self):
+        return self.__interactor
 
 
 if __name__ == '__main__':

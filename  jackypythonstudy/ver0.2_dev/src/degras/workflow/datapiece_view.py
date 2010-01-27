@@ -1,17 +1,40 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-20 13:50:28 +0900 (水, 20 1 2010) $
-# $Rev: 52 $
-# $Author: ishikura $
+# $Date: 2010-01-27 15:22:38 +0900 (水, 27 1 2010) $
+# $Rev: 70 $
+# $Author: ma $
 #
 
 import os, sys
+import wx
+import wx.lib.ogl as ogl
 
 
-class DataPieceView(object):
+class DataPieceView(ogl.CompositeShape):
 
-    def __init__(self):
+    def __init__(self,canvas,name='New Data',x=40,y=30):
+        ogl.CompositeShape.__init__(self)
+        self.SetCanvas(canvas)        
+        region = wx.Region()
+
+        self.shape1 = ogl.RectangleShape(100, 60)
+        self.shape1.AddText(name)
+
+        self.shape2 = Connector(canvas, self)
+        self.shape2.SetBrush(wx.GREEN_BRUSH)
+        self.shape2.SetY(-35)
+        
+        self.AddChild(self.shape1)
+        self.AddChild(self.shape2)
+
+        constraint = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF ,self.shape1, [self.shape2])
+        self.AddConstraint(constraint)
+        self.Recompute()
+        
+        self.shape1.SetSensitivityFilter(0)
+        self.shape2.SetSensitivityFilter(5)
+
         self.__name   = 'Data'
         self.__type   = 'Type'
         self.__format = 'format'
@@ -23,7 +46,10 @@ class DataPieceView(object):
 
     def set_selected(self, select):
         self.__selected = select
-
+        
+    def set_label(self,name):
+        self.shape1.AddText(name)
+        
     # property: name
     def get_name(self):
         return self.__name
@@ -44,4 +70,30 @@ class DataPieceView(object):
     def set_format(self, format):
         self.__format = format
     format = property(get_format, set_format)
+    
+class Connector(ogl.CircleShape):
+    
+    def __init__(self, canvas, data_shape, size = 10):
+        ogl.CircleShape.__init__(self, size)
+        self.SetCanvas(canvas)
+        self.SetDraggable(False)
+        self.data_shape = data_shape
+    
+    def OnEndDragLeft(self, x, y, keys=0, attachment=0):
+        sx,sy = self.GetCanvas().CalcUnscrolledPosition(x, y)
+        _shape,attachment = self.GetCanvas().FindShape(x,y)
+        print 'shape is ',_shape,'the type is',type(_shape)
+        ogl.ShapeEvtHandler.OnEndDragLeft(self, x, y, keys, attachment)
+
+        try:
+            if isinstance(_shape,InputSocketShape):
+            
+                print 'now task is start'
+                print self.data_shape
+                fromShape = self.data_shape
+                
+                toShape = _shape
+                self.GetCanvas().add_linker(fromShape,toShape)
+        except NameError:
+            pass
     

@@ -65,8 +65,10 @@ class MenubarView(wx.MenuBar):
         return item.IsChecked()
 
     def get_item(self, item):
-        return self.item_dict.get(itempath)
+        return self.item_dict.get(item)
 
+    def get_item_id(self,item):
+        return self.item_dict.get(item)
     def get_menu(self, menulabel):
         for menu, label in self.GetMenus():
             if menulabel == label:
