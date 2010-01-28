@@ -12,7 +12,21 @@ sys.path.append( os.path.join(nagara_path, 'src') )
 from core.exception import NagaraException
 from utils.event    import NagaraEvent
 from core.log       import Log
+from utils.wxutils import BindManager
+class MenubarInteractor(object):
+    binder = BindManager()
+    
+    def __init__(self, view, presenter):
 
+        self.presen = presenter
+        self.binder.bindAll(view, self)
+        self.mv = MenubarView()
+    # for popup menu
+        #itemid = self.mv.get_item('workflow:add_dtata')[0]
+    print binder
+    @binder(wx.EVT_MENU, id= id)
+    def h4(self, event):
+        self.presen.append_data()
 
 class MenubarView(wx.MenuBar):
 
@@ -68,7 +82,8 @@ class MenubarView(wx.MenuBar):
         return self.item_dict.get(item)
 
     def get_item_id(self,item):
-        return self.item_dict.get(item)
+        return self.item_dict.get(item)[0]
+    
     def get_menu(self, menulabel):
         for menu, label in self.GetMenus():
             if menulabel == label:

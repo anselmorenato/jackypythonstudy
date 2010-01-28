@@ -15,9 +15,12 @@ sys.path.append( os.path.join(nagara_path, 'src') )
 from utils.event import NagaraEvent, EventBindManager
 from core.exception import NagaraException
 
-class ConfigNotFoundError(NagaraException): pass
-class NameDuplicatedError(NagaraException): pass
-class ConfigNotSelectedError(NagaraException): pass
+class ConfigNotFoundError(NagaraException): 
+    pass
+class NameDuplicatedError(NagaraException): 
+    pass
+class ConfigNotSelectedError(NagaraException): 
+    pass
 
 
     def set_config(self, config):

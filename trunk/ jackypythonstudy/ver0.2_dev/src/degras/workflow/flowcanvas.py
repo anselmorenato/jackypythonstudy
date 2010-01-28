@@ -39,7 +39,7 @@ class DataShape(ogl.CompositeShape):
         self.AddConstraint(constraint)
         self.Recompute()
         shape1.SetSensitivityFilter(0)
-        #shape2.SetSensitivityFilter(5)
+        shape2.SetSensitivityFilter(5)
     def _delete(self):
         self.Delete()
         
@@ -49,12 +49,16 @@ class Connector(ogl.CircleShape):
     def __init__(self, canvas, data_shape, size = 10):
         ogl.CircleShape.__init__(self, size)
         self.SetCanvas(canvas)
-        self.SetDraggable(False)
+        #self.SetDraggable(False)
         self.data_shape = data_shape
+        self.canvas = canvas
         
-    #def OnBeginDragLeft(self, x, y,key =0,attchment =0 ):
-    
+    def OnBeginDragLeft(self, x, y,keys =0,attachment =0 ):
+        ogl.ShapeEvtHandler.OnBeginDragLeft(self, x, y, keys, attachment)
+        self.canvas._isDragging(True)
+        
     def OnEndDragLeft(self, x, y, keys=0, attachment=0):
+        self.canvas._isDragging(False)
         sx,sy = self.GetCanvas().CalcUnscrolledPosition(x, y)
         _shape,attachment = self.GetCanvas().FindShape(x,y)
         print 'shape is ',_shape,'the type is',type(_shape)
@@ -321,7 +325,7 @@ class EvtHandler(ogl.ShapeEvtHandler):
         
         if shape.Selected():
             shape.Select(False, dc)
-            #canvas.Redraw(dc)
+            canvas.Redraw(dc)
             canvas.Refresh(False)
             
         else:
@@ -348,11 +352,13 @@ class EvtHandler(ogl.ShapeEvtHandler):
         self.up_data_statusbar(shape)
     def OnBeginDragLeft(self,x,y,key=0,attachment=0):
         #self.canvas.Unbind(wx.EVT_MOTION)
+        ogl.ShapeEvtHandler.OnBeginDragLeft(self, x, y, keys = 0, attachment = 0)
+        self.canvas._isDragging(True)
         shape = self.GetShape()
         sx,sy = self.canvas.CalcUnscrolledPosition(x, y)
         _shape,attachment = self.canvas.FindShape(x,y)        
         print 'drag begin at',x,y
-        ogl.ShapeEvtHandler.OnBeginDragLeft(self, x, y, keys = 0, attachment = 0)
+        
         if isinstance(_shape,wx.lib.ogl._basic.CircleShape):
             #x=old_x 
             #y=old_y
@@ -362,7 +368,8 @@ class EvtHandler(ogl.ShapeEvtHandler):
     
         
     def OnEndDragLeft(self, x, y, keys=0, attachment=0):
-        
+        self.canvas._isDragging(False)
+        print self.canvas.isDragging
         shape = self.GetShape()  # This is the souce shape of dragged.  
         sx,sy = self.canvas.CalcUnscrolledPosition(x, y)
         _shape,attachment = self.canvas.FindShape(x,y)  # _shape is the shape at drop position. 
@@ -378,8 +385,10 @@ class EvtHandler(ogl.ShapeEvtHandler):
             fromShape = shape
             toShape = _shape
             self.canvas.add_linker(fromShape,toShape)
+            self.canvas._isDragging(False)
             shape.SetDraggable(True)
         self.up_data_statusbar(shape)
+        
         #self.canvas.Bind(wx.EVT_MOTION,self.canvas.on_motion)
         # add the evt process begin here 
 
@@ -404,20 +413,21 @@ class EvtHandler(ogl.ShapeEvtHandler):
         pass
             
     def OnLeftDoubleClick(self,x,y,keys = 0, attachment =0):
-        
-        shape = self.GetShape()
+        pass
+        #shape = self.GetShape()
         #canvas = shape.Getcanvas()
-        self.canvas.diagram.RemoveShape(shape)
-        self.canvas.Refresh()
+        #self.canvas.diagram.RemoveShape(shape)
+        #self.canvas.Refresh()
         
-        print shape ,'is deleted'
+        #print shape ,'is deleted'
     def on_menu_delete(self,event):
-        shape = self.GetShape()
+        pass
+       # shape = self.GetShape()
         
-        shape.DeleteControlPoints()
-        shape.Delete()
-        self.canvas.Refresh()
-        print shape ,'is deleted'
+       # shape.DeleteControlPoints()
+       # shape.Delete()
+       # self.canvas.Refresh()
+       # print shape ,'is deleted'
 class FlowCanvas(ogl.ShapeCanvas):
     #def __init__(self, parent, log, frame):
 
@@ -428,7 +438,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         maxHeight = 1500
         self.SetScrollbars(20, 20, maxWidth/20, maxHeight/20)
 
-        #self.log = log
+        # self.log = log
         # self.frame = frame
         self.SetBackgroundColour("LIGHT BLUE") #wx.WHITE)
         self.diagram = ogl.Diagram()
@@ -437,9 +447,10 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.shapes = []
         self.save_gdi = []
         self.lines = []
+        self.isDragging = False
 
         rRectBrush = wx.Brush("GREEN", wx.SOLID)
-        dsBrush = wx.Brush("WHEAT", wx.SOLID)
+        dsBrush = wx.Brush("white", wx.SOLID)
         
         self.Bind(wx.EVT_RIGHT_DOWN,self.on_right)
         self.Bind(wx.EVT_MOTION,self.on_motion)
@@ -447,17 +458,25 @@ class FlowCanvas(ogl.ShapeCanvas):
         #self.Bind(wx.EVT_CHILD_FOCUS,self.on_motion)
         #self.Bind(wx.EVT_LEFT_DOWN,self.on_left)
         #self.Bind(wx.EVT_ENTER_WINDOW,self.on_motion)
-
+    def _isDragging(self,dragging):
+        self.isDragging = dragging
+    
     def make_popmenu(self):
         """ creat the popup menu when right click on shape.
         """
-        deleteID = wx.NewId()
+        ID_delete = wx.NewId()
+        ID_property = wx.NewId()
         
+        # create popmenu
         popmenu = wx.Menu()
-        item_delete =popmenu.Append(deleteID,'Delete')
-        
-        self.Bind(wx.EVT_MENU,self.on_delete_shape,item_delete)
-        
+        # delete
+        item_delete =popmenu.Append(ID_delete,'Delete')
+        # separator
+        popmenu.AppendSeparator()
+        # property
+        popmenu.Append(ID_property,'Show Property')
+        self.Bind(wx.EVT_MENU,self.on_delete_shape,id=ID_delete)
+        self.Bind(wx.EVT_MENU,self.on_show_property, id=ID_property)
         self.PopupMenu(popmenu)
         popmenu.Destroy()
         
@@ -555,6 +574,9 @@ class FlowCanvas(ogl.ShapeCanvas):
         print len(self.shapes),'shapes still in shapeslist'
         
         self.Refresh()
+        
+    def on_show_property(self,event):
+        print 'show the property'
     def key_press(self,event):
         key = event.GetKeyCode()
         if key ==127:  # DELETE
@@ -614,11 +636,11 @@ class FlowCanvas(ogl.ShapeCanvas):
         except:
             shape_p = shape
            
-        if isinstance(shape, InputSocketShape):
+        if isinstance(shape, InputSocketShape) and not self.isDragging:
             
             self.zoomed_shapes = []
             self.zoomed_shapes.append(shape)#self.cache_shapes.append(shape)
-            if not shape.is_zoomed():
+            if not shape.is_zoomed()and self.isDragging==False:
                 shape.zoom()
                 self.Refresh()
 
