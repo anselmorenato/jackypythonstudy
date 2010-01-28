@@ -8,6 +8,9 @@ events:
     - task_
 
     - data_event
+
+    - append_
+    - flow_event
     - link_event
 
     # event on workflow canvas
@@ -19,9 +22,6 @@ events:
     - 
 
     - scroll_event
-
-    - append_
-    - flow_event
     - rerun
     - cancel
     - set_auto

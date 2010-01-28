@@ -14,12 +14,14 @@ from  core.log    import  Log
 class Menubar(object):
 
     def __init__(self):
-        from menubar_view  import MenubarView
+        import menubar_view as mv
         from menubar_presenter import MenubarPresenter
 
-        self.view = MenubarView()
+        self.view = mv.MenubarView()
         # model = MenubarModel()
         p = MenubarPresenter( self.view)
+        interactor = mv.MenubarInteractor(self.view,p)
+        
     
     def get_view(self):
         return self.view

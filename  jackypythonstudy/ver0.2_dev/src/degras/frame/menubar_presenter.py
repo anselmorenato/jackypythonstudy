@@ -7,6 +7,7 @@ import os, sys
 # nagara modules
 nagara_path = os.environ['NAGARA_PATH']
 sys.path.append( os.path.join(nagara_path, 'src') )
+from  core.exception import NagaraException
 from  utils.event import  EventBindManager
 from  core.log    import  Log
 
@@ -17,3 +18,5 @@ class MenubarPresenter(object):
         # self.model = model
         self.view = view
 
+    def append_data(self):
+        print'test is ok'

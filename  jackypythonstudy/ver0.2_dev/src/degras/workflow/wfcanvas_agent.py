@@ -1,8 +1,8 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-27 15:22:38 +0900 (水, 27 1 2010) $
-# $Rev: 70 $
+# $Date: 2010-01-28 15:12:24 +0900 (木, 28 1 2010) $
+# $Rev: 72 $
 # $Author: ma $
 #
 # standard modules
@@ -24,14 +24,14 @@ class WorkFlowCanvas(object):
             parent_view = parent
 
         self.__model = model
-        self.__view = WorkFlowCanvasView(parent_view)
+        #self.__view = WorkFlowCanvasView(parent_view)
         # setup presenter
-        self.__presen = WorkFlowCanvasPresenter( self.__model, self.get_view())
+        #self.__presen = WorkFlowCanvasPresenter( self.__model, self.get_view())
         # setup interactor
-        self.__interactor = wfcInteractor(self.__view,self.__presen)
+        #self.__interactor = wfcInteractor(self.__view,self.__presen)
         
-        #from flowcanvas import FlowCanvas
-        #self.__view = FlowCanvas( parent_view )
+        from flowcanvas import FlowCanvas
+        self.__view = FlowCanvas( parent_view )
 
     def get_view(self):
         return self.__view
