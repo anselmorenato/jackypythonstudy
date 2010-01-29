@@ -11,6 +11,12 @@ import wx
 import wx.lib.ogl as ogl
 #import cPickle
 
+# Global stuff---------------------------------------------------
+
+clipboard = []
+
+# ---------------------------------------------------------------
+
 class DataShapeSimple(ogl.RectangleShape):
     """ This is the simple data shape. """
     def __init__(self, w=0.0, h=0.0,text =''):
@@ -24,6 +30,12 @@ class DataShape(ogl.CompositeShape):
     def __init__(self, canvas, name=''):
         ogl.CompositeShape.__init__(self)
 
+        self.attributes = ['lable','pen','fill','data','output']
+        self.lable = 'data'
+        self.pen = self.GetPen()
+        self.fill = self.GetBrush()
+        self.data = ''
+        self.output = 'shape2'
         self.SetCanvas(canvas)        
         
         shape1 = ogl.RectangleShape(100, 60)
@@ -447,6 +459,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.shapes = []
         self.save_gdi = []
         self.lines = []
+        self.selected_shapes =[]
         self.isDragging = False
 
         rRectBrush = wx.Brush("GREEN", wx.SOLID)
@@ -460,7 +473,54 @@ class FlowCanvas(ogl.ShapeCanvas):
         #self.Bind(wx.EVT_ENTER_WINDOW,self.on_motion)
     def _isDragging(self,dragging):
         self.isDragging = dragging
-    
+ 
+    def select(self, shape=None):
+      #  if item is None:
+      #      return self.selected_shapes
+        
+      #  if isinstance(item,Node):
+      #      del self.selectedShapes[:]
+      #      self.selectedShapes.append(item) # items here is a single node
+      #      return
+                
+      #  if not item in self.selectedShapes:
+      #      self.selectedShapes.append(item)
+      #      item.OnSelect(None)
+      #      if isinstance(item,Connectable):            
+      #          self.nodes.extend( [INode(item,n,self) for n in range(item.input)] )
+      #          self.nodes.extend( [ONode(item,n,self) for n in range(item.output)] )
+      #      if isinstance(item,Resizeable):            
+      #          self.nodes.extend( [ResizeableNode(item,n,self) for n in range(len(item.x))] )
+#-----------------------------------        
+        if shape is None:
+            return self.selected_shapes
+        
+        if shape and shape.Selected():
+            shape.Select(False, dc)
+            self.Redraw(dc)
+            self.Refresh(False)
+            
+        else:
+            redraw = False
+            shapeList = self.shapes  #canvas.GetDiagram().GetShapeList()
+            toUnselect = []
+
+            for s in shapeList:
+                if s.Selected():
+                    # If we unselect it now then some of the objects in
+                    # shapeList will become invalid (the control points are
+                    # shapes too!) and bad things will happen...
+                    toUnselect.append(s)
+
+            shape.Select(True, dc)
+            self.selected_shapes.append(shape)
+
+            if toUnselect:
+                for s in toUnselect:
+                    s.Select(False, dc)
+
+                ##canvas.Redraw(dc)
+                canvas.Refresh(True) #Flase 
     def make_popmenu(self):
         """ creat the popup menu when right click on shape.
         """
@@ -517,7 +577,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         line.Show(True)
         self.diagram.AddShape(line)
         fromshape.SetDraggable(True)
-        self.lines.append(line)
+        self.shapes.append(line)
         self.Refresh()
         return line
 
@@ -577,6 +637,15 @@ class FlowCanvas(ogl.ShapeCanvas):
         
     def on_show_property(self,event):
         print 'show the property'
+        frame = wx.Frame(None,-1,title='property',size=(280,380))
+        try:
+            parent = self.GetParent().get_pane('PropertyView')
+            print parent,'is parent '
+            f = AttributeEditor(parent,-1,'propertys',self.selected_shape.GetParent())
+            
+        except:
+            f = AttributeEditor(frame,-1,'propertys',self.selected_shape.GetParent())
+        frame.Show(True)
     def key_press(self,event):
         key = event.GetKeyCode()
         if key ==127:  # DELETE
@@ -587,8 +656,30 @@ class FlowCanvas(ogl.ShapeCanvas):
             for shape in self.shapes:
                 if shape.Selected():
                     shape.Delete()
-                    self.Refresh()
+                    
                     print shape,"is deleted by press del key"
+        elif key ==67 and event.ControlDown():  # COPY
+            del clipboard[:]
+            for i in self.select():
+                clipboard.append(i)
+        elif key ==86 and event.ControlDown():  # PASTE
+            for i in clipboard:
+                self.AddShape(i.Copy())
+        elif key == 9: # TAB
+            if len(self.shapes)==0:
+                return
+            shape = self.select()
+            if shape:
+                ind = self.shapes.index(shape[0])
+                for s in shapes:
+                    s.Select(False)
+                try:
+                    self.select(self.diagram.shapes[ind+1])
+                except:
+                    self.select(self.diagram.shapes[0])
+            else:
+                    self.select(self.diagram.shapes[0])
+        self.Refresh()
     @property
     def selected_shape(self):
         return self.__selected_shape
@@ -1006,7 +1097,56 @@ class FlowFrame(wx.Frame):
         #self.work_canvas.delete_shape()
         #self.work_canvas.Refresh()
 #-------------------------------------------------------------------------------
+class AttributeEditor(wx.Panel):
+    def __init__(self, parent, ID, title,item):
+        wx.Panel.__init__(self, parent, ID, 
+                         wx.DefaultPosition, wx.Size(200, 450))
+        self.item = item
+        # Create a box sizer for self
+        box = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(box)
+        
+        tID = wx.NewId()
+        self.list = wx.ListCtrl(self, tID, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT)
+        self.SetSize(self.GetSize())
+ 
+        self.list.InsertColumn(0, "Attribute",width=100)
+        self.list.InsertColumn(1, "Value",width=100)
 
+        accept = wx.Button(self, wx.NewId(), "Accept",size=(40,20))
+
+        for c in range(len(item.attributes)):
+            self.list.InsertStringItem(c , "")
+            self.list.SetStringItem(c, 0, str(item.attributes[c]))
+            temp = str( eval("item." + str(item.attributes[c])))
+            self.list.SetStringItem(c, 1, temp)
+        
+        self.text    = wx.TextCtrl(self,wx.NewId(), "", style=wx.TE_MULTILINE)
+        
+        box.Add(self.list, 1,wx.EXPAND) 
+        box.Add(accept,0,wx.EXPAND) 
+        box.Add(self.text, 1,wx.EXPAND) 
+
+        wx.EVT_LIST_ITEM_SELECTED(self.list,tID, self.selectProp)
+        wx.EVT_BUTTON(accept, accept.GetId(), self.acceptProp)
+        
+    def selectProp(self,event):
+        idx=self.list.GetFocusedItem()
+        prop = self.list.GetItem(idx,0).GetText()
+        val = self.list.GetItem(idx,1).GetText()
+        self.text.Clear()
+        self.text.WriteText(val)
+        
+    def acceptProp(self,event):
+        idx=self.list.GetFocusedItem()
+        prop = self.list.GetItem(idx,0).GetText()
+        lines = self.text.GetNumberOfLines()
+        if lines ==1:
+            exec 'self.item.' + prop +'='+self.text.GetValue()
+        else:
+            p=setattr(self.item,prop,self.text.GetValue())
+            
+        self.list.SetStringItem(idx, 1, str(getattr(self.item,prop)))
 
 
 def run():
