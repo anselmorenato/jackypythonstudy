@@ -16,29 +16,72 @@ import wx.lib.ogl as ogl
 clipboard = []
 
 # ---------------------------------------------------------------
+class Attributable:
+    '''
+    Allows AttributeEditor to edit specified properties
+    of the Shape
+    '''
+    def __init__(self):
+        self.attributes=[]
 
-class DataShapeSimple(ogl.RectangleShape):
-    """ This is the simple data shape. """
-    def __init__(self, w=0.0, h=0.0,text =''):
-        ogl.RectangleShape.__init__(self, w, h)
-        self.SetCornerRadius(-0.3)
-        self.AddText(text)
+    def AddAttribute(self,name):
+        self.attributes.append(name)
+
+    def AddAttributes(self,atts):
+        self.attributes.extend(atts)
         
-class DataShape(ogl.CompositeShape):
+    def RemoveAttribute(self,name):
+        self.attributes.remove(name)
+
+class NagaraBlock(ogl.CompositeShape,Attributable):
+    def __init__(self):
+        ogl.CompositeShape.__init__(self)
+        Attributable.__init__(self)
+        
+        self.properties = ['project',
+                           'id',
+                           'name',
+                           'state',
+                           'jms',
+                           'location',
+                           'expected_time',
+                           'start_time',
+                           'finish_time',
+                           'available_request'
+                           ]
+        self.AddAttributes(['label',
+                           'pen',
+                           'fill',
+                           'input',
+                           'output'
+                           ])
+        self.label = 'Nagara Block'
+        
+    def OnLeftClick(self,keys):
+        print self
+        if isinstance(self,NagaraBlock) and keys==2: # Ctrl key
+            d=wx.TextEntryDialog(None,'Shape Label',defaultValue=self.label,style=wx.OK)
+            d.ShowModal()
+            self.label = d.GetValue()
+        
+        
+class DataShape(NagaraBlock):
     """ this is the composite data shape.
     """
     def __init__(self, canvas, name=''):
-        ogl.CompositeShape.__init__(self)
+        NagaraBlock.__init__(self)
 
-        self.attributes = ['lable','pen','fill','data','output']
-        self.lable = 'data'
+        #self.attributes = ['lable','pen','fill','data','output']
+        self.label = name
         self.pen = self.GetPen()
         self.fill = self.GetBrush()
-        self.data = ''
-        self.output = 'shape2'
+        self.data = None
+        self.input = None
+        self.output = None
         self.SetCanvas(canvas)        
         
         shape1 = ogl.RectangleShape(100, 60)
+        shape1.AddText(self.label)
         self.AddChild(shape1)
         #shape2 = ogl.CircleShape(10)
         shape2 = Connector(canvas, self)
@@ -54,7 +97,7 @@ class DataShape(ogl.CompositeShape):
         shape2.SetSensitivityFilter(5)
     def _delete(self):
         self.Delete()
-        
+    
 
 class Connector(ogl.CircleShape):
     
@@ -91,14 +134,20 @@ class Connector(ogl.CircleShape):
 #----------------------------------------------------------------------
 # Begin here make the shapes for TaskShape
 
-class TaskShape(ogl.CompositeShape):
+class TaskShape(NagaraBlock):
     """
     This shape is Consists of three parts, InputSocketShape, Middleshape and OutputsocketShape.
     """
     def __init__(self, canvas,name =''):
-        ogl.CompositeShape.__init__(self)
+        NagaraBlock.__init__(self)
         self.SetCanvas(canvas)
         self.taskobject_name = name
+        self.label = name
+        self.pen = self.GetPen()
+        self.fill = self.GetBrush()
+        self.data = None
+        self.input = None
+        self.output = None
 
         middleshape = MiddleShape(100,120,canvas,self.taskobject_name)  # this is the  the constraining shape
 
@@ -146,8 +195,6 @@ class TaskShape(ogl.CompositeShape):
         inputshape3.SetSensitivityFilter(0)
         outputshape.SetSensitivityFilter(0)
 
-    def _delete(self):
-        self.Delete()
         
 class InputSocketShape(ogl.RectangleShape):
     """this shape is one part of the TaskShape"""
@@ -327,14 +374,15 @@ class EvtHandler(ogl.ShapeEvtHandler):
 
     def OnLeftClick(self, x, y, keys=0, attachment=0):
         shape = self.GetShape()
-        canvas = shape.GetCanvas()
-        dc = wx.ClientDC(canvas)
+        self.canvas = canvas = shape.GetCanvas()
+        dc = wx.ClientDC(self.canvas)
         canvas.PrepareDC(dc)
         sx,sy = self.canvas.CalcUnscrolledPosition(x, y)
         _shape,attachment =self.canvas.FindShape(sx,sy)
-        print shape
-        print _shape,'is left click'
         
+        
+        shape.OnLeftClick(keys)  
+        canvas.Refresh(True)
         if shape.Selected():
             shape.Select(False, dc)
             canvas.Redraw(dc)
@@ -664,21 +712,42 @@ class FlowCanvas(ogl.ShapeCanvas):
                 clipboard.append(i)
         elif key ==86 and event.ControlDown():  # PASTE
             for i in clipboard:
-                self.AddShape(i.Copy())
+                self.diagram.AddShape(i.Copy())
         elif key == 9: # TAB
             if len(self.shapes)==0:
                 return
-            shape = self.select()
-            if shape:
-                ind = self.shapes.index(shape[0])
-                for s in shapes:
-                    s.Select(False)
-                try:
-                    self.select(self.diagram.shapes[ind+1])
-                except:
-                    self.select(self.diagram.shapes[0])
-            else:
-                    self.select(self.diagram.shapes[0])
+            shape = self.__selected_shape
+            #for shape in self.shapes:
+            while shape in self.shapes:
+                dc =wx.ClientDC(self)
+                ind = self.shapes.index(shape)
+                print self.shapes
+                if shape.Selected():
+                    shape.Select(False, dc)
+                    self.shapes[ind+1].Select(True,dc)
+                    self.Redraw(dc)
+                    self.Refresh(True)
+                
+                else:
+                    redraw = False
+                    shapeList = self.GetDiagram().GetShapeList()
+                    toUnselect = []
+        
+                    for s in shapeList:
+                        if s.Selected():
+                            # If we unselect it now then some of the objects in
+                            # shapeList will become invalid (the control points are
+                            # shapes too!) and bad things will happen...
+                            toUnselect.append(s)
+        
+                    shape.Select(True, dc)
+        
+                    if toUnselect:
+                        for s in toUnselect:
+                            s.Select(False, dc)
+        
+                        ##canvas.Redraw(dc)
+                        self.Refresh(True) #Flase
         self.Refresh()
     @property
     def selected_shape(self):
@@ -792,6 +861,7 @@ class FlowCanvas(ogl.ShapeCanvas):
             self.evthandler.OnLeftClick(x,y,keys='0',attachment=attachment)
         except:
             pass
+        #shape.OnLeftClick(self,event)
         """self.__selected_shape = shape
         if isinstance(shape,wx.lib.ogl._basic.CircleShape):
             shape.GetParent().SetDraggable(False)
@@ -810,7 +880,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         x = self.__x
         y = self.__y
         print 'add data'
-        self.add_shape(DataShape(self,'name'), 
+        self.add_shape(DataShape(self,'Data'), 
                 x,y, wx.BLACK_PEN, wx.GREEN_BRUSH, ''
             )
         self.Refresh()
@@ -1145,6 +1215,7 @@ class AttributeEditor(wx.Panel):
             exec 'self.item.' + prop +'='+self.text.GetValue()
         else:
             p=setattr(self.item,prop,self.text.GetValue())
+            print prop
             
         self.list.SetStringItem(idx, 1, str(getattr(self.item,prop)))
 
