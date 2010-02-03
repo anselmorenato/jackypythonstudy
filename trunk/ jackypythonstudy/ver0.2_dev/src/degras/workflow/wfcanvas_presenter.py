@@ -16,10 +16,21 @@ class WorkFlowCanvasPresenter(object):
 
     def __init__(self, model=None, view=None):
         self.model = model
-        self.view = view
-        self.init()
-    
-    def init(self):
+
+    # operations
+    def append_task(self):
+        task = self.model.appendTask(taskobject='Energy')
+        tpiece = TaskPiece(task)
+        self.__tasklist.append(tpiece)
+        self.view.appendPiece( tpiece.get_view() )
+
+    def append_data(self):
+        data = self.model.appendData(type='system', format='pdb')
+        dpiece = DataPiece(data)
+        self.__datalist.append(dpiece)
+        self.view.appendData( dpiece.get_view() )
+
+    def connect(self):
         pass
     def popup(self,event):
         """ create the popup menu."""

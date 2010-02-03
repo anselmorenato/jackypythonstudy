@@ -1,8 +1,8 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-20 14:48:22 +0900 (水, 20 1 2010) $
-# $Rev: 57 $
+# $Date: 2010-02-02 21:47:56 +0900 (火, 02 2 2010) $
+# $Rev: 75 $
 # $Author: ishikura $
 #
 # standard modules
@@ -21,9 +21,11 @@ class NotFoundImageError(NagaraException): pass
 
 # job state images
 JOBSTATE_PATH_DICT  = dict(
-    runnable = os.path.join(image_abspath, 'jobstate', 'arrow_right.png' ) ,
-    running  = os.path.join(image_abspath, 'jobstate', 'arrow_undo.png'  ) ,
-    done     = os.path.join(image_abspath, 'jobstate', 'arrow_undo.png'  ) ,
+    preparing   = os.path.join(image_abspath , 'jobstate', 'arrow_right.png') , 
+    converting = os.path.join(image_abspath , 'jobstate', 'arrow_right.png') , 
+    runnable    = os.path.join(image_abspath , 'jobstate', 'arrow_right.png') , 
+    running     = os.path.join(image_abspath , 'jobstate', 'arrow_undo.png' ) , 
+    done        = os.path.join(image_abspath , 'jobstate', 'arrow_undo.png' ) , 
 )
 
 JOBSTATE_IMAGE_DICT = {}
