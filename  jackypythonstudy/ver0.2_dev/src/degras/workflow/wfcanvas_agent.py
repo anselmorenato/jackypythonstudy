@@ -1,9 +1,9 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-28 15:12:24 +0900 (木, 28 1 2010) $
-# $Rev: 72 $
-# $Author: ma $
+# $Date: 2010-02-02 21:59:40 +0900 (火, 02 2 2010) $
+# $Rev: 77 $
+# $Author: ishikura $
 #
 # standard modules
 import os, sys
@@ -46,7 +46,7 @@ class WorkFlowCanvas(object):
 if __name__ == '__main__':
     import wx 
     app = wx.App(redirect=False)
-    frame = wx.Frame(None, -1, 'Work Flow Canvas')
+    frame = wx.Frame(None, -1, 'Work Flow Canvas', size=(800,600))
 
     wfc = WorkFlowCanvas( frame )
 

@@ -63,6 +63,9 @@ class NagaraBlock(ogl.CompositeShape,Attributable):
             d=wx.TextEntryDialog(None,'Shape Label',defaultValue=self.label,style=wx.OK)
             d.ShowModal()
             self.label = d.GetValue()
+            
+    def OnLeftDclick(self,shape):
+        print shape,'is double click'
         
         
 class DataShape(NagaraBlock):
@@ -232,8 +235,9 @@ class InputSocketShape(ogl.RectangleShape):
         w = 1
         width  = self.__width
         height = self.__height
+        print width, height
         
-        while 40 > width and 100 > height :
+        while 30 > width and 70 > height :
             self.SetSize(width, height)
             self.GetCanvas().Refresh()
             width  += w
@@ -470,10 +474,10 @@ class EvtHandler(ogl.ShapeEvtHandler):
         if "wxMac" in wx.PlatformInfo:
             shape.GetCanvas().Refresh(False)
     def OnRightClick(self,x,y,keys = 0, attachment =0): 
-        pass
+        print 'hello'
             
-    def OnLeftDoubleClick(self,x,y,keys = 0, attachment =0):
-        pass
+    def OnLeftDClick(self,x,y,keys = 0, attachment =0):
+        shape.OnLeftDclick(shape)
         #shape = self.GetShape()
         #canvas = shape.Getcanvas()
         #self.canvas.diagram.RemoveShape(shape)
@@ -569,7 +573,7 @@ class FlowCanvas(ogl.ShapeCanvas):
 
                 ##canvas.Redraw(dc)
                 canvas.Refresh(True) #Flase 
-    def make_popmenu(self):
+    def make_popmenu(self,shape):
         """ creat the popup menu when right click on shape.
         """
         ID_delete = wx.NewId()
@@ -582,7 +586,10 @@ class FlowCanvas(ogl.ShapeCanvas):
         # separator
         popmenu.AppendSeparator()
         # property
-        popmenu.Append(ID_property,'Show Property')
+        item_show_property = popmenu.Append(ID_property,'Show Property')
+        if isinstance(shape,Linker):
+            item_show_property.Enable(False)
+            
         self.Bind(wx.EVT_MENU,self.on_delete_shape,id=ID_delete)
         self.Bind(wx.EVT_MENU,self.on_show_property, id=ID_property)
         self.PopupMenu(popmenu)
@@ -659,25 +666,27 @@ class FlowCanvas(ogl.ShapeCanvas):
         shape.SetEventHandler(self.evthandler)
 
         self.shapes.append(shape)
-        return shape
+        #return shape
     def on_delete_shape(self,event):
         """ event handler for delete shape.
         """
-        shape = self.__selected_shape  
-        print shape.GetParent(),'is deleted by delete_shape()'
+        shape = [n for n in self.shapes if n.Selected()][0]
+        print shape,'print in del'
         dc =wx.ClientDC(self)
         self.PrepareDC(dc)
-        try:
-            self.shapes.remove(shape.GetParent())  # remove the shape from the shapes list
-            shape.GetParent().DeleteControlPoints()  # if we donot do it , the controlpoints will be remained
-            shape.EraseLinks(dc)
-            shape.GetParent().Delete()
+        #try:
+        #    print shape.GetParent(),'is deleted by delete_shape()'
+        #    self.shapes.remove(shape.GetParent())  # remove the shape from the shapes list
+            #shape.GetParent().DeleteControlPoints()  # if we donot do it , the controlpoints will be remained
+        #    shape.EraseLinks(dc)
+        #    shape.GetParent().Delete()
             #self.line.Delete()
             #del self.lines[self.lines.index(self.line)]
             
             
-        except:
-            shape.Delete()
+        #except:
+        self.shapes.remove(shape)
+        shape.Delete()
             
         print len(self.shapes),'shapes still in shapeslist'
         
@@ -703,7 +712,9 @@ class FlowCanvas(ogl.ShapeCanvas):
             #self.deselect() #remove nodes 
             for shape in self.shapes:
                 if shape.Selected():
-                    shape.Delete()
+                    #self.shapes.remove(shape)
+                    self.on_delete_shape(event)
+                    #shape.Delete()
                     
                     print shape,"is deleted by press del key"
         elif key ==67 and event.ControlDown():  # COPY
@@ -775,8 +786,12 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.__y = sy           
 
         if shape:
+            if shape.GetParent():
+                print 'selcet is called'
+                shape.GetParent().Select(True)
             # creat the popupmenu when right click on shape
-            popmenu = self.make_popmenu()
+            popmenu = self.make_popmenu(shape)
+            
         else:
             # creat the popupmenu when right click on canvas
             popmenu2 = self.make_popmenu_2()
@@ -802,6 +817,10 @@ class FlowCanvas(ogl.ShapeCanvas):
             self.zoomed_shapes.append(shape)#self.cache_shapes.append(shape)
             if not shape.is_zoomed()and self.isDragging==False:
                 shape.zoom()
+                print 1
+                # import threading 
+                # t = threading.Thread(target=shape.zoom, args=[])
+                # t.start()
                 self.Refresh()
 
         elif not isinstance(shape,InputSocketShape):
