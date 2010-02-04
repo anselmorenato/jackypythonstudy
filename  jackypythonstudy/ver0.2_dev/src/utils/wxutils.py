@@ -1,11 +1,20 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-01-22 14:43:39 +0900 (金, 22 1 2010) $
-# $Rev: 66 $
+# $Date: 2010-02-03 17:29:52 +0900 (水, 03 2 2010) $
+# $Rev: 80 $
 # $Author: ishikura $
 #
+# standard modules
 import os, sys
+
+# nagara modules
+nagara_path = os.environ['NAGARA_PATH']
+sys.path.append( os.path.join(nagara_path, 'src') )
+from core.exception import NagaraException
+
+# Exceptions
+class CtrlNotFoundError(NagaraException): pass
 
 class ImmutableDict(dict):
     '''A hashable dict.'''
@@ -92,3 +101,36 @@ class BindManager(object):
                     # event_name = info['event_name'],
                 # ))
         # return evt_info
+
+
+class CtrlManagerMixin:
+
+    def __init__(self):
+        self.__idctrl_dict = {}
+
+    def getCtrl(self, ctrl_name):
+        ctrl = self.FindWindowByName(ctrl_name)
+        if not ctrl:
+            raise CtrlNotFoundError(ctrl_name)
+        return ctrl
+
+    def getCtrlById(self, id_ctrl_name):
+        id_ctrl = self.__idctrl_dict.get(id_ctrl_name)
+        if not id_ctrl:
+            raise CtrlNotFoundError(id_ctrl_name)
+        return id_ctrl
+
+    def setCtrlId(self, ctrl_id, menu):
+        self.__idctrl_dict[ctrl_id] = menu
+
+    def getCtrlNames(self):
+        for ctrl in self.GetChildren():
+            if ctrl.GetName().startswith('ID_'):
+                yield ctrl.GetName()
+
+        # for menuitem in self.__menu.GetMenuItems():
+        #     print menuitem.GetLabel()
+
+    def getCtrlIdList(self):
+        return self.__idctrl_dict.keys()
+

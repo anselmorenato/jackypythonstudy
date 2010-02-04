@@ -1,5 +1,11 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Biao Ma and Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
+# standard modules
 import os, sys
 import wx
 import wx.gizmos
@@ -7,74 +13,32 @@ import wx.gizmos
 # nagara modules
 nagara_path = os.environ['NAGARA_PATH']
 sys.path.append( os.path.join(nagara_path, 'src') )
-from utils.event import NagaraEvent
+from utils.deco     import *
+from utils.event    import NagaraEvent
 from core.exception import NagaraException, DialogCancelException
+from utils.wxutils  import BindManager, CtrlManagerMixin
 
 
-class CtrlNotFoundError(NagaraException): pass
+# from wx.lib.mixins.listctrl import CheckListCtrlMixin
+# class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin):
 
-ArtIDs = [ "None",
-           "wx.ART_ADD_BOOKMARK",
-           "wx.ART_DEL_BOOKMARK",
-           "wx.ART_HELP_SIDE_PANEL",
-           "wx.ART_HELP_SETTINGS",
-           "wx.ART_HELP_BOOK",
-           "wx.ART_HELP_FOLDER",
-           "wx.ART_HELP_PAGE",
-           "wx.ART_GO_BACK",
-           "wx.ART_GO_FORWARD",
-           "wx.ART_GO_UP",
-           "wx.ART_GO_DOWN",
-           "wx.ART_GO_TO_PARENT",
-           "wx.ART_GO_HOME",
-           "wx.ART_FILE_OPEN",
-           "wx.ART_PRINT",
-           "wx.ART_HELP",
-           "wx.ART_TIP",
-           "wx.ART_REPORT_VIEW",
-           "wx.ART_LIST_VIEW",
-           "wx.ART_NEW_DIR",
-           "wx.ART_HARDDISK",
-           "wx.ART_FLOPPY",
-           "wx.ART_CDROM",
-           "wx.ART_REMOVABLE",
-           "wx.ART_FOLDER",
-           "wx.ART_FOLDER_OPEN",
-           "wx.ART_GO_DIR_UP",
-           "wx.ART_EXECUTABLE_FILE",
-           "wx.ART_NORMAL_FILE",
-           "wx.ART_TICK_MARK",
-           "wx.ART_CROSS_MARK",
-           "wx.ART_ERROR",
-           "wx.ART_QUESTION",
-           "wx.ART_WARNING",
-           "wx.ART_INFORMATION",
-           "wx.ART_MISSING_IMAGE",
-           "SmileBitmap"
-           ]
+#     def __init__(self, parent):
+#         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT)
+#         CheckListCtrlMixin.__init__(self)
 
-
-#from wx.lib.mixins.listctrl import CheckListCtrlMixin
-#class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin):
-
-    #def __init__(self, parent):
-        #wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT)
-        #CheckListCtrlMixin.__init__(self)
-
-    ## this is called by the base class when an item is checked/unchecked
-    #def OnCheckItem(self, index, flag):
-        #data = self.GetItemData(index)
-        #title = musicdata[data][1]
-        #if flag:
-            #what = "checked"
-        #else:
-            #what = "unchecked"
-        #self.log.write('item "%s", at index %d was %s\n' % (title, index, what))
+#     # this is called by the base class when an item is checked/unchecked
+#     def OnCheckItem(self, index, flag):
+#         data = self.GetItemData(index)
+#         title = musicdata[data][1]
+#         if flag:
+#             what = "checked"
+#         else:
+#             what = "unchecked"
+#         self.log.write('item "%s", at index %d was %s\n' % (title, index, what))
 
 #===============================================================================
 
 
-from  utils.wxutils import BindManager
 class LocationManagerInteractor(object):
 
     binder = BindManager()
@@ -144,12 +108,11 @@ class LocationManagerInteractor(object):
 
 # from interfaces.ilocationmanager_view import ILocationManagerView
 # class LocationManagerView(ILocationManagerView, wx.Panel):
-class LocationManagerView(wx.Panel):
+class LocationManagerView(wx.Panel, CtrlManagerMixin):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-
-        self.__idctrl_dict = {}
+        CtrlManagerMixin.__init__(self)
 
         # create views
         # create location list
@@ -179,29 +142,6 @@ class LocationManagerView(wx.Panel):
         panel_sizer.Fit(self.GetParent())
         #panel_sizer.SetSizeHints(self)
 
-    def getCtrl(self, ctrl_name):
-        ctrl = self.FindWindowByName(ctrl_name)
-        if not ctrl:
-            raise CtrlNotFoundError(ctrl_name)
-        return ctrl
-
-    def getCtrlById(self, id_ctrl_name):
-        id_ctrl = self.__idctrl_dict.get(id_ctrl_name)
-        if not id_ctrl:
-            raise CtrlNotFoundError(id_ctrl_name)
-        return id_ctrl
-
-    def getCtrlNames(self):
-        for ctrl in self.GetChildren():
-            if ctrl.GetName().startswith('ID_'):
-                yield ctrl.GetName()
-
-        for menuitem in self.__menu.GetMenuItems():
-            print menuitem.GetLabel()
-
-    def getCtrlIdList(self):
-        return self.__idctrl_dict.keys()
-
     def __create_location_list(self):
 
         # create
@@ -212,19 +152,21 @@ class LocationManagerView(wx.Panel):
         # self.__loc_list.SetSelection(0)
         self.__loc_list.SetFont(wx.Font(11,wx.SWISS,wx.NORMAL,wx.NORMAL))
 
-
         # add layout
         list_sizer.Add(self.__loc_list, 1, wx.EXPAND, 5)
 
         # make a menu
         # Popup the menu.  If an item is selected then its handler
         # will be called before PopupMenu returns.
-        self.__idctrl_dict = {}
         self.__menu = wx.Menu()
-        self.__idctrl_dict['ID_new_menu']  = id_new  = wx.NewId()
-        self.__idctrl_dict['ID_edit_menu'] = id_edit = wx.NewId()
-        self.__idctrl_dict['ID_copy_menu'] = id_copy = wx.NewId()
-        self.__idctrl_dict['ID_del_menu']  = id_del  = wx.NewId()
+        id_new  = wx.NewId()
+        id_edit = wx.NewId()
+        id_copy = wx.NewId()
+        id_del  = wx.NewId()
+        self.setCtrlId('ID_new_menu'  , id_new  ) 
+        self.setCtrlId('ID_edit_menu' , id_edit ) 
+        self.setCtrlId('ID_copy_menu' , id_copy ) 
+        self.setCtrlId('ID_del_menu'  , id_del  ) 
         self.__menu.Append(id_new  , "New"    ) 
         self.__menu.Append(id_edit , "Edit"   ) 
         self.__menu.Append(id_copy , "Copy"   ) 
@@ -338,6 +280,15 @@ class LocationManagerView(wx.Panel):
         self.__choice.SetStringSelection(default_locname)
     default = property(getDefault, setDefault)
 
+    # @nproperty
+    # def default(self):
+
+    #     def getDefault(self):
+    #         return self.__choice.GetStringSelection()
+    #     def setDefault(self, default_locname):
+    #         self.__choice.SetStringSelection(default_locname)
+    #     return locals()
+
     def getNameDialog(self, name):
         return NewNameDialog(name)
 
@@ -441,6 +392,7 @@ if __name__ == '__main__':
     # print lmv.GetChildren()
     print lmv.getCtrl('ID_new_button').GetName()
     print list(lmv.getCtrlNames())
+    print 'hello! ', lmv.getCtrlIdList()
 
     frame.Show()
 
@@ -478,7 +430,8 @@ if __name__ == '__main__':
     def wait1(interval):
         time.sleep(interval)
         loclist = ['a', 'b', 'c loc']
-        lmv.setLocationList(loclist)
+        for loc in loclist:
+            lmv.appendToLocation(loc)
         #mv.__create_location_list()
 
     def wait2(interval):
@@ -497,6 +450,7 @@ if __name__ == '__main__':
     t1.start()
     t2.start()
     t3.start()
+
 
 
     app.MainLoop()
