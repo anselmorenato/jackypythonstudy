@@ -263,11 +263,11 @@ class LocationManagerView(wx.Panel, CtrlManagerMixin):
     def clearTreeView(self):
         self.__loc_tree.DeleteAllItems()
 
-    def appendToLocation(self, locname):
+    def appendLocation(self, locname):
         count = self.__loc_list.GetCount()
         self.__loc_list.Insert(locname, count)
 
-    def appendToDefault(self, locname):
+    def appendDefault(self, locname):
         self.__choice.Append(locname)
 
     def close(self):
@@ -317,8 +317,17 @@ class LocationManagerView(wx.Panel, CtrlManagerMixin):
     def popupMenu(self):
         self.__loc_list.PopupMenu(self.__menu)
 
-    def enable(self, ctrl_id, enable):
+    def enable(self, ctrl_id, enable=True):
         self.getCtrl(ctrl_id).Enable( enable )
+
+    def isEnabled(self, ctrl_id):
+        return self.getCtrl(ctrl_id).IsEnabled()
+
+    def show(self, ctrl_id, enable=True):
+        self.getCtrl(ctrl_id).Show(enable)
+
+    def isShown(self, ctrl_id):
+        return self.getCtrl(ctrl_id).IsShown()
 
 
 ########################################################################
@@ -431,7 +440,7 @@ if __name__ == '__main__':
         time.sleep(interval)
         loclist = ['a', 'b', 'c loc']
         for loc in loclist:
-            lmv.appendToLocation(loc)
+            lmv.appendLocation(loc)
         #mv.__create_location_list()
 
     def wait2(interval):

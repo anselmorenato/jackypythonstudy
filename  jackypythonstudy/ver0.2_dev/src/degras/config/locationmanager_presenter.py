@@ -1,6 +1,10 @@
 #  -*- encoding: utf-8 -*-
-# Copyright (C)  2009 Takakazu Ishikura
-
+# Copyright (C)  2010 Biao Ma and Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
 # standard modules
 import os, sys
 
@@ -24,7 +28,7 @@ class LocationManagerPresenter(object):
             loc_config = {}
             self.view.enable('ID_edit_button', False)
             self.view.enable('ID_copy_button', False)
-            self.view.enable('ID_del_button', False)
+            self.view.enable('ID_del_button',  False)
         self.loc_config = loc_config
 
     def select(self):
@@ -37,11 +41,21 @@ class LocationManagerPresenter(object):
             self.view.enable('ID_edit_button', True)
             self.view.enable('ID_copy_button', True)
             self.view.enable('ID_del_button',  True)
+            ret = True
+        else:
+            ret = False
+        return ret
 
     def popup(self):
-        self.view.popupMenu()
+        if self.view.getSelected():
+            self.view.popupMenu()
+            ret = True
+        else:
+            ret =  False
+        return ret
 
     def create(self):
+        ret = False
         with self.view.getNameDialog('new location') as dlg:
             locname = dlg.getName()
             self.checkName(locname)
@@ -65,8 +79,10 @@ class LocationManagerPresenter(object):
             self.loc_config[locname] = config
 
             # fr view
-            self.view.appendToLocation(locname)
-            self.view.appendToDefault(locname)
+            self.view.appendLocation(locname)
+            self.view.appendDefault(locname)
+            ret = True
+        return ret
 
     def edit(self):
         locname = self.view.getSelected()
@@ -82,7 +98,7 @@ class LocationManagerPresenter(object):
                 import copy
                 self.loc_config[newname] = copy.deepcopy(config)
                 self.loc_config[newname]['name'] = newname
-                self.view.appendToLocation(newname)
+                self.view.appendLocation(newname)
                 self.view.appendToDefault(newname)
 
     def delete(self):
@@ -105,8 +121,8 @@ class LocationManagerPresenter(object):
             if locname == 'default':
                 self.view.default = self.loc_config['default']
             else:
-                self.view.appendToLocation(locname)
-                self.view.appendToDefault(locname)
+                self.view.appendLocation(locname)
+                self.view.appendDefault(locname)
 
     def checkName(self, locname):
         if locname in self.loc_config.keys():

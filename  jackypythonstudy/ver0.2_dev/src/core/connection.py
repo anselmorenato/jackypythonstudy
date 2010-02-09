@@ -208,12 +208,12 @@ def main():
     # output = chan.execute('ls -lhrt')
     fn = "/home/ishikura/projects/prp/binding-mode-bfe/2Search-Pattern/30/sam24.out"
 
-    import nagaratest
-    app = nagaratest.FrameTest()
-    log = app.log
+    app = wx.App(redirect=False)
+    frame = wx.Frame(None, -1, 'remote test')
+
 
     import configremote
-    with configremote.ConfigRemote(app.frame) as dlg:
+    with configremote.ConfigRemote(frame) as dlg:
         configs = dlg.getConfigs()
     
     log.write(configs)

@@ -11,23 +11,24 @@ import wx
 import wx.lib.ogl as ogl
 import pickle
 import copy
-# Global stuff---------------------------------------------------
+# Global stuff----------------------------------------------------------------
 
 clipboard = []
 
-# ---------------------------------------------------------------
+# ----------------------------------------------------------------------------
 class NagaraDiagram(ogl.Diagram):
     def __intt__(self):
         
         ogl.Diagram.__init__(self)
     
     def saveFile(self,file=None):
+        self.file = file
         if file is None:
             return
-        try:
-            pickle.dump(self._shapeList,open(self.file, 'w'))
-        except:
-            print "problem saving this diagram"
+        #try:
+        pickle.dump(self._shapeList,open(self.file, 'w'))
+        #except:
+            #print "problem saving this diagram"
             
     def loadFile(self,file=None):
         if file is None:
@@ -36,6 +37,43 @@ class NagaraDiagram(ogl.Diagram):
             self._shapeList = pickle.load(open(file))
         except:
             print "problem loading this diagram"
+
+#Abstract Classes ------------------------------------------------------------
+class Selectable:
+    '''
+    Allows Shape to be selected
+    '''
+    def __init__(self):
+        pass
+
+class Resizeable:
+    '''
+    Creates resize Nodes that can be drug around the canvas
+    to alter the shape or size of the Shape
+    '''
+    def __init__(self):
+        pass
+    
+class Connectable:
+    '''
+    Creates connection nodes or ports 
+    '''
+    def __init__(self):
+        self.input=1
+        self.output=3
+        self.connections=[] # this will be the list containing downstream connections
+
+    def getPort(self,type,num):
+        if type=='input':
+            div = float(self.input+1.0)
+            x=self.x[0]
+        elif type=='output':
+            div = float(self.output+1.0)
+            x=self.x[1]
+            
+        dy=float(self.y[1] - self.y[0])/div
+        y= self.y[0]+dy*(num+1)
+        return(x,y)
 
 class Attributable:
     '''
@@ -54,7 +92,102 @@ class Attributable:
     def RemoveAttribute(self,name):
         self.attributes.remove(name)
 
-class NagaraBlock(ogl.CompositeShape,Attributable):
+# Nodes----------------------------------------------------------------------
+class PointShape(ogl.Shape):
+    def __init__(self,x=20,y=20,size=4,type='rect'):
+        ogl.Shape.__init__(self)
+        self.type=type
+        self.size=size
+        if self.type=='rect':
+            self.graphic = ogl.RectangleShape(x,y)
+        self.graphic.pen = self.pen
+        self.graphic.fill = self.fill
+
+    def moveto(self,x,y):
+        self.x = x
+        self.y = y
+        size = self.size
+        self.graphic.x=[x-size,x+size]
+        self.graphic.y=[y-size,y+size]
+
+    def move(self,x,y):
+        self.x = map((lambda v: v+x), self.x)
+        self.y = map((lambda v: v+y), self.y)
+        self.graphic.move(x,y)
+
+    def HitTest(self, x, y):
+        return self.graphic.HitTest(x,y)
+
+    def draw(self,dc):
+        self.graphic.pen = self.pen
+        self.graphic.fill = self.fill
+        self.graphic.draw(dc)
+
+class Node(PointShape):
+    def __init__(self,item,index,cf):
+        self.item=item
+        self.index = index
+        self.cf =cf
+        PointShape.__init__(self)
+
+    def showProperties(self):
+        self.item.showProperties
+
+class ConnectableNode(Node):
+    def __init__(self,item,index,cf):
+        Node.__init__(self,item,index,cf)
+
+class INode(ConnectableNode):
+    def __init__(self,item,index,cf):
+        ConnectableNode.__init__(self,item,index,cf)
+
+    def leftUp(self,items):
+        if len(items)==1 and isinstance(items[0],ConnectionShape):
+            if items[0].output is None:
+                items[0].setOutput(self.item,self.index)
+
+    def move(self,x,y):
+        self.cf.deselect()
+        ci = ConnectionShape()
+        self.cf.diagram.shapes.insert(0, ci)
+        ci.setOutput(self.item,self.index)
+        ci.x[0],ci.y[0] = self.item.getPort('input',self.index)
+        self.cf.showOutputs()
+        self.cf.select(ci)
+
+    def draw(self,dc):
+        x,y=self.item.getPort('input',self.index)
+        self.moveto(x,y)
+        PointShape.draw(self,dc)
+
+class ONode(ConnectableNode):
+    def __init__(self,item,index,cf):
+        ConnectableNode.__init__(self,item,index,cf)
+
+    def move(self,x,y):
+        self.cf.deselect()
+        ci = ConnectionShape()
+        self.cf.diagram.shapes.insert(0, ci)
+        ci.setInput(self.item,self.index)
+        ci.x[1],ci.y[1] = self.item.getPort('output',self.index)
+        self.cf.showInputs()
+        self.cf.select(ci)
+
+    def leftUp(self,items):
+        if len(items)==1 and isinstance(items[0],ConnectionShape):
+            if items[0].input is None:
+                items[0].setInput(self.item,self.index)
+
+
+    def draw(self,dc):
+        x,y=self.item.getPort('output',self.index)
+        self.moveto(x,y)
+        PointShape.draw(self,dc)
+
+# ----------------------------------------------------------------------------
+
+
+class NagaraBlock(ogl.CompositeShape,Selectable,Connectable,Attributable):
     def __init__(self):
         ogl.CompositeShape.__init__(self)
         Attributable.__init__(self)
@@ -84,7 +217,7 @@ class NagaraBlock(ogl.CompositeShape,Attributable):
             d=wx.TextEntryDialog(None,'Shape Label',defaultValue=self.label,style=wx.OK)
             d.ShowModal()
             self.label = d.GetValue()
-            
+        
     def OnLeftDclick(self,shape):
         print shape,'is double click'
         
@@ -98,7 +231,7 @@ class DataShape(NagaraBlock):
     """
     def __init__(self, canvas, name=''):
         NagaraBlock.__init__(self)
-
+        self.canvas = canvas
         #self.attributes = ['lable','pen','fill','data','output']
         self.label = name
         self.pen = self.GetPen()
@@ -112,11 +245,11 @@ class DataShape(NagaraBlock):
         shape1.AddText(self.label)
         self.AddChild(shape1)
         #shape2 = ogl.CircleShape(10)
-        shape2 = Connector(canvas, self)
+        self.shape2 = shape2 = Connector(canvas, self)
         shape2.SetBrush(wx.GREEN_BRUSH)
         shape2.SetY(-35)
         #shape2.Select(select)
-        self.AddChild(shape2)
+        #self.AddChild(shape2)
         #shape2.SetDraggable(1)
         constraint = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF ,shape1, [shape2])
         self.AddConstraint(constraint)
@@ -125,7 +258,16 @@ class DataShape(NagaraBlock):
         shape2.SetSensitivityFilter(5)
     def _delete(self):
         self.Delete()
-    
+    def OnLeftClick(self,keys):
+        print self
+        if isinstance(self,NagaraBlock) and keys==2: # Ctrl key
+            d=wx.TextEntryDialog(None,'Shape Label',defaultValue=self.label,style=wx.OK)
+            d.ShowModal()
+            self.label = d.GetValue()
+        #if isinstance(self,DataShape):
+        self.AddChild(self.shape2)
+        self.canvas.Refresh(True)
+
 
 class Connector(ogl.CircleShape):
     
@@ -417,37 +559,40 @@ class EvtHandler(ogl.ShapeEvtHandler):
         sx,sy = self.canvas.CalcUnscrolledPosition(x, y)
         _shape,attachment =self.canvas.FindShape(sx,sy)
         
-        
-        #shape.OnLeftClick(keys)  
-        canvas.Refresh(True)
-        if shape.Selected():
-            shape.Select(False, dc)
-            canvas.Redraw(dc)
-            canvas.Refresh(False)
-            
-        else:
-            redraw = False
-            shapeList = canvas.GetDiagram().GetShapeList()
-            toUnselect = []
-
-            for s in shapeList:
-                if s.Selected():
-                    # If we unselect it now then some of the objects in
-                    # shapeList will become invalid (the control points are
-                    # shapes too!) and bad things will happen...
-                    toUnselect.append(s)
-
-            shape.Select(True, dc)
-            canvas.selected_shapes.append(shape)
-
-            if toUnselect:
-                for s in toUnselect:
-                    s.Select(False, dc)
-                    canvas.selected_shapes.remove(s)
-
-                ##canvas.Redraw(dc)
-                canvas.Refresh(True) #Flase 
-        
+        if isinstance(shape, Selectable):
+            canvas.select(shape=shape)
+            """
+            shape.OnLeftClick(keys)  
+            canvas.Refresh(True)
+            if shape.Selected():
+                shape.Select(False, dc)
+                canvas.selected_shapes.remove(shape)
+                canvas.Redraw(dc)
+                canvas.Refresh(False)
+                
+            else:
+                redraw = False
+                shapeList = canvas.GetDiagram().GetShapeList()
+                toUnselect = []
+    
+                for s in shapeList:
+                    if s.Selected():
+                        # If we unselect it now then some of the objects in
+                        # shapeList will become invalid (the control points are
+                        # shapes too!) and bad things will happen...
+                        toUnselect.append(s)
+    
+                shape.Select(True, dc)
+                canvas.selected_shapes.append(shape)
+    
+                if toUnselect:
+                    for s in toUnselect:
+                        s.Select(False, dc)
+                        canvas.selected_shapes.remove(s)
+    
+                    ##canvas.Redraw(dc)
+                    canvas.Refresh(True) #Flase 
+            """
         self.up_data_statusbar(shape)
     def OnBeginDragLeft(self,x,y,key=0,attachment=0):
         #self.canvas.Unbind(wx.EVT_MOTION)
@@ -457,15 +602,7 @@ class EvtHandler(ogl.ShapeEvtHandler):
         sx,sy = self.canvas.CalcUnscrolledPosition(x, y)
         _shape,attachment = self.canvas.FindShape(x,y)        
         print 'drag begin at',x,y
-        
-        if isinstance(_shape,wx.lib.ogl._basic.CircleShape):
-            #x=old_x 
-            #y=old_y
-            print _shape
-            #shape.SetDraggable(False)
-                      
-    
-        
+       
     def OnEndDragLeft(self, x, y, keys=0, attachment=0):
         self.canvas._isDragging(False)
         print self.canvas.isDragging
@@ -543,6 +680,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.shapes = []  
         self.save_gdi = []
         self.lines = []
+        self.nodes = []
         self.selected_shapes =[]
         self.isDragging = False
 
@@ -552,13 +690,17 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.Bind(wx.EVT_RIGHT_DOWN,self.on_right)
         self.Bind(wx.EVT_MOTION,self.on_motion)
         self.Bind(wx.EVT_KEY_DOWN,self.key_press)
+        #self.Bind(wx.EVT_PAINT,self.on_paintevent)
         #self.Bind(wx.EVT_CHILD_FOCUS,self.on_motion)
         #self.Bind(wx.EVT_LEFT_DOWN,self.on_left)
         #self.Bind(wx.EVT_ENTER_WINDOW,self.on_motion)
     def _isDragging(self,dragging):
         self.isDragging = dragging
  
-    def select(self, shape=None):
+    def select(self,event=None,shape=None):
+        canvas = self
+        dc = wx.ClientDC(canvas)
+        canvas.PrepareDC(dc)
       #  if item is None:
       #      return self.selected_shapes
         
@@ -575,18 +717,23 @@ class FlowCanvas(ogl.ShapeCanvas):
       #          self.nodes.extend( [ONode(item,n,self) for n in range(item.output)] )
       #      if isinstance(item,Resizeable):            
       #          self.nodes.extend( [ResizeableNode(item,n,self) for n in range(len(item.x))] )
-#-----------------------------------        
+      #-----------------------------------        
         if shape is None:
+            if self.selected_shapes:
+                for s in self.selected_shapes:
+                    s.Select(False,dc)
             return self.selected_shapes
         
-        if shape and shape.Selected():
+        if shape.Selected():
             shape.Select(False, dc)
-            self.Redraw(dc)
-            self.Refresh(False)
+            if shape in canvas.selected_shapes:
+                canvas.selected_shapes.remove(shape)
+            canvas.Redraw(dc)
+            canvas.Refresh(False)
             
         else:
             redraw = False
-            shapeList = self.shapes  #canvas.GetDiagram().GetShapeList()
+            shapeList = canvas.GetDiagram().GetShapeList()
             toUnselect = []
 
             for s in shapeList:
@@ -597,14 +744,17 @@ class FlowCanvas(ogl.ShapeCanvas):
                     toUnselect.append(s)
 
             shape.Select(True, dc)
-            self.selected_shapes.append(shape)
+            canvas.selected_shapes.append(shape)
 
             if toUnselect:
                 for s in toUnselect:
                     s.Select(False, dc)
+                    canvas.selected_shapes.remove(s)
 
                 ##canvas.Redraw(dc)
-                canvas.Refresh(True) #Flase 
+                canvas.Refresh(True) #Flase
+        #if event:
+        
     def make_popmenu(self,shape):
         """ creat the popup menu when right click on shape.
         """
@@ -710,7 +860,7 @@ class FlowCanvas(ogl.ShapeCanvas):
             print shape._lines
             #shape.RemoveLine(shape._lines[0])
         shape.Delete()
-        if self.selected_shapes:
+        if shape in self.selected_shapes:
             self.selected_shapes.remove(shape)
         self.shapes.remove(shape)
         
@@ -718,8 +868,12 @@ class FlowCanvas(ogl.ShapeCanvas):
     def on_delete_shape(self,event):
         """ event handler for delete shape.
         """
-        shape = [n for n in self.shapes if n.Selected()][0]
-        self.delete_shape(shape)
+        try:
+            shape = [n for n in self.shapes if n.Selected()][0]
+            self.delete_shape(shape)
+        except IndexError:
+            print self.selected_shapes
+        
         self.Refresh()    
         print self.shapes,len(self.shapes),'shapes still in shapeslist'
         print self.selected_shapes,len(self.selected_shapes)
@@ -758,10 +912,11 @@ class FlowCanvas(ogl.ShapeCanvas):
                 print 'no shape had selected'
             print shape,"is deleted by press del key"
         elif key ==67 and event.ControlDown():  # COPY
+            print 'why this print'
             del clipboard[:]
             for i in shape:
                 clipboard.append(i)
-                print i,'is add in clipboard'
+                print i,'is add in clipboard',clipboard
         elif key ==86 and event.ControlDown():  # PASTE
             for i in clipboard:
                 print i,' is pasted '
@@ -773,7 +928,8 @@ class FlowCanvas(ogl.ShapeCanvas):
             if shape:
                 ind = self.shapes.index(shape[0])
                 shape[0].Select(False)
-                self.selected_shapes.remove(self.shapes[0])
+                #if 
+                self.selected_shapes.remove(shape[0])
                 try:
                     self.shapes[ind+1].Select(True)
                     self.selected_shapes.append(self.shapes[ind+1])
@@ -823,7 +979,16 @@ class FlowCanvas(ogl.ShapeCanvas):
         else:
             # creat the popupmenu when right click on canvas
             popmenu2 = self.make_popmenu_2()
-            
+    
+    def on_paintevent(self,event):
+        dc = wx.PaintDC(self)
+        self.PrepareDC(dc)
+        dc.SetUserScale(1.0,1.0)
+        dc.BeginDrawing()
+        #for shape in self.diagram._shapeList:
+        #    shape.SetCanvas(self)
+        dc.EndDrawing()
+        
     def on_motion(self,event):
         """ event handler of mouse moving on canvas
         """
@@ -908,7 +1073,9 @@ class FlowCanvas(ogl.ShapeCanvas):
             self.evthandler.OnLeftClick(x,y,keys='0',attachment=attachment)
         except:
             pass
-        #shape.OnLeftClick(self,event)
+        self.select()
+        self.Refresh(True)
+        event.Skip(True)
         """self.__selected_shape = shape
         if isinstance(shape,wx.lib.ogl._basic.CircleShape):
             shape.GetParent().SetDraggable(False)
@@ -927,9 +1094,15 @@ class FlowCanvas(ogl.ShapeCanvas):
         x = self.__x
         y = self.__y
         print 'add data'
-        self.add_shape(DataShape(self,'Data'), 
-                x,y, wx.BLACK_PEN, wx.GREEN_BRUSH, ''
-            )
+        #s = DataShape(self,'Data')
+        s = ogl.RectangleShape(100,200)
+        #self.add_shape(DataShape(self,'Data'), 
+         #       x,y, wx.BLACK_PEN, wx.GREEN_BRUSH, ''
+         #   )
+        self.diagram.AddShape(s)
+        s.Show(True)
+        
+                              
         self.Refresh()
     def on_add_task(self,event):
         """ event handler for add task
@@ -941,10 +1114,13 @@ class FlowCanvas(ogl.ShapeCanvas):
         menu_obj = event.GetEventObject()
         menu_label = menu_obj.GetLabel(menu_id)
         # add task shape
-        self.add_shape(TaskShape(self,name = menu_label), 
+        taskshape = TaskShape(self,name = menu_label)
+        self.add_shape(taskshape, 
                 x,y, wx.BLACK_PEN, wx.WHITE_BRUSH, ''
             )
-        self.add_shape(DataShape(self,name='output'),x+10,y+10)
+        datashape = DataShape(self,name='output')
+        self.add_shape(datashape,x+150,y+50)
+        self.add_linker(taskshape,datashape)
         self.Refresh()
 class TempCanvas(ogl.ShapeCanvas):
     """ the templete canvas.(now it's not used)
@@ -1047,10 +1223,10 @@ class FlowFrame(wx.Frame):
 
         #self.temp_canvas = TempCanvas(splitter2,self)
         self.temp_canvas = wx.ListCtrl(self, -1, style=wx.LC_LIST)
-        tasklist = ["Task1","Task2","Task3","Task4"]
-        for i in range(len(tasklist)):        
+        self.tasklist = ["Task1","Task2","Task3","Task4"]
+        for i in range(len(self.tasklist)):        
             #self.temp_canvas.InsertStringItem(0,i)
-            self.temp_canvas.InsertStringItem(i,tasklist[i])
+            self.temp_canvas.InsertStringItem(i,self.tasklist[i])
             
         self.temp_canvas.Bind(wx.EVT_LIST_BEGIN_DRAG, self.on_drag_start)
         
@@ -1113,6 +1289,7 @@ class FlowFrame(wx.Frame):
         open_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR, tsize)
         copy_bmp = wx.ArtProvider.GetBitmap(wx.ART_COPY, wx.ART_TOOLBAR, tsize)
         paste_bmp= wx.ArtProvider.GetBitmap(wx.ART_PASTE, wx.ART_TOOLBAR, tsize)
+        save_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_TOOLBAR, tsize)
 
         toolbar.SetToolBitmapSize(tsize)
         
@@ -1126,24 +1303,29 @@ class FlowFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.on_tool_click, id=20)
         #self.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick, id=20)
 
+        toolbar.AddLabelTool(30, "Save", save_bmp, shortHelp="Save", longHelp="Long help for 'Save'")
+        self.Bind(wx.EVT_TOOL, self.on_tool_click, id=30)
         
         # Final thing to do for a toolbar is call the Realize() method. This
         # causes it to render (more or less, that is).
         toolbar.Realize()
         
     def on_tool_click(self,event):
+        import os,sys
+        
         id = event.GetId()
         if id == 10:
             self.on_add_data(event)
             self.work_canvas.Refresh()
         elif id ==20:
             print 'hello'
-            import os
-            wildcard = "Python source (*.py)|*.py|"     \
-                     "Compiled Python (*.pyc)|*.pyc|" \
-                     "SPAM files (*.spam)|*.spam|"    \
-                     "Egg file (*.egg)|*.egg|"        \
-                     "All files (*.*)|*.*"
+            
+            wildcard = "Python source (*.py)|*.py|"\
+                    "Nagara shape flie (*.nas)|*.nas|" \
+                    "Compiled Python (*.pyc)|*.pyc|" \
+                    "SPAM files (*.spam)|*.spam|"    \
+                    "Egg file (*.egg)|*.egg|"\
+                    "All files (*.*)|*.*"
             dlg = wx.FileDialog(
                 self, message="Choose a file",
                 defaultDir=os.getcwd(), 
@@ -1155,7 +1337,28 @@ class FlowFrame(wx.Frame):
             # This returns a Python list of files that were selected.
                 paths = dlg.GetPaths()
                 print paths
+                file = open(dlg.GetFilename())
+                loadf = pickle.load(file)
+                file.close()
+                print loadf
             dlg.Destroy()
+        elif id ==30:
+            dlg = wx.FileDialog(
+                self, message="diagram file save as...", defaultDir=os.getcwd(), 
+                defaultFile="", wildcard="Nagara shape file (*.nas)|*.nas", style=wx.SAVE)
+            dlg.SetFilterIndex(2)
+            if dlg.ShowModal() == wx.ID_OK:
+                path = dlg.GetPath()
+                if not path.endswith('.nas'):
+                    path += ".nas"
+                print path
+                
+                fp = open(dlg.GetFilename(),'w')
+                shapelist = self.work_canvas.diagram._shapeList
+                #shapelist = self.work_canvas.save_gdi
+                print type(shapelist)
+                pickle.dump(shapelist,fp,)
+                #self.work_canvas.diagram.saveFile('save_test.txt')
     def on_drag_start(self,event):
         
         self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
