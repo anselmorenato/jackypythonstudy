@@ -185,8 +185,32 @@ class ONode(ConnectableNode):
         PointShape.draw(self,dc)
 
 # ----------------------------------------------------------------------------
-
-
+class NagaraShapeSavedData:
+    """Used to store data of NagaraShape for workflow saves and loads.
+    """
+    
+    #---------------------------------------
+    def __init__(self, aBoardNodeShape):
+        self.theID = id(aBoardNodeShape)
+        #self.theNodeConfiguration = aBoardNodeShape.theNodeConfiguration
+        #self.theElements = aBoardNodeShape.theElements
+        self.theX = aBoardNodeShape.GetX()
+        self.theY = aBoardNodeShape.GetY()
+        self.theLines = []
+        for myLine in aBoardNodeShape.GetLines():
+            myLineID = id(myLine.GetTo())
+            if not myLineID == self.theID :
+                self.theLines.append(myLineID)
+        
+    #---------------------------------------   
+    def accept(self, aVisitor):
+        if Visitable.accept(self, aVisitor) == False:
+            return False
+        myValue = aVisitor.visitBoardNodeShapeSavedData(self)
+        if myValue == None:
+            return True
+        return myValue
+#-----------------------------------------------------------------------------
 class NagaraBlock(ogl.CompositeShape,Selectable,Connectable,Attributable):
     def __init__(self):
         ogl.CompositeShape.__init__(self)
@@ -1354,11 +1378,37 @@ class FlowFrame(wx.Frame):
                 print path
                 
                 fp = open(dlg.GetFilename(),'w')
-                shapelist = self.work_canvas.diagram._shapeList
+                shapes = self.work_canvas.diagram._shapeList
+                #shapelist = [k for k in self.work_canvas.shapes]
+                #l = [ l for l in shapelist]
+                shd = {}
+                for shape in shapes:
+                    val = NagaraShapeSavedData(shape)
+                    shd[id(shape)] = val
+                #shd['shape']= l
                 #shapelist = self.work_canvas.save_gdi
-                print type(shapelist)
-                pickle.dump(shapelist,fp,)
+                    print type(shapelist)
+                    pickle.dump(shd,fp)
                 #self.work_canvas.diagram.saveFile('save_test.txt')
+                """      # Get shapes
+                      myShapes = self.theFrame.theBlackboard.GetShapeList()
+          
+                      # Store required shape information in a dictionary with 
+                      # [id:BoardNodeShapeSavedData] info
+                      myShapesInfo = {}
+                      for myShape in myShapes :
+                          if isinstance(myShape, BoardNodeShape) :
+                              myShapesInfo[id(myShape)] = BoardNodeShapeSavedData(myShape)
+                      
+                      try:
+                          dump( myShapesInfo, myFile )
+          
+                          # Store Root Node
+                          dump( id(NodeDataBase().theRootNode), myFile )
+                          
+                      except PickleError, myError:
+                          print myError
+              """
     def on_drag_start(self,event):
         
         self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
