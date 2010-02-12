@@ -190,14 +190,14 @@ class NagaraShapeSavedData:
     """
     
     #---------------------------------------
-    def __init__(self, aBoardNodeShape):
-        self.theID = id(aBoardNodeShape)
+    def __init__(self, Shape):
+        self.theID = id(Shape)
         #self.theNodeConfiguration = aBoardNodeShape.theNodeConfiguration
         #self.theElements = aBoardNodeShape.theElements
-        self.theX = aBoardNodeShape.GetX()
-        self.theY = aBoardNodeShape.GetY()
+        self.theX = Shape.GetX()
+        self.theY = Shape.GetY()
         self.theLines = []
-        for myLine in aBoardNodeShape.GetLines():
+        for myLine in Shape.GetLines():
             myLineID = id(myLine.GetTo())
             if not myLineID == self.theID :
                 self.theLines.append(myLineID)
@@ -1314,6 +1314,7 @@ class FlowFrame(wx.Frame):
         copy_bmp = wx.ArtProvider.GetBitmap(wx.ART_COPY, wx.ART_TOOLBAR, tsize)
         paste_bmp= wx.ArtProvider.GetBitmap(wx.ART_PASTE, wx.ART_TOOLBAR, tsize)
         save_bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_TOOLBAR, tsize)
+        delete_bmp = wx.ArtProvider_GetBitmap(wx.ART_DELETE,wx.ART_TOOLBAR, tsize)
 
         toolbar.SetToolBitmapSize(tsize)
         
@@ -1330,6 +1331,9 @@ class FlowFrame(wx.Frame):
         toolbar.AddLabelTool(30, "Save", save_bmp, shortHelp="Save", longHelp="Long help for 'Save'")
         self.Bind(wx.EVT_TOOL, self.on_tool_click, id=30)
         
+        toolbar.AddLabelTool(40, "Delete", delete_bmp, shortHelp="Delete", longHelp="Long help for 'Delete'")
+        self.Bind(wx.EVT_TOOL, self.on_tool_click, id=40)
+        
         # Final thing to do for a toolbar is call the Realize() method. This
         # causes it to render (more or less, that is).
         toolbar.Realize()
@@ -1337,19 +1341,19 @@ class FlowFrame(wx.Frame):
     def on_tool_click(self,event):
         import os,sys
         
-        id = event.GetId()
-        if id == 10:
+        toolid = event.GetId()
+        if toolid == 10:
             self.on_add_data(event)
             self.work_canvas.Refresh()
-        elif id ==20:
+        elif toolid ==20:
             print 'hello'
             
-            wildcard = "Python source (*.py)|*.py|"\
-                    "Nagara shape flie (*.nas)|*.nas|" \
-                    "Compiled Python (*.pyc)|*.pyc|" \
-                    "SPAM files (*.spam)|*.spam|"    \
-                    "Egg file (*.egg)|*.egg|"\
-                    "All files (*.*)|*.*"
+            wildcard = "Nagara shape flie (*.nas)|*.nas|" \
+                     "Python source (*.py)|*.py|"\
+                     "Compiled Python (*.pyc)|*.pyc|" \
+                     "SPAM files (*.spam)|*.spam|"    \
+                     "Egg file (*.egg)|*.egg|"\
+                     "All files (*.*)|*.*"
             dlg = wx.FileDialog(
                 self, message="Choose a file",
                 defaultDir=os.getcwd(), 
@@ -1358,15 +1362,24 @@ class FlowFrame(wx.Frame):
                 style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
-            # This returns a Python list of files that were selected.
+                # This returns a Python list of files that were selected.
+                shapes = self.work_canvas.diagram._shapeList
+                del shapes[:]
                 paths = dlg.GetPaths()
                 print paths
                 file = open(dlg.GetFilename())
-                loadf = pickle.load(file)
+                shapesinfo = pickle.load(file)
+                shapesinfolist = shapesinfo.values()
+                for shapeinfo in shapesinfolist:
+                    x= shapeinfo.theX
+                    y = shapeinfo.theY
+                    self.work_canvas.add_shape(DataShape(self.work_canvas,name='data saved'),x,y)
+                    
+                self.work_canvas.Refresh(True)
                 file.close()
-                print loadf
+                print shapesinfo.values()
             dlg.Destroy()
-        elif id ==30:
+        elif toolid ==30:
             dlg = wx.FileDialog(
                 self, message="diagram file save as...", defaultDir=os.getcwd(), 
                 defaultFile="", wildcard="Nagara shape file (*.nas)|*.nas", style=wx.SAVE)
@@ -1378,19 +1391,24 @@ class FlowFrame(wx.Frame):
                 print path
                 
                 fp = open(dlg.GetFilename(),'w')
-                shapes = self.work_canvas.diagram._shapeList
-                #shapelist = [k for k in self.work_canvas.shapes]
-                #l = [ l for l in shapelist]
+                shapes = self.work_canvas.shapes
+                shapesdia = self.work_canvas.diagram._shapeList
+                print shapes,shapesdia
+                
                 shd = {}
-                for shape in shapes:
+                
+                for shape in shapesdia:
+                    #attributes = shape.attributes
                     val = NagaraShapeSavedData(shape)
-                    shd[id(shape)] = val
-                #shd['shape']= l
-                #shapelist = self.work_canvas.save_gdi
-                    print type(shapelist)
+                    #shd[id(shape)] = attributes
+                    shd[shape.GetId()] = val
                     pickle.dump(shd,fp)
                 #self.work_canvas.diagram.saveFile('save_test.txt')
-                """      # Get shapes
+        elif toolid == 40:
+            shapes = self.work_canvas.diagram._shapeList
+            del shapes[:]
+            self.work_canvas.Refresh(True)
+            """      # Get shapes
                       myShapes = self.theFrame.theBlackboard.GetShapeList()
           
                       # Store required shape information in a dictionary with 
