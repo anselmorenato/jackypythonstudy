@@ -190,14 +190,15 @@ class NagaraShapeSavedData:
     """
     
     #---------------------------------------
-    def __init__(self, Shape):
-        self.theID = id(Shape)
+    def __init__(self, shape):
+        self.theId = id(shape)#.GetId()
+        self.shapeclass = shape.GetClassName()  #__class__.__name__
         #self.theNodeConfiguration = aBoardNodeShape.theNodeConfiguration
         #self.theElements = aBoardNodeShape.theElements
-        self.theX = Shape.GetX()
-        self.theY = Shape.GetY()
+        self.theX = shape.GetX()
+        self.theY = shape.GetY()
         self.theLines = []
-        for myLine in Shape.GetLines():
+        for myLine in shape.GetLines():
             myLineID = id(myLine.GetTo())
             if not myLineID == self.theID :
                 self.theLines.append(myLineID)
@@ -272,8 +273,7 @@ class DataShape(NagaraBlock):
         self.shape2 = shape2 = Connector(canvas, self)
         shape2.SetBrush(wx.GREEN_BRUSH)
         shape2.SetY(-35)
-        #shape2.Select(select)
-        #self.AddChild(shape2)
+        self.AddChild(shape2)
         #shape2.SetDraggable(1)
         constraint = ogl.Constraint(ogl.CONSTRAINT_RIGHT_OF ,shape1, [shape2])
         self.AddConstraint(constraint)
@@ -368,9 +368,9 @@ class TaskShape(NagaraBlock):
 
         # If we don't do this, the shapes will be able to move on their
         # own, instead of moving the composite
-        middleshape.SetDraggable(True)
-        inputshape1.SetDraggable(True)
-        outputshape.SetDraggable(True)
+        middleshape.SetDraggable(False)
+        inputshape1.SetDraggable(0)
+        outputshape.SetDraggable(0)
 
         # control the layout of inputsocket and outputsocket with middleshape
         constraint = ogl.Constraint(ogl.CONSTRAINT_LEFT_OF,middleshape, [inputshape1,inputshape2,inputshape3])
@@ -508,51 +508,20 @@ class OutputSocketShape(ogl.DrawnShape):
     def Copy(self):
         
         return copy.deepcopy(self)    
-class PopupShape(ogl.RectangleShape):
-    """this shape is one part of the TaskShape"""
-    def __init__(self,w = 0.0,h = 0.0):
-        ogl.RectangleShape.__init__(self, 150, 100)
-        
 
-class TaskPopupWindow(wx.PopupTransientWindow):
-    """Adds a bit of text and mouse movement to the wx.PopupWindow"""
-    def __init__(self, parent, style):
-        wx.PopupTransientWindow.__init__(self, parent, style)
-        #self.log = log
-        self.SetBackgroundColour("#FFB6C1")
-        st = wx.StaticText(self, -1,
-                          "wx.PopupTransientWindow is a\n"
-                          "wx.PopupWindow which disappears\n"
-                          "automatically when the user\n"
-                          "clicks the mouse outside it or if it\n"
-                          "(or its first child) loses focus in \n"
-                          "any other way."
-                          ,
-                          pos=(10,10))
-        sz = st.GetBestSize()
-        self.SetSize( (sz.width+20, sz.height+20) )
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER,self.on_time,self.timer)
-        self.timer.Start(1000)
-    def on_time(self,event):
-        self.Destroy()
-        
 # TaskShape is end here
 #----------------------------------------------------------------------
 class Linker(ogl.LineShape):
     """ the link line from datashape to taskshape.
     """
-    def __init__(self,fromShape,toShape,*args,**cwdargs):
+    def __init__(self,*args,**cwdargs):
         ogl.LineShape.__init__(self)
-       
-        fromShape = fromShape
-        toShape = toShape
 
         self.SetPen(wx.BLACK_PEN)
         self.SetBrush(wx.BLACK_BRUSH)
         self.AddArrow(ogl.ARROW_ARROW)
         self.MakeLineControlPoints(2)
-        fromShape.AddLine(self, toShape)
+        
         #self.Show(True)
         
     def on_fromshape_deleted(self,fromshape):
@@ -644,9 +613,13 @@ class EvtHandler(ogl.ShapeEvtHandler):
             print shape
             fromShape = shape
             toShape = _shape
-            self.canvas.add_linker(fromShape,toShape)
+            line = Linker()
+            fromShape.AddLine(line, toShape)
+            line.Show(True)
+            #self.canvas.add_linker(fromShape,toShape)
             self.canvas._isDragging(False)
-            shape.SetDraggable(True)
+            self.canvas.Refresh(True)
+            #shape.SetDraggable(True)
         self.up_data_statusbar(shape)
         
         #self.canvas.Bind(wx.EVT_MOTION,self.canvas.on_motion)
@@ -672,41 +645,32 @@ class EvtHandler(ogl.ShapeEvtHandler):
     def OnRightClick(self,x,y,keys = 0, attachment =0): 
         print 'hello'
             
-    def OnLeftDClick(self,x,y,keys = 0, attachment =0):
-        shape.OnLeftDclick(shape)
-        #shape = self.GetShape()
-        #canvas = shape.Getcanvas()
-        #self.canvas.diagram.RemoveShape(shape)
-        #self.canvas.Refresh()
-        
-        #print shape ,'is deleted'
-    def on_menu_delete(self,event):
-        pass
-       # shape = self.GetShape()
-        
-       # shape.DeleteControlPoints()
-       # shape.Delete()
-       # self.canvas.Refresh()
-       # print shape ,'is deleted'
 class FlowCanvas(ogl.ShapeCanvas):
 
-    def __init__(self, parent):
+    def __init__(self, parent,frame):
         ogl.ShapeCanvas.__init__(self, parent)
         ogl.OGLInitialize()
         maxWidth  = 1500
         maxHeight = 1500
         self.SetScrollbars(20, 20, maxWidth/20, maxHeight/20)
-
         self.SetBackgroundColour("LIGHT BLUE") 
+        
+        # diagram
         self.diagram = NagaraDiagram()
         self.SetDiagram(self.diagram)
         self.diagram.SetCanvas(self)
+
+        # shapes        
         self.shapes = []  
         self.save_gdi = []
         self.lines = []
         self.nodes = []
         self.selected_shapes =[]
         self.isDragging = False
+        
+        # dc client
+        self.dc = wx.ClientDC(self)
+        self.PrepareDC(self.dc)
 
         rRectBrush = wx.Brush("GREEN", wx.SOLID)
         dsBrush = wx.Brush("white", wx.SOLID)
@@ -718,6 +682,126 @@ class FlowCanvas(ogl.ShapeCanvas):
         #self.Bind(wx.EVT_CHILD_FOCUS,self.on_motion)
         #self.Bind(wx.EVT_LEFT_DOWN,self.on_left)
         #self.Bind(wx.EVT_ENTER_WINDOW,self.on_motion)
+        
+        # destroy event
+        #wx.EVT_WINDOW_DESTROY(self, self.OnDestroy)
+        
+        # rectangle for dragging
+        self.theDragRect = None
+        self.theDragRectWidth = 0
+        self.theDragRectHeight = 0
+        self.theIsOnGroupSelection = False
+    def OnLeftClick(self,x,y,keys):
+        """
+        """
+        
+        for shape in self.shapes:
+            if shape.Selected:
+                shape.Select(False)
+                self.Refresh(True)
+    #---------------------------------------
+    def OnBeginDragLeft(self, x, y, keys):
+        """
+        """
+        
+        self.theIsOnGroupSelection = False
+        self.theDragRectWidth = 0.0
+        self.theDragRectHeight = 0.0
+        if self.theDragRect is not None :
+            self.RemoveShape( self.theDragRect )
+            self.theDragRect = None
+            self.Refresh()
+                
+        self.theDragRect = ogl.RectangleShape( self.theDragRectWidth, self.theDragRectHeight)
+        self.theDragRect.SetCentreResize(True)
+
+
+        self.add_shape(self.theDragRect, x, y, wx.BLACK_DASHED_PEN, wx.TRANSPARENT_BRUSH, None)
+        self.Refresh()        
+    #---------------------------------------
+    def OnDragLeft(self, draw, x, y, keys ):
+        """
+        """
+
+        # Note : The drawing of the selection rectangle only supports selection
+        # from left-to-right and top-to-bottom. Add to all directions in the future.
+
+        myX = self.theDragRect.GetX() - self.theDragRectWidth / 2
+        myY = self.theDragRect.GetY() - self.theDragRectHeight / 2
+
+        self.theDragRectWidth = x - self.theDragRect.GetX() - self.theDragRectWidth / 2
+        self.theDragRectHeight = y - self.theDragRect.GetY() - self.theDragRectHeight / 2
+
+        self.theDragRect.SetX( myX + self.theDragRectWidth / 2 )
+        self.theDragRect.SetY( myY + self.theDragRectHeight / 2 )
+
+        if (self.theDragRectWidth > 0) or (self.theDragRectHeight < 0) :
+            self.theDragRect.SetSize( self.theDragRectWidth, self.theDragRectHeight )
+    
+            myScrollX, myScrollY = self.GetViewStart()
+            myClientX, myClientY = self.GetClientSize()
+            myBorderX = myScrollX * 20 + myClientX
+            myBorderY = myScrollY * 20 + myClientY
+            
+            myDoScroll = False
+            if ( myX + self.theDragRectWidth ) >= ( myBorderX - 50 ) :
+                myScrollX = myScrollX + 1
+                myDoScroll = True
+            if ( myY + self.theDragRectHeight ) >= ( myBorderY - 50 ) :
+                myScrollY = myScrollY + 1
+                myDoScroll = True
+            if myDoScroll :
+                self.Scroll(myScrollX, myScrollY)
+            
+            self.theWidth = self.theDragRectWidth
+            self.theHeight = self.theDragRectHeight
+            
+            self.Refresh()
+    #---------------------------------------
+    def OnEndDragLeft(self, x, y, keys):
+        """
+        """
+        
+        # Select all shapes under the rectangle
+
+        # Get min and max coordinates 
+        
+        myXmin = self.theDragRect.GetX()
+        myYmin = self.theDragRect.GetY()
+        myXmax = self.theDragRect.GetX() + self.theWidth
+        myYmax = self.theDragRect.GetY() + self.theHeight
+
+        # Remove the selection rectangle
+        self.RemoveShape( self.theDragRect )
+        self.theDragRect = None
+        self.Refresh()
+
+        # Select the shapes within the ranges
+        dc = wx.ClientDC(self)
+        self.PrepareDC(dc)
+        myShapeList = self.GetDiagram().GetShapeList()
+        #myShapeList = self.shapes
+        mySelectedList = []
+
+        for myShape in myShapeList:
+            if myShape.Selected() :
+                mySelectedList.append( myShape )
+
+        for myShape in mySelectedList :
+            myShape.Select(False, dc)
+
+        #myShapeList = self.shapes
+        myShapeList = self.GetDiagram().GetShapeList()
+        for myShape in myShapeList:
+            if (myShape.GetX() >= myXmin) and (myShape.GetX() <= myXmax) and \
+               (myShape.GetY() >= myYmin) and (myShape.GetY() <= myYmax) :
+                if not myShape.Selected() and not isinstance(myShape, ogl.ControlPoint ):
+                    myShape.Select(True, dc)
+                    self.selected_shapes.append(myShape)
+                    self.theIsOnGroupSelection = True
+        
+        self.Redraw(dc)
+    
     def _isDragging(self,dragging):
         self.isDragging = dragging
  
@@ -815,7 +899,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         
         menu = wx.Menu()
         item_newdata = menu.Append(newdataID, 'New Data')
-                
+    
         submenu = wx.Menu()
         task1 = submenu.Append(taskID1,'Task1')
         task2 = submenu.Append(taskID2,'Task2')
@@ -889,15 +973,49 @@ class FlowCanvas(ogl.ShapeCanvas):
         self.shapes.remove(shape)
         
         self.Refresh()
+    #---------------------------------------
+    def removeSelectedShapes(self):
+        shapeList = self.diagram.GetShapeList()
+        toUnselect = []
+        for s in shapeList:
+            if s.Selected():
+                toUnselect.append(s)
+                if not isinstance(s, ogl.LineShape):
+                    myLinesToRemove = s.GetLines()
+                    for line in myLinesToRemove:
+                        line.GetFrom()._lines.remove(line)
+                    for obj in shapeList:
+                        for line in myLinesToRemove:
+                            obj.RemoveLine(line)
+                            self.RemoveShape(line)
+                            self.Refresh()
+                    #myNodeDataBase = NodeDataBase()
+                    #if myNodeDataBase.theRootNode == s :
+                    #    myNodeDataBase.theRootNode = None
+                    self.RemoveShape(s)
+                    s.Delete()
+##                else :
+##                    s.GetFrom().theElements.remove(s.GetTo().GetRegions()[0].GetText())
+##                    s.GetTo().RemoveLine(s)
+##                    s.GetFrom().RemoveLine(s)
+##                    self.RemoveShape(s)
+        self.Refresh()
+                
+        if toUnselect:
+            for s in toUnselect:
+                s.Select(False, self.dc)
+                self.Redraw(self.dc)
+
     def on_delete_shape(self,event):
         """ event handler for delete shape.
         """
         try:
-            shape = [n for n in self.shapes if n.Selected()][0]
-            self.delete_shape(shape)
+            #shape = [n for n in self.shapes if n.Selected()][0]
+            #self.delete_shape(shape)
+            pass
         except IndexError:
             print self.selected_shapes
-        
+        self.removeSelectedShapes()
         self.Refresh()    
         print self.shapes,len(self.shapes),'shapes still in shapeslist'
         print self.selected_shapes,len(self.selected_shapes)
@@ -928,12 +1046,13 @@ class FlowCanvas(ogl.ShapeCanvas):
             #        #self.shapes.remove(shape)
             #        self.on_delete_shape(event)
                     #shape.Delete()
-            if self.selected_shapes:
-                self.on_delete_shape(event) 
-            else:
-                dlg = wx.MessageDialog(None,'The [Delete] key is pressed, but No shape has selected!',style=wx.OK)
-                dlg.ShowModal()
-                print 'no shape had selected'
+            #if self.selected_shapes:
+                #self.on_delete_shape(event)
+            self.removeSelectedShapes()
+            #else:
+            #    dlg = wx.MessageDialog(None,'The [Delete] key is pressed, but No shape has selected!',style=wx.OK)
+            #    dlg.ShowModal()
+            #    print 'no shape had selected'
             print shape,"is deleted by press del key"
         elif key ==67 and event.ControlDown():  # COPY
             print 'why this print'
@@ -1118,13 +1237,13 @@ class FlowCanvas(ogl.ShapeCanvas):
         x = self.__x
         y = self.__y
         print 'add data'
-        #s = DataShape(self,'Data')
-        s = ogl.RectangleShape(100,200)
-        #self.add_shape(DataShape(self,'Data'), 
-         #       x,y, wx.BLACK_PEN, wx.GREEN_BRUSH, ''
-         #   )
-        self.diagram.AddShape(s)
-        s.Show(True)
+        s = DataShape(self,'Data')
+        #s = ogl.RectangleShape(100,200)
+        self.add_shape(s, 
+                x,y, wx.BLACK_PEN, wx.GREEN_BRUSH, ''
+            )
+        #self.diagram.AddShape(s)
+        #s.Show(True)
         
                               
         self.Refresh()
@@ -1231,6 +1350,7 @@ class FlowFrame(wx.Frame):
         self.StatusBar = wx.StatusBar(self)     
 
         #self.menu = self.make_menu()
+        
         # creat the toolbar
         self.make_toolbar()
         # split the frame into two parts
@@ -1243,7 +1363,7 @@ class FlowFrame(wx.Frame):
         self.SetSize((800,600))
         #self.SetBackgroundColour(wx.Colour(8, 197, 248))
         
-        self.work_canvas = FlowCanvas(self)
+        self.work_canvas = FlowCanvas(self,frame = self)
 
         #self.temp_canvas = TempCanvas(splitter2,self)
         self.temp_canvas = wx.ListCtrl(self, -1, style=wx.LC_LIST)
@@ -1345,7 +1465,7 @@ class FlowFrame(wx.Frame):
         if toolid == 10:
             self.on_add_data(event)
             self.work_canvas.Refresh()
-        elif toolid ==20:
+        elif toolid ==20:  # open file
             print 'hello'
             
             wildcard = "Nagara shape flie (*.nas)|*.nas|" \
@@ -1367,19 +1487,30 @@ class FlowFrame(wx.Frame):
                 del shapes[:]
                 paths = dlg.GetPaths()
                 print paths
-                file = open(dlg.GetFilename())
-                shapesinfo = pickle.load(file)
+                mfile = open(dlg.GetFilename())
+                shapesinfo = pickle.load(mfile)
+                print shapesinfo
+                newshapes = {}
                 shapesinfolist = shapesinfo.values()
+                print shapesinfolist,'is '
                 for shapeinfo in shapesinfolist:
                     x= shapeinfo.theX
                     y = shapeinfo.theY
-                    self.work_canvas.add_shape(DataShape(self.work_canvas,name='data saved'),x,y)
+                    shapeclass = shapeinfo.shapeclass
+                    newshape = DataShape(self.work_canvas,name=shapeclass)
+                    newshapes[shapeinfo.theId] = newshape
+                    s = newshapes[shapeinfo.theId]
+                    #self.work_canvas.add_shape(s,x,y)
+                    print 'the shapeclass is ',shapeclass
+                    if shapeclass == 'DataShape':
+                        print 'that ok'
+                        self.work_canvas.add_shape(newshape,x,y)
                     
-                self.work_canvas.Refresh(True)
-                file.close()
-                print shapesinfo.values()
+                    self.work_canvas.Refresh(True)
+                mfile.close()
+                
             dlg.Destroy()
-        elif toolid ==30:
+        elif toolid ==30:  #save file
             dlg = wx.FileDialog(
                 self, message="diagram file save as...", defaultDir=os.getcwd(), 
                 defaultFile="", wildcard="Nagara shape file (*.nas)|*.nas", style=wx.SAVE)
@@ -1393,16 +1524,19 @@ class FlowFrame(wx.Frame):
                 fp = open(dlg.GetFilename(),'w')
                 shapes = self.work_canvas.shapes
                 shapesdia = self.work_canvas.diagram._shapeList
-                print shapes,shapesdia
-                
-                shd = {}
+                print 'diagram shapelist',shapesdia
+                print 'canvas shapelist',shapes
+                shd ={}
                 
                 for shape in shapesdia:
+                    print 'shape is ',shape,id(shape),shape.GetId()
                     #attributes = shape.attributes
                     val = NagaraShapeSavedData(shape)
+                    print 'val is ',val
                     #shd[id(shape)] = attributes
-                    shd[shape.GetId()] = val
-                    pickle.dump(shd,fp)
+                    shd[id(shape)] = val
+                    print 'shd is ',shd
+                pickle.dump(shd,fp)
                 #self.work_canvas.diagram.saveFile('save_test.txt')
         elif toolid == 40:
             shapes = self.work_canvas.diagram._shapeList
@@ -1475,16 +1609,7 @@ class FlowFrame(wx.Frame):
                 200,100, wx.BLACK_PEN, wx.WHITE_BRUSH, ''
             )
         self.work_canvas.Refresh()
-    def on_remove_shape(self,event):
-        shape = self.work_canvas.selected_shape
-        if shape:
-            shape.GetParent().DeleteControlPoints()
-            shape.GetParent().Delete()
-            #shape.Delete()
-            self.work_canvas.Refresh()
-        #shape = self.work_canvas.GetShape()
-        #self.work_canvas.delete_shape()
-        #self.work_canvas.Refresh()
+
 #-------------------------------------------------------------------------------
 class AttributeEditor(wx.Panel):
     def __init__(self, parent, ID, title,item):
