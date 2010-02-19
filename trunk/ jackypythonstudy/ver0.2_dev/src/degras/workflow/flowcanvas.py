@@ -10,6 +10,7 @@ This file is base as OGL
 import wx
 import wx.lib.ogl as ogl
 import pickle
+import cPickle
 import copy
 # Global stuff----------------------------------------------------------------
 
@@ -197,6 +198,11 @@ class NagaraShapeSavedData:
         #self.theElements = aBoardNodeShape.theElements
         self.theX = shape.GetX()
         self.theY = shape.GetY()
+        try :
+            self.theLable = shape.get_label()
+        except AttributeError as ate:
+            print ate
+            self.theLable = ''
         self.theLines = []
         for myLine in shape.GetLines():
             myLineID = id(myLine.GetTo())
@@ -236,14 +242,14 @@ class NagaraBlock(ogl.CompositeShape,Selectable,Connectable,Attributable):
                            ])
         self.label = 'Nagara Block'
         
-    def OnLeftClick(self,keys):
+    def OnLeftClick(self,x,y,keys=0,attachment=0):
         print self
         if isinstance(self,NagaraBlock) and keys==2: # Ctrl key
             d=wx.TextEntryDialog(None,'Shape Label',defaultValue=self.label,style=wx.OK)
             d.ShowModal()
             self.label = d.GetValue()
         
-    def OnLeftDclick(self,shape):
+    def OnLeftDclick(self,x,y,keys=0,shape=None):
         print shape,'is double click'
         
     def Copy(self):
@@ -266,7 +272,7 @@ class DataShape(NagaraBlock):
         self.output = None
         self.SetCanvas(canvas)        
         
-        shape1 = ogl.RectangleShape(100, 60)
+        self.shape1 = shape1 = ogl.RectangleShape(100, 60)
         shape1.AddText(self.label)
         self.AddChild(shape1)
         #shape2 = ogl.CircleShape(10)
@@ -280,6 +286,11 @@ class DataShape(NagaraBlock):
         self.Recompute()
         shape1.SetSensitivityFilter(0)
         shape2.SetSensitivityFilter(5)
+    def get_label(self):
+        return self.label
+    def set_label(self,label):
+        self.label = label
+        
     def _delete(self):
         self.Delete()
     def OnLeftClick(self,keys):
@@ -390,6 +401,11 @@ class TaskShape(NagaraBlock):
         inputshape2.SetSensitivityFilter(0)
         inputshape3.SetSensitivityFilter(0)
         outputshape.SetSensitivityFilter(0)
+        
+    def get_label(self):
+        return self.label
+    def set_label(self,label):
+        self.label = label
 
         
 class InputSocketShape(ogl.RectangleShape):
@@ -514,14 +530,15 @@ class OutputSocketShape(ogl.DrawnShape):
 class Linker(ogl.LineShape):
     """ the link line from datashape to taskshape.
     """
-    def __init__(self,*args,**cwdargs):
+    def __init__(self,fromshape,toshape,*args,**cwdargs):
         ogl.LineShape.__init__(self)
 
         self.SetPen(wx.BLACK_PEN)
         self.SetBrush(wx.BLACK_BRUSH)
         self.AddArrow(ogl.ARROW_ARROW)
         self.MakeLineControlPoints(2)
-        
+        fromshape.AddLine(self, toshape)
+        self.Show(True)
         #self.Show(True)
         
     def on_fromshape_deleted(self,fromshape):
@@ -613,10 +630,9 @@ class EvtHandler(ogl.ShapeEvtHandler):
             print shape
             fromShape = shape
             toShape = _shape
-            line = Linker()
-            fromShape.AddLine(line, toShape)
-            line.Show(True)
-            #self.canvas.add_linker(fromShape,toShape)
+            
+            
+            self.canvas.add_linker(fromShape,toShape)
             self.canvas._isDragging(False)
             self.canvas.Refresh(True)
             #shape.SetDraggable(True)
@@ -1271,8 +1287,8 @@ class TempCanvas(ogl.ShapeCanvas):
     def __init__(self, parent,frame):
         ogl.ShapeCanvas.__init__(self, parent)
 
-        maxWidth  = 500
-        maxHeight = 500
+        maxWidth  = 1500
+        maxHeight = 1500
         self.SetScrollbars(20, 20, maxWidth/20, maxHeight/20)
 
         #self.log = log
@@ -1284,7 +1300,7 @@ class TempCanvas(ogl.ShapeCanvas):
         self.shapes = []
         self.save_gdi = []
         
-    def add_shape(self, shape, x, y, pen, brush, text):
+    def add_shape(self, shape, x, y, pen=wx.BLACK_PEN, brush=wx.WHITE_BRUSH, text=''):
         # Composites have to be moved for all children to get in place
         if isinstance(shape, ogl.CompositeShape):
             dc = wx.ClientDC(self)
@@ -1306,13 +1322,16 @@ class TempCanvas(ogl.ShapeCanvas):
         self.diagram.AddShape(shape)
         shape.Show(True)
 
-        evthandler = EvtHandler( self.frame)
-        evthandler.SetShape(shape)
-        evthandler.SetPreviousHandler(shape.GetEventHandler())
-        shape.SetEventHandler(evthandler)
+        #evthandler = EvtHandler( self.frame)
+        #evthandler.SetShape(shape)
+        #evthandler.SetPreviousHandler(shape.GetEventHandler())
+        #shape.SetEventHandler(evthandler)
 
         self.shapes.append(shape)
         return shape
+    
+    def OnBeginDragLeft(self, x, y, keys = 0):
+        self.frame.on_drag_start()
 
 class TaskShapeDropTarget(wx.PyDropTarget):
     """ this is a customs class for drag the text from the tempcanvas.
@@ -1323,7 +1342,10 @@ class TaskShapeDropTarget(wx.PyDropTarget):
         self.canvas = canvas
 
         # specify the type of data we will accept
-        self.data = wx.TextDataObject()
+        myobject = wx.CustomDataObject('Nagara Shape')
+        pickled_data = myobject.GetData()
+        self.shapesinfo = cPickle.loads(pickled_data)
+        #self.data = wx.TextDataObject()
         self.SetDataObject(self.data)
     
     def OnDrop(self, x, y):
@@ -1333,7 +1355,8 @@ class TaskShapeDropTarget(wx.PyDropTarget):
         # copy the data from the drag source to our data object
         if self.GetData():
             # convert it back to a list of lines and give it to the viewer
-            self.text = self.data.GetText()
+            self.data 
+            #self.text = self.data.GetText()
         sx,sy =self.canvas.CalcUnscrolledPosition(x, y)
         self.canvas.add_shape(TaskShape(self.canvas,self.text),sx,sy, wx.BLACK_PEN, wx.WHITE_BRUSH, '')
             
@@ -1365,18 +1388,48 @@ class FlowFrame(wx.Frame):
         
         self.work_canvas = FlowCanvas(self,frame = self)
 
-        #self.temp_canvas = TempCanvas(splitter2,self)
-        self.temp_canvas = wx.ListCtrl(self, -1, style=wx.LC_LIST)
+        self.temp_canvas = TempCanvas(self,self)
+        """
+        t1 = TaskShape(self.temp_canvas,"task1")
+        t1.SetDraggable(0)
+        t2 = TaskShape(self.temp_canvas,"task2")
+        t2.SetDraggable(0)
+        t3 = TaskShape(self.temp_canvas,"task3")
+        t3.SetDraggable(0)
+        t4 = TaskShape(self.temp_canvas,"task4")
+        t4.SetDraggable(0)
+        x = t1._width/2
+        y = t1._height/2
+        self.temp_canvas.add_shape(t1,x,y)
+        self.temp_canvas.add_shape(t2,x,y+150)
+        self.temp_canvas.add_shape(t3,x,y+300)
+        self.temp_canvas.add_shape(t4,x,y+450)
+        """
+        #self.temp_canvas = wx.ListCtrl(self, -1, style=wx.LC_LIST)
         self.tasklist = ["Task1","Task2","Task3","Task4"]
+    
+        shape = TaskShape(self.temp_canvas, self.tasklist[0])
+        x = shape._width/2
+        y = shape._height/2
+        self.temp_canvas.add_shape(shape,x,y)
+        shape.SetDraggable(0)
+        for t in self.tasklist[1:]:
+            shape = TaskShape(self.temp_canvas,t)
+            y += 150 
+            self.temp_canvas.add_shape(shape,x,y)
+            shape.SetDraggable(0)    
+            
+        """
         for i in range(len(self.tasklist)):        
             #self.temp_canvas.InsertStringItem(0,i)
             self.temp_canvas.InsertStringItem(i,self.tasklist[i])
             
         self.temp_canvas.Bind(wx.EVT_LIST_BEGIN_DRAG, self.on_drag_start)
-        
+        """
         #splitter1.SplitVertically(self.work_canvas, splitter2)
         #splitter2.Initialize(self.temp_canvas)
         self.Center()
+        
         # creat the droptarget 
         self.shapetaget = TaskShapeDropTarget(self.work_canvas)
         self.work_canvas.SetDropTarget(self.shapetaget)  
@@ -1496,17 +1549,25 @@ class FlowFrame(wx.Frame):
                 for shapeinfo in shapesinfolist:
                     x= shapeinfo.theX
                     y = shapeinfo.theY
+                    lable = shapeinfo.theLable
+                    
                     shapeclass = shapeinfo.shapeclass
-                    newshape = DataShape(self.work_canvas,name=shapeclass)
+                    newshape = eval(shapeclass)(self.work_canvas,name=lable)
                     newshapes[shapeinfo.theId] = newshape
-                    s = newshapes[shapeinfo.theId]
-                    #self.work_canvas.add_shape(s,x,y)
+                    #s = newshapes[shapeinfo.theId]
+                    self.work_canvas.add_shape(newshape,x,y)
+                    """
                     print 'the shapeclass is ',shapeclass
                     if shapeclass == 'DataShape':
                         print 'that ok'
                         self.work_canvas.add_shape(newshape,x,y)
-                    
+                    elif shapeclass == 'TaskShape':
+                        newshape = TaskShape(self.work_canvas,name=lable)
+                        newshapes[shapeinfo.theId] = newshape
+                        self.work_canvas.add_shape(newshape,x,y)
+                    """
                     self.work_canvas.Refresh(True)
+                    
                 mfile.close()
                 
             dlg.Destroy()
@@ -1528,7 +1589,7 @@ class FlowFrame(wx.Frame):
                 print 'canvas shapelist',shapes
                 shd ={}
                 
-                for shape in shapesdia:
+                for shape in shapes:
                     print 'shape is ',shape,id(shape),shape.GetId()
                     #attributes = shape.attributes
                     val = NagaraShapeSavedData(shape)
@@ -1538,32 +1599,24 @@ class FlowFrame(wx.Frame):
                     print 'shd is ',shd
                 pickle.dump(shd,fp)
                 #self.work_canvas.diagram.saveFile('save_test.txt')
-        elif toolid == 40:
+        elif toolid == 40: #delete all shape
             shapes = self.work_canvas.diagram._shapeList
             del shapes[:]
+            del self.work_canvas.shapes[:]
             self.work_canvas.Refresh(True)
-            """      # Get shapes
-                      myShapes = self.theFrame.theBlackboard.GetShapeList()
-          
-                      # Store required shape information in a dictionary with 
-                      # [id:BoardNodeShapeSavedData] info
-                      myShapesInfo = {}
-                      for myShape in myShapes :
-                          if isinstance(myShape, BoardNodeShape) :
-                              myShapesInfo[id(myShape)] = BoardNodeShapeSavedData(myShape)
-                      
-                      try:
-                          dump( myShapesInfo, myFile )
-          
-                          # Store Root Node
-                          dump( id(NodeDataBase().theRootNode), myFile )
-                          
-                      except PickleError, myError:
-                          print myError
-              """
+            
     def on_drag_start(self,event):
+        myobject = wx.CustomDataObject('Nagara shape')
         
-        self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
+        shapes = self.temp_canvas.shapes
+        shapesdict = {}
+        for shape in shapes:
+            value = NagaraShapeSavedData(shape)
+            shapesdict[id(shape)] = value
+        import cPickle
+        self.data = cPickle.dumps(shapesdict)
+        myobject.SetData(self.data)
+        #self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
         dropsource = wx.DropSource(self.temp_canvas)
         dropsource.SetData(self.data)
         dropsource.DoDragDrop(wx.Drag_CopyOnly)
