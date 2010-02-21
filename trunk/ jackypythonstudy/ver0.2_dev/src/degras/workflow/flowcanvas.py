@@ -206,7 +206,7 @@ class NagaraShapeSavedData:
         self.theLines = []
         for myLine in shape.GetLines():
             myLineID = id(myLine.GetTo())
-            if not myLineID == self.theID :
+            if not myLineID == self.theId:
                 self.theLines.append(myLineID)
         
     #---------------------------------------   
@@ -532,6 +532,9 @@ class Linker(ogl.LineShape):
     """
     def __init__(self,fromshape,toshape,*args,**cwdargs):
         ogl.LineShape.__init__(self)
+       
+        fromshape = fromshape
+        toshape = toshape
 
         self.SetPen(wx.BLACK_PEN)
         self.SetBrush(wx.BLACK_BRUSH)
@@ -1342,9 +1345,9 @@ class TaskShapeDropTarget(wx.PyDropTarget):
         self.canvas = canvas
 
         # specify the type of data we will accept
-        myobject = wx.CustomDataObject('Nagara Shape')
-        pickled_data = myobject.GetData()
-        self.shapesinfo = cPickle.loads(pickled_data)
+        self.data = wx.CustomDataObject('Nagara Shape')
+        
+        
         #self.data = wx.TextDataObject()
         self.SetDataObject(self.data)
     
@@ -1352,14 +1355,17 @@ class TaskShapeDropTarget(wx.PyDropTarget):
         
         self.canvas.Refresh()
     def OnData(self, x, y, d):
-        # copy the data from the drag source to our data object
-        if self.GetData():
+        # copy the data from the drag source to our data objectmyobject = wx.CustomDataObject('Nagara Shape')
+        pickled_data = self.data.GetData()
+        self.shapesinfo = cPickle.loads(pickled_data)
+        #if self.GetData():
             # convert it back to a list of lines and give it to the viewer
-            self.data 
+            #name = self.shapesinfo.values().theLabel
             #self.text = self.data.GetText()
+        
         sx,sy =self.canvas.CalcUnscrolledPosition(x, y)
-        self.canvas.add_shape(TaskShape(self.canvas,self.text),sx,sy, wx.BLACK_PEN, wx.WHITE_BRUSH, '')
-            
+        #self.canvas.add_shape(TaskShape(self.canvas,name),sx,sy, wx.BLACK_PEN, wx.WHITE_BRUSH, '')
+        self.canvas.diagram._shapeList = self.shapesinfo    
         # what is returned signals the source what to do
         # with the original data (move, copy, etc.)  In this
         # case we just return the suggested value given to us.
@@ -1598,6 +1604,11 @@ class FlowFrame(wx.Frame):
                     shd[id(shape)] = val
                     print 'shd is ',shd
                 pickle.dump(shd,fp)
+                shapelist = self.work_canvas.diagram._shapeList
+                l = [s for s in shapelist]
+                #shapelist = self.work_canvas.save_gdi
+                print type(shapelist)
+                pickle.dump(l,fp,)
                 #self.work_canvas.diagram.saveFile('save_test.txt')
         elif toolid == 40: #delete all shape
             shapes = self.work_canvas.diagram._shapeList
@@ -1605,16 +1616,17 @@ class FlowFrame(wx.Frame):
             del self.work_canvas.shapes[:]
             self.work_canvas.Refresh(True)
             
-    def on_drag_start(self,event):
+    def on_drag_start(self):
         myobject = wx.CustomDataObject('Nagara shape')
         
-        shapes = self.temp_canvas.shapes
-        shapesdict = {}
-        for shape in shapes:
-            value = NagaraShapeSavedData(shape)
-            shapesdict[id(shape)] = value
-        import cPickle
-        self.data = cPickle.dumps(shapesdict)
+        dragshape = [s for s in self.temp_canvas.shapes]
+        #shapesdict = {}
+        #for shape in dragshape:
+        #    value = NagaraShapeSavedData(shape)
+        #    shapesdict[id(shape)] = value
+        #import cPickle
+        
+        self.data = cPickle.dumps(dragshape)
         myobject.SetData(self.data)
         #self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
         dropsource = wx.DropSource(self.temp_canvas)
