@@ -639,7 +639,7 @@ class EvtHandler(ogl.ShapeEvtHandler):
             _shape_p = _shape.GetParent()
         except:
             _shape_p =_shape
-        if isinstance(_shape,InputSocketShape)& isinstance(shape,DataShape):
+        if isinstance(_shape,TaskShape)& isinstance(shape,DataShape):
             print 'now task is start'
             print shape
             fromShape = shape
@@ -950,13 +950,15 @@ class FlowCanvas(ogl.ShapeCanvas):
         line = Linker(fromshape,toshape)
         
         line.Show(True)
-        self.diagram.AddShape(line)
+        
         fromshape.SetDraggable(True)
         
         self.evthandler = EvtHandler(canvas=self)
         self.evthandler.SetShape(line)
         self.evthandler.SetPreviousHandler(line.GetEventHandler())
         line.SetEventHandler(self.evthandler)
+        # add line in list
+        self.diagram.AddShape(line)
         self.shapes.append(line)
         fromshape._lines.append(line)
         toshape._lines.append(line)
@@ -1017,9 +1019,9 @@ class FlowCanvas(ogl.ShapeCanvas):
                     print 'linelist',myLinesToRemove
                     # remove the line from fromshape,toshape,canvas.shapes[]
                     for line in myLinesToRemove:
-                        line.GetFrom()._lines.remove(line)
-                        line.GetTo()._lines.remove(line)
-                        self.shapes.remove(line)
+                        #line.GetFrom()._lines.remove(line)
+                        #line.GetTo()._lines.remove(line)
+                        #self.shapes.remove(line)
                         line.Delete()
                     
                     #myNodeDataBase = NodeDataBase()
@@ -1140,6 +1142,8 @@ class FlowCanvas(ogl.ShapeCanvas):
         shape, attachment = self.FindShape(sx, sy)  
         self.__selected_shape = shape
         print x,y,shape,'is on_right'
+        print 'diagrm list',self.diagram._shapeList
+        print 'canvas list',self.shapes
         self.__x = sx
         self.__y = sy           
 
@@ -1480,7 +1484,7 @@ class FlowFrame(wx.Frame):
             self.on_add_data(event)
             self.work_canvas.Refresh()
         elif toolid ==20:  # open file
-            print 'hello'
+            print 'open file'
             
             wildcard = "Nagara shape flie (*.nas)|*.nas|" \
                      "Python source (*.py)|*.py|"\
@@ -1496,18 +1500,18 @@ class FlowFrame(wx.Frame):
                 style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
                 )
             if dlg.ShowModal() == wx.ID_OK:
-                # This returns a Python list of files that were selected.
+                # remove the current shapes from diagram before load saved shapes.
                 shapes = self.work_canvas.diagram._shapeList
                 del shapes[:]
                 paths = dlg.GetPaths()
-                print paths
+                # unpickle the saved data from file.
                 mfile = open(dlg.GetFilename())
-                
                 shapesinfo = pickle.load(mfile)
-                print shapesinfo
+                print 'pickled data list is',shapesinfo
+                # creat the new shape.
                 newshapes = {}
                 shapesinfolist = shapesinfo.values()
-                print shapesinfolist,'is '
+                
                 for shapeinfo in shapesinfolist:
                     x= shapeinfo.theX
                     y = shapeinfo.theY
@@ -1518,6 +1522,7 @@ class FlowFrame(wx.Frame):
                     if shapeclass == 'InputSocketShape':
                         newshape = InputSocketShape()
                         newshapes[shapeinfo.theId] = newshape
+                        self.work_canvas.diagram._shapeList.append(newshape)
                     elif shapeclass == 'Linker' :
                         fromshape = newshapes[shapeinfo.fromshape]
                         toshape = newshapes[shapeinfo.toshape]
@@ -1540,42 +1545,35 @@ class FlowFrame(wx.Frame):
                         self.work_canvas.add_shape(newshape,x,y)
                     """
                     self.work_canvas.Refresh(True)
-                    
+                print newshapes   
                 mfile.close()
                 
             dlg.Destroy()
         elif toolid ==30:  #save file
+            print 'save file ======='
             dlg = wx.FileDialog(
                 self, message="diagram file save as...", defaultDir=os.getcwd(), 
                 defaultFile="", wildcard="Nagara shape file (*.nas)|*.nas", style=wx.SAVE)
             dlg.SetFilterIndex(2)
             if dlg.ShowModal() == wx.ID_OK:
-                path = dlg.GetPath()
-                if not path.endswith('.nas'):
-                    path += ".nas"
-                print path
-                
+                # creat the file to save the pickled shapes info.    
                 fp = open(dlg.GetFilename(),'w')
                 shapes = self.work_canvas.shapes
                 shapesdia = self.work_canvas.diagram._shapeList
                 print 'diagram shapelist',shapesdia
-                print 'canvas shapelist',shapes
+                print 'canvas shapelist',shapes 
+                # creat the dict to save property of shapes 
                 shd ={}
                 
-                for shape in shapes:
+                for shape in shapesdia:
                     print 'shape is ',shape,id(shape),shape.GetId()
                     #attributes = shape.attributes
                     val = NagaraShapeSavedData(shape)
                     print 'val is ',val
                     #shd[id(shape)] = attributes
                     shd[id(shape)] = val
-                    print 'shd is ',shd
+                print 'shd is ',shd    
                 pickle.dump(shd,fp)
-                shapelist = self.work_canvas.diagram._shapeList
-                #l = [s for s in shapelist]
-                #shapelist = self.work_canvas.save_gdi
-                print type(shapelist)
-                #pickle.dump(l,fp,)
                 #self.work_canvas.diagram.saveFile('save_test.txt')
         elif toolid == 40: #delete all shape
             shapes = self.work_canvas.diagram._shapeList

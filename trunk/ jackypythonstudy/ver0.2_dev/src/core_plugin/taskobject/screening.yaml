@@ -1,5 +1,6 @@
 name: Screening
 description: This object is in silico screening
+help:
 input:
     receptor: {type: System, multi: Single, optional: false}
     ligands: {type: Ligand, multi: Multiple, optional: false}

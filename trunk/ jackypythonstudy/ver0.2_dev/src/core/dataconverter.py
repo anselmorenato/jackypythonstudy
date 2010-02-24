@@ -1,10 +1,22 @@
 #  -*- encoding: utf-8 -*-
+# Copyright (C)  2010 Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
+# Standard modules
+import os, sys
+
+
+
+# nagara modules
+nagara_path = os.environ['NAGARA_PATH']
+sys.path.append( os.path.join(nagara_path, 'src') )
 
 # available classes
 __all__ =['DataConverter', 'ToNDO_Parser', 'FromNDO_Formatter']
 
-# Standard modules
-import os, sys
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 # additional modules
@@ -14,7 +26,7 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 if __name__ == '__main__':
     sys.path.append('../utils')
 from data import Data
-from deco import threaded
+from utils.deco import threaded
 from exception  import NagaraException
 from config     import Config
 from plugin     import load_converter_module

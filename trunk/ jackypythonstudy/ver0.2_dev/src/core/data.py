@@ -1,9 +1,19 @@
 #  -*- encoding: utf-8 -*-
+# Copyright (C)  2010 Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
 
 # standard module
 import os, sys
 import time
 from abc import ABCMeta, abstractmethod, abstractproperty
+
+
+nagara_path = os.environ['NAGARA_PATH']
+sys.path.append( os.path.join(nagara_path, 'src') )
 
 # Nagara modules
 from config import Config
@@ -23,13 +33,12 @@ class DataContentError(DataException): pass
 class DataRechangeError(DataException): pass
 
 
-if __name__ == '__main__':
-    sys.path.append('../utils')
-from pattern import Null
+from utils.pattern import Null
 
 # valid types
 valid_type_list = [
-    'System', 'Restart', 'Group', 'Trajectory', 'Energy',
+    # 'System', 'Restart', 'Group', 'Trajectory', 'Energy',
+    'System', 'Restart', 'Trajectory', 'Energy',
 ]
 
 # NagaraData

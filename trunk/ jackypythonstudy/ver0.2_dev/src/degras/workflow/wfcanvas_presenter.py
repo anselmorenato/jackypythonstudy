@@ -16,7 +16,7 @@ class WorkFlowCanvasPresenter(object):
 
     def __init__(self, model=None, view=None):
         self.model = model
-
+        self.view = view
     # operations
     def append_task(self):
         task = self.model.appendTask(taskobject='Energy')

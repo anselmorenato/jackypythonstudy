@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="Method">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxRadioButton" name="ID_sd_method">
+              <label>Steepest-Descent method</label>
+              <style>wxRB_GROUP</style>
+            </object>
+            <option>0</option>
+            <flag>wxALL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxRadioButton" name="ID_cg_method">
+              <label>Conjugate-Gradient method</label>
+            </object>
+            <flag>wxALL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxRadioButton" name="ID_sd+cg_method">
+              <label>CG after SD</label>
+            </object>
+            <flag>wxALL</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxRadioButton" name="ID_nr_method">
+              <label>Newton-Raphson method(Not Implemented)</label>
+            </object>
+            <flag>wxALL</flag>
+            <border>5</border>
+          </object>
+          <label>Optimize Method</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND|wxADJUST_MINSIZE</flag>
+        <border>5</border>
+        <minsize>600, 600</minsize>
+      </object>
+      <object class="spacer">
+        <size>-1, 10</size>
+        <border>0</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxFlexGridSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>number of cycle : </label>
+                </object>
+                <flag>wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxSpinCtrl" name="ID_ncycle">
+                  <value>1000</value>
+                  <min>1</min>
+                  <max>50000</max>
+                </object>
+                <option>0</option>
+                <flag>wxEXPAND|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText" name="ID_ncycle_switch_text">
+                  <label>switch cycle step for CG after SD : </label>
+                  <enabled>0</enabled>
+                </object>
+                <flag>wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxSpinCtrl" name="ID_ncycle_switch">
+                  <value>0</value>
+                  <min>0</min>
+                  <max>50000</max>
+                  <enabled>0</enabled>
+                </object>
+                <option>0</option>
+                <flag>wxEXPAND|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <cols>2</cols>
+              <vgap>2</vgap>
+              <hgap>2</hgap>
+              <growablecols>1</growablecols>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND|wxGROW</flag>
+          </object>
+          <label>Optimize Parameter</label>
+          <orient>wxVERTICAL</orient>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+    </object>
+    <size>600, 800</size>
+  </object>
+</resource>

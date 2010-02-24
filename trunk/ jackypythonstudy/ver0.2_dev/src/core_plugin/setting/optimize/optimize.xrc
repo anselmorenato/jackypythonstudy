@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="Optimize">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxNotebook" name="ID_MultiBook">
+          <object class="notebookpage">
+            <object class="wxPanel" name="Input"/>
+            <label>Input</label>
+          </object>
+          <object class="notebookpage">
+            <object class="wxPanel" name="Output"/>
+            <label>Output</label>
+          </object>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND|wxGROW</flag>
+        <border>5</border>
+      </object>
+    </object>
+    <size>600, 800</size>
+  </object>
+</resource>

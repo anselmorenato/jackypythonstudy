@@ -1,5 +1,6 @@
 name: Docking
 description: This object is Docking simulation.
+help:
 input:
     receptor: {type: System, multi: Single, optional: false}
     ligands: {type: Ligand, multi: Multiple, optional: false}

@@ -280,7 +280,8 @@ implicit:
 
     # valid_data = validyaml.load(valid_yaml_data)
 
-    user_yaml_data = """
+    user_yaml_data1 = """
+
 integrator: velocity_verle
 time_step: 10
 restraint: [group1, group2]
@@ -310,6 +311,36 @@ ensemble:
 
 
 
+    """
+
+    # energy setting example
+    user_yaml_data2 = """
+taskobject: minimize
+method: cg, sd, sd+cg, nr
+ncycle: 1000
+ncycle_switch: 500
+
+potential_pbc:
+    enable: on
+    method: octahedral
+
+potential_implicit:
+    enable: off
+    method: poisson_boltzmann, generalized_born
+
+potential_nonbond:
+    method: pme
+    cutoff: 12
+
+defined_restraint:
+    enable: on
+    method: shake # angle, harmonic
+
+restraint:
+    group1:
+        method: shake
+    group2:
+        method: harmonic
     """
 
     # def ensemble(templeture, pressure): pass
