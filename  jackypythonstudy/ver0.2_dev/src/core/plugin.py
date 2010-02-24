@@ -3,6 +3,10 @@
 
 # __all__ = [load_taskobject_module, ]
 
+"""
+The module to return plugin modules.
+"""
+
 # standard modules
 import os, sys
 import imp
@@ -14,6 +18,7 @@ if __name__ == '__main__':
 from exception import NagaraException
 from taskobject import TaskObject
 from iconverter import IParser, IFormatter, IConverterCommand
+from core.config import Config
 
 # plugin: plugin directories
 # plugin_module
@@ -22,6 +27,10 @@ from iconverter import IParser, IFormatter, IConverterCommand
 
 # Exception ####################################################################
 class PluginException(NagaraException): pass
+class NotFoundComponentError(PluginException): pass
+class NotFoundAgentError(PluginException): pass
+class NotFoundModelError(PluginException): pass
+class NotFoundViewError(PluginException): pass
 
 # variables ####################################################################
 __src_dir = os.path.join(os.path.dirname( os.path.abspath(__file__) ), '..')
@@ -33,14 +42,67 @@ def load_taskobject_module(user_plugin_abspath):
     return t.get_module()
 
 def load_command_module(user_plugin_abspath):
-    c = ModuleGenerator('command', __src_dir, user_plugin_abspath)
+    c = YamlModuleGenerator('command', __src_dir, user_plugin_abspath)
     return c.get_module()
 
-def load_setting_module(user_plugin_abspath):
-    c = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
-    return c.get_module()
-    # return __load_plugin_module('setting', user_plugin_abspath,)
+### Setting Component ##########################################################
+# def loadSettingComponent(user_plugin_abspath):
+def loadSettingComponent(component_name, user_plugin_abspath):
+    mod_generator = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
+    components = mod_generator.getModules()
+    for sm in components.values():
+        if component_name in sm.component_class_dict:
+            return sm.component_class_dict[component_name]
+    else:
+        raise NotFoundComponentError(component_name)
 
+def loadSettingAgent(agent_name, user_plugin_abspath):
+    mod_generator = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
+    components = mod_generator.getModules()
+    for module in components.values():
+        if agent_name in module.agent_class_dict:
+            return module.agent_class_dict[agent_name]
+    else:
+        raise NotFoundAgentError(agent_name)
+
+def loadSettingModel(model_name, user_plugin_abspath):
+    mod_generator = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
+    components = mod_generator.getModules()
+    for module in components.values():
+        if model_name in module.model_class_dict:
+            return module.model_class_dict[model_name]
+    else:
+        raise NotFoundModelError(model_name)
+
+def loadSettingView(view_name, user_plugin_abspath):
+    mod_generator = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
+    components = mod_generator.getModules()
+    for module in components.values():
+        if view_name in module.view_class_dict:
+            return module.view_class_dict[view_name]
+    else:
+        raise NotFoundViewError(view_name)
+
+# def loadSettingAgentModule(agent_module_name, user_plugin_abspath):
+#     mod_generator = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
+#     modules = mod_generator.getModules()
+#     for name, module in modules.items():
+#         if agent_module_name == name:
+#             return module
+#         if agent_module_name in module.agent_module_dict:
+#             return module.agent_module_dict[agent_module_name]
+#     else:
+#         raise NotFoundComponentError(agent_module_name)
+
+# def loadSettingAgent(agent_name, user_plugin_abspath):
+#     setting_modules = ModuleGenerator('setting', __src_dir, user_plugin_abspath)
+#     for sm in setting_modules.values():
+#         if agent_name in setting_module.agent_dict:
+#             return setting_module.agent_dict(agent_name)
+#     else:
+#         raise NotFoundAgentError(agent_name)
+
+################################################################################
 def load_converter_module(user_plugin_abspath):
     c = ConverterModuleGenerater(__src_dir, user_plugin_abspath)
     return c.get_module()
@@ -59,16 +121,87 @@ def load_output_module(user_plugin_abspath):
 
 
 
-# Private functions ###########################################################
+# Private functions ############################################################
 
 __src_dir = os.path.join(os.path.dirname( os.path.abspath(__file__) ), '..')
 
-# Command module
 
+### Module Generator ###########################################################
 class ModuleGenerator(object):
 
     """
     Class to create the command module.
+    """
+
+    def __init__(self, module_name, src_dir, user_plugin_abspath):
+        self.__src_dir = src_dir
+        self.__user_plugin_abspath = user_plugin_abspath
+        self.__name = module_name
+
+    def __loadModule(self, module_name, base_path):
+        """Load and Return the module."""
+        # print module_name, base_path
+        print 'module_name', module_name
+        print 'base_path', base_path
+        f, n, d = imp.find_module(module_name, [base_path])
+        return imp.load_module(module_name, f, n, d)
+
+    def __getModuleDir(self, abspath):
+        module_dirs = []
+        for path in os.listdir(abspath):
+            module_abspath = os.path.join(abspath, path)
+            if module_abspath.endswith('.DS_Store'): continue
+            if module_abspath.endswith('.svn'): continue
+            if os.path.isdir(module_abspath):
+                module_dirs.append(path)
+        return module_dirs
+
+    def __loadModuleDict(self, plugin_abspath):
+        module_dict = {}
+        for module_name in self.__getModuleDir(plugin_abspath):
+            try:
+                module = self.__loadModule(module_name, plugin_abspath)
+                module_dict[module_name] = module
+            except ImportError:
+                pass
+        return module_dict
+
+    def __validateComponent(self, component_name):
+        """Check the validity of interfaces for component."""
+
+    def __validateAgent(self, agent_name):
+        """Check the validity of interfaces for agent."""
+
+    def getModules(self):
+
+        module_dict = {}
+        # core plugin
+        core_plugin_abspath = os.path.join(
+            self.__src_dir, 'core_plugin', self.__name)
+        print core_plugin_abspath
+        core_module_dict = self.__loadModuleDict(core_plugin_abspath)
+        module_dict.update( core_module_dict )
+
+        # # default plugin
+        # default_plugin_abspath = os.path.join(self.__src_dir, 'plugin')
+        # default_module_dict = self.__loadModuleDict(default_plugin_abspath)
+        # module_dict.update( default_module_dict )
+
+        # # user plugin
+        # if os.path.exists(self.__user_plugin_abspath):
+        #     user_plugin_abspath = os.path.abspath(self.__user_plugin_abspath)
+        #     user_module_dict = self.__loadModuleDict(user_plugin_abspath)
+        #     module_dict.update( user_module_dict )
+
+        return module_dict
+
+
+# Command module
+
+class YamlModuleGenerator(object):
+
+    """
+    Class to create the command module written by yaml.
     """
 
     def __init__(self, module_name, src_dir, user_plugin_abspath):
@@ -605,7 +738,7 @@ def main():
     user_plugin_path = 'Dropbox/Office/myNagara/src/plugin_user'
     user_plugin_path = os.path.join(os.environ['HOME'], user_plugin_path )
     command = load_command_module(user_plugin_path)
-    setting = load_setting_module(user_plugin_path)
+    # setting = load_setting_module(user_plugin_path)
     for k, v in command.command_dict.items():
         print k, v
         # p = command.Amber()
@@ -613,7 +746,7 @@ def main():
     p = command.command_dict['a']()
     p.write('hihifh')
     # print a.write('gyagyagya')
-    print setting.setting_dict
+    # print setting.setting_dict
 
 def main_command():
     # a = command.A()
@@ -657,13 +790,47 @@ def main_task():
         print 'setting: ', to.setting
 
 
+def main_loadComponent():
+    user_plugin_path = 'Dropbox/Office/myNagara/src/plugin_user'
+    user_plugin_abspath = os.path.join(os.environ['HOME'], user_plugin_path )
+
+    opt_class = loadSettingComponent('optimize', user_plugin_abspath)
+    import wx
+    app = wx.App(redirect=False)
+    frame = wx.Frame(None, -1, 'Title')
+
+    opt_agent = opt_class(frame)
+
+    frame.Show()
+    app.MainLoop()
+
+def main_loadAgentModule():
+    user_plugin_path = 'Dropbox/Office/myNagara/src/plugin_user'
+    user_plugin_abspath = os.path.join(os.environ['HOME'], user_plugin_path )
+
+    Agent = loadSettingAgent('optimize', user_plugin_abspath)
+    # module_optimize = loadSettingAgentModule('optimize', user_plugin_abspath)
+    # print('optimize', dir(module_optimize))
+    import wx
+    app = wx.App(redirect=False)
+    frame = wx.Frame(None, -1, 'Title')
+
+    opt_agent = Agent(frame)
+
+    frame.Show()
+    app.MainLoop()
+
+
 
 if __name__ == '__main__':
-    print '*** task ********************************************************'
-    main_task()
-    print '*** converter ***************************************************'
-    main_converter()
-    print '*** command *****************************************************'
-    main_command()
-    main()
+    # print '*** task ********************************************************'
+    # main_task()
+    # print '*** converter ***************************************************'
+    # main_converter()
+    # print '*** command *****************************************************'
+    # main_command()
+    # main()
+
+    print '*** Setting *****************************************************'
+    main_loadAgentModule()
 

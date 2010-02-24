@@ -1,5 +1,10 @@
 #  -*- encoding: utf-8 -*-
-# Copyright (C)  2009 Takakazu Ishikura
+# Copyright (C)  2010 Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
 
 # standard modules
 import os, sys
@@ -7,13 +12,13 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 
 # pypi modules
 # nagara modules
-if __name__ == '__main__':
-    sys.path.append('../utils')
+nagara_path = os.environ['NAGARA_PATH']
+sys.path.append( os.path.join(nagara_path, 'src') )
 from exception import NagaraException
 from config     import Config
 from log       import Log
-from pattern   import Null
-from event     import NagaraEvent
+from utils.pattern   import Null
+from utils.event     import NagaraEvent
 
 
 # Exceptions ===================================================================

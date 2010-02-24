@@ -1,5 +1,12 @@
 #  -*- encoding: utf-8 -*-
-# Copyright (C)  2009 Takakazu Ishikura
+# Copyright (C)  2010 Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
+
+
 
 # standard modules
 import os, sys, datetime
@@ -11,12 +18,12 @@ from exception import NagaraException
 #     sys.path.append('../')
 from log             import Log
 
-# sys.path.append('..')
-if __name__ == '__main__':
-    sys.path.append('../utils')
-from deco    import threaded
-from pattern import Null
-from event   import NagaraEvent, EventBindManager
+# nagara modules
+nagara_path = os.environ['NAGARA_PATH']
+sys.path.append( os.path.join(nagara_path, 'src') )
+from utils.deco    import threaded
+from utils.pattern import Null
+from utils.event   import NagaraEvent, EventBindManager
 
 
 CHECK_TIME=1

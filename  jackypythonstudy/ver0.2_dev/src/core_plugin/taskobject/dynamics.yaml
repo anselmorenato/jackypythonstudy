@@ -1,5 +1,6 @@
 name: Dynamics
 description: This object is Dynamics
+help:
 input:
     system: {type: System, multi: Single, optional: false}
     restraint: {type: Group, multi: Single, optional: true}

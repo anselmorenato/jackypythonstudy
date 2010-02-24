@@ -21,6 +21,7 @@ class TaskObject(Singleton):
         # properties
         self.__name         = object_config['name']
         self.__description  = object_config['description']
+        self.__help         = object_config['help']
         self.__inputs       = object_config['input']
         self.__outputs      = object_config['output']
         self.__setting      = object_config['setting']
@@ -40,6 +41,10 @@ class TaskObject(Singleton):
     @property
     def description(self):
         return self.__description
+
+    @property
+    def help(self):
+        return self.__help
 
     @property
     def inputs(self):

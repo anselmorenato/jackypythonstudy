@@ -1,10 +1,19 @@
 #  -*- encoding: utf-8 -*-
+# Copyright (C)  2010 Takakazu Ishikura
+#
+# $Date$
+# $Rev$
+# $Author$
+#
 import os, sys
 import inspect
 
 nagara_path = os.environ['NAGARA_PATH']
 sys.path.append( os.path.join(nagara_path, 'src') )
-from utils.event import NagaraEvent
+from event import NagaraEvent
+from zope.interface import providedBy
+from zope.schema import getFieldNames
+
 
 class EventCatcher(object):
     def __init__(self, event):
@@ -13,7 +22,7 @@ class EventCatcher(object):
         self.__cur_count = 0
         self.__msg_list  = []
 
-        assert self.is_event(), (
+        assert self.isEvent(), (
             "Object: {0} isn't NagaraEvent."
         ).format(self.__event.__class__.__name__)
 
@@ -26,13 +35,14 @@ class EventCatcher(object):
     def trigger(self, msg=None):
         self.__event.fire(msg)
 
-    def is_event(self):
+    def isEvent(self):
         return isinstance(self.__event, NagaraEvent)
 
-    def is_catched(self):
+    def isCatched(self):
         return self.__pre_count+1 == self.__cur_count
+    is_catched = isCatched
 
-    def get_message(self):
+    def getMessage(self):
         return self.__msg_list[-1]
 
     def __catch(self, msg):
@@ -42,23 +52,24 @@ class EventCatcher(object):
         print('event count: {0}, {1}'.format(self.__cur_count, msg))
 
 
-def assert_catch_event(event_catcher, msg=None):
+def assertCatchEvent(event_catcher, msg=None):
     # assert that NagaraEvent was catched
-    assert event_catcher.is_catched(), "NagaraEvent don't got."
+    assert event_catcher.isCatched(), "NagaraEvent don't got."
 
     # assert message for NagaraEvent
     if msg:
         exp_msg = msg
-        assert exp_msg == event_catcher.get_message(), (
+        assert exp_msg == event_catcher.getMessage(), (
             "Received message is invalid:\n"
             "  | expected = {0} : {1} ,\n"
             "  |  but got = {2} : {3} ."
         ).format(
             exp_msg, type(exp_msg),
-            event_catcher.get_message(), type(event_catcher.get_message())
+            event_catcher.getMessage(), type(event_catcher.getMessage())
         )
 
-def assert_catch_exc(exc_type, fun, *args, **kwds):
+
+def assertCatchExc(exc_type, fun, *args, **kwds):
     #obj = fun.im_self
     #method = fun.__name__ 
 
@@ -79,7 +90,9 @@ def assert_catch_exc(exc_type, fun, *args, **kwds):
             "  | expected = {0} ,\n"
             "  |  but could'nt get.").format(exc_type)
 
-def assert_not_catch_exc(exc_type, fun, *args, **kwds):
+
+
+def assertNotCatchExc(exc_type, fun, *args, **kwds):
     #obj = fun.im_self
     #method = fun.__name__ 
 
@@ -113,7 +126,7 @@ def assert_not_catch_exc(exc_type, fun, *args, **kwds):
 #             "     but could'nt get.",).format(exc_type)
 #         ret = False
 
-def assert_method(obj, method, ret=None, args=[], kwds={}):
+def assertMethod(obj, method, ret=None, args=[], kwds={}):
     # check whether object has method or not.
     expected_ret = ret
     assert hasattr(obj, method), (
@@ -143,9 +156,28 @@ def assert_method(obj, method, ret=None, args=[], kwds={}):
             ret, type(ret)
         )
 
-import os, sys
+assert_catch_event = assertCatchEvent
+assert_catch_exc = assertCatchExc
+assert_not_catch_exc = assertNotCatchExc
+assert_method = assertMethod
+
 def set_bodypath(filename):
     current_path = os.path.dirname( filename )
     abspath = os.path.abspath(os.path.join(current_path, '..' ))
     sys.path.append( abspath )
+
+def getProperties(obj):
+    """Get properties from obj with Interface."""
+    interfaces = list(providedBy(obj))
+    if interfaces == []:
+        clsname = obj.__class__.__name__
+        mes = "The class: '{0}' have not any interfaces.".format(clsname)
+        raise NotFoundInterfaceError(mes)
+
+    properties = []
+    for inter in interfaces:
+        properties.extend( getFieldNames(inter) )
+    return properties
+
+
 

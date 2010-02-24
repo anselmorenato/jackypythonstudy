@@ -1,5 +1,6 @@
 name: Energy
 description: This object is energy.
+help:
 input:
     system: {type: System, multi: Single, optional: false}
     fmm:  {type: Group,  multi: Single, optional: true}

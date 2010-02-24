@@ -65,7 +65,7 @@ class WorkFlowCanvasInteractor(object):
     def on_add_task(self,event):
         print ' add task ok'
         
-    @binder(wx.EVT_MENU, id='ID_delete')
+    #@binder(wx.EVT_MENU, id='ID_delete')
     def h1(self, event):
         self.presenter.delete()
         
@@ -96,7 +96,7 @@ class WorkFlowCanvasView(ogl.ShapeCanvas):
         print self.__idctrl_dict
         self.popmenu.Append(deleteID,'Delete')
         #self.item_dict['delete'] = (deleteID, item_delete)
-        #self.Bind(wx.EVT_MENU,self.on_delete)
+        self.Bind(wx.EVT_MENU,self.on_delete)
         
         self.PopupMenu(self.popmenu)
         self.popmenu.Destroy()
