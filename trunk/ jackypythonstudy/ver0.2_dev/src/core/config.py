@@ -226,6 +226,9 @@ class Config(Singleton):
     def get_common(self):
         return self.__common_config
 
+    def getCommon(self):
+        return self.__common_config
+
     def get_project(self):
         return self.__project_config_dict[self.__current_project]
 

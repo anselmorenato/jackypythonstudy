@@ -212,7 +212,7 @@ class DataConverter(object):
     def set_property(self):
         self.__convert_strategy.copy_property()
 
-    def get_data_list(self):
+    def get_datas(self):
         self.convert()
         self.__converted = True
         return self.__convert_strategy.get_data_list()

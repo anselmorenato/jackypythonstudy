@@ -16,7 +16,7 @@ sys.path.append( os.path.join(nagara_path, 'src') )
 from utils.deco     import *
 from utils.event    import NagaraEvent
 from core.exception import NagaraException, DialogCancelException
-from utils.wxutils  import BindManager, CtrlManagerMixin
+from utils.wxutils  import BindManager, CtrlMixin
 
 
 # from wx.lib.mixins.listctrl import CheckListCtrlMixin
@@ -108,11 +108,11 @@ class LocationManagerInteractor(object):
 
 # from interfaces.ilocationmanager_view import ILocationManagerView
 # class LocationManagerView(ILocationManagerView, wx.Panel):
-class LocationManagerView(wx.Panel, CtrlManagerMixin):
+class LocationManagerView(wx.Panel, CtrlMixin):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        CtrlManagerMixin.__init__(self)
+        CtrlMixin.__init__(self)
 
         # create views
         # create location list
