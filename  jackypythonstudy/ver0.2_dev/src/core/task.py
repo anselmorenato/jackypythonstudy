@@ -282,7 +282,6 @@ class NoDataSocketError(TaskException): pass
 # for is_prepared
 class CheckPreparedException(TaskException): pass
 class InvalidSettingException(CheckPreparedException): pass
-class SocketDataEmptyException(CheckPreparedException): pass
 
 # Task Class ===================================================================
 
@@ -326,10 +325,16 @@ class TaskModel(object):
         self.__outputs      = {}
         self.__concomitance = {}
         self.__calclog      = {}
-        self.__setting      = None
+        self._setting      = None
         self.__command      = None
-        # self.__inputs = {'system': SystemData, 'data':Data}
-        # self.__outputs = {naem1: SystemData, name2: Data, name3: Data}
+        # self.__inputs = {
+        #     'system': {'data':SystemData, 'enable':True},
+        #     'restraint': {'data': RestraintData, 'enable': False},
+        # }
+        # self.__outputs = {
+        #     'naem1': {'data':SystemData, 'enable':True},
+        #     'name2': {'data':LogData, 'enable': False},
+        # }
 
         # mix-in
         include(self, TaskObjectOperatable ) 
@@ -381,10 +386,6 @@ class TaskModel(object):
     def concomitance(self):
         return self.__concomitance
 
-    @property
-    def setting(self):
-        return self.__setting
-
     # property: command
     @nproperty
     def command():
@@ -419,7 +420,7 @@ class TaskModel(object):
 
     @property
     def setting(self):
-        return self.__setting
+        return self._setting
 
     # ok version method
     def initialize(self):
@@ -473,18 +474,6 @@ class TaskModel(object):
         for line in log.tail():
             output.write(line)
 
-    def getAvailableCommands(self):
-        """Get available command list for setting."""
-        avalable_commands = []
-        for cmd_str in self._taskobject.commands:
-            cmd_class = command.command_dict.get(cmd_str)
-            if cmd_class:
-                if cmd_class.isAvailable(settings):
-                    avalable_commands.append(cmd_str)
-            else:
-                raise CommandNotFound()
-        return available_commands
-
     def delete(self):
         self.remote.delete()
         # self.local.delete()
@@ -501,32 +490,6 @@ class TaskModel(object):
 
     def save_file(self):
         pass
-
-
-    def isPrepared(self):
-        """Return true if the task is calculatable."""
-        try:
-            ret = (
-                self.isPreparedAllInputSocket() and
-                self.isPreparedSetting()
-            )
-        except CheckPreparedException as e:
-            ret = False
-            e.log()
-            # raise
-        return ret
-
-    # for request_any_operations in PreparedTaskState
-    def isReady(self):
-        print 'is_ready'
-        for socket_name, c in self.__inputs.items():
-            print socket_name, c
-            if c['enable']:
-                if c['data'].is_empty():
-                    raise SocketDataEmptyException(socket_name)
-                else:
-                    pass
-        return True
 
 
     # for RunnnableTaskState
@@ -674,6 +637,9 @@ class NoneObjectTaskState(object):
         self.__task   = task
         self.__state = state
 
+    def entry(self):
+        self.state.none_object_event.fire()
+
     def requestSetTaskObject(self, taskobject_name):
         self.__task.defineTaskObjectByName( taskobject_name )
         self.__state.changeState('init')
@@ -690,7 +656,8 @@ class InitTaskState(object):
         self.__task.initialize()
         self.__task.createInputSockets()
         self.__task.createOutputSockets()
-        self.__state.none_object_event.fire()
+        self.__task.createSetting()
+        self.__state.init_event.fire()
         self.requestAnyOperations()
 
     def requestAnyOperations(self):
@@ -722,7 +689,10 @@ class PreparingTaskState(object):
         self.requestAnyOperations()
 
     def requestAnyOperations(self):
-        if self.__task.is_prepared():
+        t = self.__task
+        if (t.isPreparedInputSocket() and
+            t.isPreparedSetting() and
+            t.getAvailableCommands is not []):
             self.__state.changeState('prepared')
 
 
@@ -746,10 +716,13 @@ class PreparedTaskState(object):
         self.requestAnyOperations()
 
     def requestAnyOperations(self):
-        if not self.__task.is_prepared(): 
-            self.__state.changeState('preparing')
-        elif self.__task.is_ready():
+        t = self.__task
+        if t.isPreparedInputData():
             self.__state.changeState('ready')
+        elif (t.isPreparedInputSocket() and
+            t.isPreparedSetting() and
+            t.getAvailableCommands is not []):
+            self.__state.changeState('prepared')
         else:
             pass
 
@@ -764,6 +737,9 @@ class ReadyTaskState(object):
     def requestSetup(self):
         # from job_state, too
         self.__state.changeState('working')
+
+    def requestConvert(self):
+        self.__state.changeState('converting')
     
 
 class WorkingTaskStateException(TaskStateException): pass
@@ -802,13 +778,13 @@ class ConvertingTaskState(object):
         self.__state = state
 
     def entry(self):
+        # communicate other class
         self.__state.converting_event.fire()
-        self.requestConvert()
 
-    def requestConvert(self, task):
-        self.__task.convert_data()
-        self.__task.convert_setting()
-        self.__task.generate_script()
+        # convert
+        self.__task.convertInputData()
+        self.__task.convertSetting()
+        self.__task.generateScript()
 
     def requestAbort(self):
         self.__state.changeState('aborting')
@@ -1165,7 +1141,7 @@ class SocketOperatable:
         self.checkInputSocketByName(socket_name)
         return False if self.__inputs[socket_name]['data'] else True
 
-    def isPreparedAllInputSocket(self):
+    def isPreparedInputSocket(self):
         """Return true if all of the input socket are not empty."""
         for socket_name in self.__inputs:
             if self.isEmptyInputSocket(socket_name):
@@ -1236,133 +1212,167 @@ class SocketOperatable:
 
 
 #===============================================================================
+class FormatNotFoundError(TaskException): pass
 class DataOperatable:
 
     def convertInputData(self):
         """Convert input data to command-adaptable format data."""
         # {system: Data, restraint
         self.state.preparing
-        for socket_name, data in self.inputs.items():
-            formats = self.__command.type_format_table.get(data.type)
-            if formats:
+        for socket_name, c in self.inputs.items():
+            data = c['data']
+            if data.type in self.__command.type_format_table:
+                formats = self.__command.type_format_table[data.type]
                 dc = DataConverter(data, formats, user_command=False)
-                dc.set_filename
                 dc.convert()
                 datas = dc.get_datas()
 
         rev_formats = dict([ (format, key) for key, format
                             in self.__command.input_formats.items() ])
+
         for data in datas:
-             key = rev_formats.get(data.format)
-             if key:
-                 filename = self.__command.default_options[key]
-                 file_abspath = os.path.join(self.path, filename)
-                 data.dump(file_abspath)
-             else:
-                 raise DataException()
+            if data.format in rev_formats:
+                option = rev_formats[data.format]
 
-    # Todo
-    def checkInputData(self):
-        for name in self.__taskobject.input_types:
-            data = self.__inputs.get(name)
-            if data:
-                if data.is_empty(): 
-                    return False
+                if option in self.__command.default_options:
+                    filename = self.__command.default_options[option]
+                    file_abspath = os.path.join(self.path, filename)
+                    data.dump(file_abspath)
+
+                else:
+                    mes = "option: {0} was not found in default options."
+                    raise OptionNotFound(mes.format(option))
+
             else:
-                return False
-        return True
+                mes = "format: {0} was not found in input formats:"
+                raise FormatNotFound(mes.format(key))
 
-    # Todo
-    def checkInputData(self):
-        for key, fmt in self.__command.input_formats.items():
-            formats = [ data.type for data in datas ]
-            if fmt in formats:
-                pass
-            else:
-                raise DataException()
-
-    # Todo
-    def checkOutputData(self):
-        """"""
-
-    # Todo
-    def createInputData(self):
-        """Generate the input data from taskobject."""
-        for socket_name, c in self.__taskobject.inputs.items():
-            if c['optional']:
-                self.__inputs[socket_name] = {'data': None, 'enable': False}
-            else:
-                self.__inputs[socket_name] = {'data': None, 'enable': True}
-
-    # Todo
     def createOutputData(self):
-        """Generate the output data from taskobject."""
+        """Create the output data from taskobject."""
         for socket_name, c in self.__taskobject.outputs.items():
             data = Data(self.__project, type=c['type'])
             if c['optional']:
                 data.enable(False)
-                self.__outputs[socket_name] = {'data': data, 'enable': False}
+                self.__outputs[socket_name]['data'] = data
             else:
                 data.enable(True)
-                self.__outputs[socket_name] = {'data': data, 'enable': True}
+                self.__outputs[socket_name]['data'] = data
 
-
+    def isPreparedInputData(self):
+        """Return True when all input datas in each socket are not empty."""
+        for socket_name, c in self.__inputs.items():
+            if c['enable']:
+                if c['data'].is_empty():
+                    return False
+        return True
 
 #===============================================================================
 class SettingOperatable:
 
-    def prepare_setting(self):
-        setting_class = settingdata.setting_dict[self.__taskobject.setting]
-        datas = self.__setting['datas']
-        for option, value in datas.items():
-            if value:
-                if self.__taskobject.inputs.get(option):
-                    self.__taskobject.inputs[option] = value
-                if self.__taskobject.outputs.get(option):
-                    self.__taskobject.outputs[option] = value
-
-    def generateSetting(self, to_name):
-        pass
-
-    def prepare_setting(self):
-        if not self.__setting:
-            format = self.__taskobject.setting
-            self.__setting = SettingData(format)
-    
-    def check_settings(self, setting_data):
-        if setting_data.type == self.__taskobject.setting:
-            return True
-        else:
-            return False
-                
-    def convert_setting(self):
-        """convert by command converter from task object setting"""
-        pass
+    def createSetting(self):
+        """Create the setting by taskobject name."""
+        if self._setting is None:
+            toname = self.taskobject.name
+            setting_model_class = plugin.loadSettingModel(toname)
+            self._setting = setting_model_class()
 
     def isPreparedSetting(self):
-        from validator import StandardSettiingValidator as SettingValidator
-        sv = SettingValidator(self.__setting)
-        if not sv.is_valid():
-            raise InvalidSettingException()
+        if self._setting:
+            try:
+                self.setting.varidateInvariants()
+            except:
+                return False
+        else:
+            return False
+
         return True
+
+    def convertSetting(self):
+        """Convert the nagara setting to command-specific setting."""
+        to_name = self.taskobject.name
+        # for option, format in self.__command.setting_formats.items():
+        setting_converter_class = plugin.loadSettingConverter(to_name)
+        scon = setting_converter_class(self._setting)
+
+        scon.convert()
+        file = scon.getFile()
+        filename = self.__command.default_options[option]
+        setting_abspath = os.path.join(self.path, filename)
+        with open(setting_abspath, 'w') as setting_file:
+            setting_file.write( file.read() )
+
+
 
 #===============================================================================
 class CommandOperatable:
-    def checkCommand(self, cmd_str):
-        if cmd_str in self.__config[self.remote.host]['commands']:
-            return True
-        else:
-            return False
 
+    def __init__(self):
+        self.__runscript_fn = 'run.sh'
 
-    def setCommand(self, cmd_str):
-        """Set a command to this task."""
-        if not self.checkCommand(cmd_str): pass
-        self.__config[self.remote.host]['commands']
-        self.__command = plugin.commands.commands_dict['cmt_str']
+    def getAvailableCommands(self):
+        """Get available command list for setting."""
+        # for validater
+        available_commands_validator = []
+        for cmd_str in self.taskobject.commands:
+            setting_validator_class = plugin.loadSettingValidator(cmd_str)
+            validator = setting_validator_class(self.setting)
+            if validator.validate():
+                available_commands_validator.append(cmd_str)
+
+        # for remote command
+        if self.host:
+            available_commands_remote = []
+            for cmd_str in self.taskobject.commands:
+                host_config = Configs().getCommon()['location'][self.host]
+                commands = host_config['commands'].keys()
+                if cmd_str in commands:
+                    available_commands_remote.append(cmd_str)
+
+        r = set(available_commands_validator) & set(available_commands_remote)
+        return list(r)
 
     def generateScript(self):
-        pass
+        """Generate a run script for this command."""
+        dir = self.__task.path
+        runscript_fn = os.path.join(dir, self.__runscript_fn)
+        with open(runscript_fn, 'wb') as file:
+            file.write(self.__makeScript())
+
+    def defineCommand(self, cmd_str):
+        """Define a command by cmd_str."""
+        if cmd_str in self.getAvailableCommands():
+            self._command = plugin.loadCommand(cmd_str)
+
+    def __makeScript(self):
+        """Make a content string for a run script for this command."""
+
+        # run_script
+        header = '#! /bin/sh'
+
+        # environment of the remote host
+        envs = self._command.get_envs()
+        env_lines = [ '{0}={1}'.format(key.strip(),value.strip())
+                      for key, value in self._envs.items() ]
+        env_lines.append('TASK_PATH={0}'.format(self.__task_path))
+
+        # prefix, for mpi, and other
+        if self._command.use_mpi:
+            host = self.__task.remote.host
+            mpi_cmd = Config().getCommon()[host]['mpi']
+        else:
+            mpi_cmd = ''
+
+        # get the command line
+        cmdline = self._command.getCommandLine()
+
+        # make the script contents
+        run_script = (
+            header + '\n' +
+            '\n'.join(env_lines) + '\n\n' +
+            mpi_cmd + ' ' + 
+            cmdline + '\n'
+        )
+        return run_script
 
 
 #===============================================================================
@@ -1494,16 +1504,14 @@ def new_main():
     )
 
 
-if __name__ == '__main__':
-    new_main()
-
+################################################################################
 
 class TaskPiecePresenter(object):
     """docstring for TaskPiece"""
     def __init__(self, view, model=None):
         self.view = view
         self.model = model
-        self.setting_agent = None
+        self.setting_model = None
 
         self.__event_dict = {
             'setting_in_miniframe' : NagaraEvent() , 
@@ -1512,10 +1520,16 @@ class TaskPiecePresenter(object):
         }
 
     def showSettingInDialog(self):
-        if self.settinge_agent is None: self.__setupSetting()
+        # load setting agent
+        to_name = self.model.taskobject_name
+        agent_class = plugin.loadSettingAgent(to_name, )
+
+        # create dialog
+        setting_dialog = SettingDialog()
+        agent = agent_class(setting_dialog, self.model.setting)
+
         # show dialog
-        SettingDialog(self.setting_agent).start()
-        # with SettingDialog(self.setting_agent) as dlg: pass
+        setting_dialog.start()
 
     def showSettingInPane(self):
         if self.settinge_agent is None: self.__setupSetting()
@@ -1525,18 +1539,14 @@ class TaskPiecePresenter(object):
         if self.settinge_agent is None: self.__setupSetting()
         self.setting_in_miniframe_event.fire(self.model.id)
 
-    def __setupSetting(self):
-        # load setting agent class
-        to_name = self.model.taskobject_name
-        setting_class = plugin.loadSettingComponent(to_name)
-        # setting_class = plugin.loadSettingComponent('optimize')
-
-        # create setting_agent
-        if self.model.setting is None:
-            self.setting_agent = setting_class()
-            self.model.setting = self.setting_agent.getModel()
+    def __getSettingAgent(self):
+        if self.setting_agent is None:
+            to_name = self.model.taskobject_name
+            setting_class = plugin.loadSettingAgent(to_name)
         else:
-            self.setting_agent = setting_class(self.model.setting)
+            return self.setting_agent
+
+
 
     def select(self):
         self.selected_event.fire(self.model.id)
@@ -1558,4 +1568,90 @@ class IMiniFrame(Interface):
 
 class IDialog(Interface):
     pass
+
+import wx
+class SettingDialog(wx.Dialog):
+
+    #----------------------------------------------------------------------
+    def __init__(self):
+        pos = wx.GetMousePosition()
+        # wx.Dialog.__init__(self, None, -1, pos=pos, size=(300,80))
+        wx.Dialog.__init__(self, None, -1, pos=pos, size=wx.DefaultSize)
+
+    def setAgent(self, agent):
+        view = agent.getView()
+        self.__model = agent.getModel()
+
+        # create buttons
+        btn_sizer = self.__create_buttons()
+
+        # do layout
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(view , 0 , wx.EXPAND|wx.ALL , 5 ) 
+        main_sizer.Add(btn_sizer  , 0 , wx.ALIGN_RIGHT   , 5 ) 
+        self.SetSizer(main_sizer)
+        self.SetAutoLayout(True)
+        self.Fit()
+
+    def start(self):
+        cache_dict = self.__model.dump()
+        flag = self.ShowModal()
+        if flag == wx.ID_OK:
+            pass
+        elif flag == wx.ID_CANCEL:
+            self.__model.load(cache_dict)
+        else:
+            pass
+        self.Destroy()
+
+    def __create_buttons(self):
+
+        # create view
+        ok_btn     = wx.Button(self , wx.ID_OK     , "Ok"     ) 
+        cancel_btn = wx.Button(self , wx.ID_CANCEL , "Cancel" ) 
+
+        # sizer
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(ok_btn     , 0 , wx.ALIGN_RIGHT , 5 ) 
+        btn_sizer.Add(cancel_btn , 0 , wx.ALIGN_RIGHT , 5 ) 
+
+        return btn_sizer
+
+
+def main_setting_agent():
+    import wx
+    app = wx.App(redirect=False)
+    # frame = wx.Frame(None, -1, 'agent dialog test')
+    # frame.Show()
+
+    user_plugin_path = 'Dropbox/Office/myNagara/src/plugin_user'
+    user_plugin_abspath = os.path.join(os.environ['HOME'], user_plugin_path )
+
+    setting_dialog = SettingDialog()
+
+    from core import plugin
+    optimize_model_class = plugin.loadSettingModel(
+        'optimize', user_plugin_abspath)
+    optimize_model = optimize_model_class()
+
+    optimize_agent_class = plugin.loadSettingAgent(
+        'optimize', user_plugin_abspath)
+
+    optimize_agent = optimize_agent_class(setting_dialog, optimize_model)
+    setting_dialog.setAgent(optimize_agent)
+    setting_dialog.start()
+
+    print optimize_agent.getModel().dump()
+
+    app.MainLoop()
+
+
+# if __name__ == '__main__':
+#     main_setting_agent()
+
+
+########################################################################
+
+if __name__ == '__main__':
+    new_main()
 

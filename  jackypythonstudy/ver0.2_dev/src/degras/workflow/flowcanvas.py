@@ -1040,7 +1040,7 @@ class FlowCanvas(ogl.ShapeCanvas):
         if toUnselect:
             for s in toUnselect:
                 s.Select(False, self.dc)
-                #self.Redraw(self.dc)
+                self.Redraw(self.dc)
 
     def on_delete_shape(self,event):
         """ event handler for delete shape.
@@ -1336,11 +1336,11 @@ class TaskShapeDropTarget(wx.PyDropTarget):
         
         self.canvas.Refresh()
     def OnData(self, x, y, d):
-        # copy the data from the drag source to our data objectmyobject = wx.CustomDataObject('Nagara Shape')
+        # copy the data from the drag source to our data object 
         if self.GetData():
-            # convert it back to a list of lines and give it to the viewer
+            # unpickle the pickled data
             pickled_data = self.data.GetData()
-            self.shapesinfo = cPickle.loads(pickled_data)
+            self.shapesinfo = pickle.loads(pickled_data)
             #self.text = self.data.GetText()
             name =self.shapesinfo
             sx,sy =self.canvas.CalcUnscrolledPosition(x, y)
@@ -1518,22 +1518,21 @@ class FlowFrame(wx.Frame):
                     lable = shapeinfo.theLable
                     
                     shapeclass = shapeinfo.shapeclass
+                    if shapeclass == 'DataShape' or shapeclass == 'TaskShape':   
                     
-                    if shapeclass == 'InputSocketShape':
-                        newshape = InputSocketShape()
+                        newshape = eval(shapeclass)(self.work_canvas,name=lable)
                         newshapes[shapeinfo.theId] = newshape
-                        self.work_canvas.diagram._shapeList.append(newshape)
-                    elif shapeclass == 'Linker' :
+                        self.work_canvas.add_shape(newshape,x,y)
+                    
+                    elif shapeclass == 'Linker':
                         fromshape = newshapes[shapeinfo.fromshape]
                         toshape = newshapes[shapeinfo.toshape]
                         newshape = Linker(fromshape,toshape)
                         self.work_canvas.add_linker(fromshape,toshape)
-                    elif shapeclass == 'DataShape' or shapeclass == 'TaskShape':   
-                    
-                        newshape = eval(shapeclass)(self.work_canvas,name=lable)
+                    elif shapeclass == 'InputSocketShape':
+                        newshape = InputSocketShape()
                         newshapes[shapeinfo.theId] = newshape
-                        #s = newshapes[shapeinfo.theId]
-                        self.work_canvas.add_shape(newshape,x,y) 
+                        self.work_canvas.diagram._shapeList.append(newshape) 
                     """
                     print 'the shapeclass is ',shapeclass
                     if shapeclass == 'DataShape':
@@ -1564,10 +1563,10 @@ class FlowFrame(wx.Frame):
                 print 'canvas shapelist',shapes 
                 # creat the dict to save property of shapes 
                 shd ={}
-                
                 for shape in shapesdia:
                     print 'shape is ',shape,id(shape),shape.GetId()
                     #attributes = shape.attributes
+                    # save the shape attributes in SaveData class
                     val = NagaraShapeSavedData(shape)
                     print 'val is ',val
                     #shd[id(shape)] = attributes
@@ -1582,25 +1581,22 @@ class FlowFrame(wx.Frame):
             self.work_canvas.Refresh(True)
             
     def on_drag_start(self,shape):
+        """ 
+        """
+        # creat the data
         self.data = wx.CustomDataObject('Nagarashape')
         
+        # pickle the shape attributes
         dragshape = shape.label  # [s.label for s in self.temp_canvas.shapes]
-        #shapesdict = {}
-        #for shape in dragshape:
-        #    value = NagaraShapeSavedData(shape)
-        #    shapesdict[id(shape)] = value
-        #import cPickle
-        print dragshape
-        pickled_data = cPickle.dumps(dragshape)
+        pickled_data = pickle.dumps(dragshape)
         self.data.SetData(pickled_data)
+
         #self.data = wx.TextDataObject(self.temp_canvas.GetItemText(event.GetIndex()))
+        
+        # creat the dropsource
         dropsource = wx.DropSource(self.temp_canvas)
         dropsource.SetData(self.data)
         dropsource.DoDragDrop(wx.Drag_CopyOnly)
-
-        
-        #self.canvas.Bind(wx.EVT_LEFT_UP, self.on_add_task,id = self.canvas.GetId())
-        #self.canvas.Bind(wx.EVT_LEFT_UP, self.on_drag_init, id=self.canvas.GetId())
 
     def on_drag_init(self,event):
         
@@ -1626,20 +1622,6 @@ class FlowFrame(wx.Frame):
         tds.SetData(tdo)
         tds.DoDragDrop(True)
         
-    def on_add_data(self,event):
-        print 'add data'
-        self.work_canvas.add_shape(DataShape(self.work_canvas,'name'), 
-                200,200, wx.BLACK_PEN, wx.GREEN_BRUSH, ''
-            )
-        self.work_canvas.Refresh()
-    def on_add_task(self,event):
-        #print event.GetEventObject,type(event.GetEventObject)
-        #name = self.make_menu().GetLableText(event.GetId())
-        
-        self.work_canvas.add_shape(TaskShape(self.work_canvas,'name'), 
-                200,100, wx.BLACK_PEN, wx.WHITE_BRUSH, ''
-            )
-        self.work_canvas.Refresh()
 
 #-------------------------------------------------------------------------------
 class AttributeEditor(wx.Panel):
@@ -1695,7 +1677,8 @@ class AttributeEditor(wx.Panel):
         self.list.SetStringItem(idx, 1, str(getattr(self.item,prop)))
 
 
-def run():
+
+if __name__ =='__main__':
     app = wx.PySimpleApp(False)
     wx.InitAllImageHandlers()
     ogl.OGLInitialize()
@@ -1703,7 +1686,3 @@ def run():
     app.SetTopWindow(frame)
     frame.Show(True)
     app.MainLoop()
-
-if __name__ =='__main__':
-    #main()
-    run()

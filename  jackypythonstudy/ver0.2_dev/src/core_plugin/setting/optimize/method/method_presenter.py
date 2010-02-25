@@ -1,9 +1,9 @@
 #  -*- encoding: utf-8 -*-
 # Copyright (C)  2010 Takakazu Ishikura
 #
-# $Date: 2010-02-22 21:35:39 +0900 (月, 22 2 2010) $
-# $Rev: 105 $
-# $Author: ishikura $
+# $Date: 2010-02-24 15:09:32 +0900 (水, 24 2 2010) $
+# $Rev: 107 $
+# $Author: ma $
 #
 import os, sys
 

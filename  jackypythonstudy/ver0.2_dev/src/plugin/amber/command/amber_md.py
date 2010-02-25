@@ -90,19 +90,6 @@ class Amber(Command):
         else:
             self._path = self._envs['AMBERHOME']+'/exe/sander.MPI'
 
-    def convertSetting(self, setting):
-        """Convert from Nagara settings to amber-specific setings."""
-        self.__settings = AmberSetting(settings)
-
-    def getSetting(self, raw=False):
-        """Convert from amber-spedific settings to Nagara settings."""
-        if raw:
-            return self.__settings
-        #else:
-        #    return convert_setting(setting)
-        else:
-            return AmberSettingReverse(settings)
-
     # def setInputFiles(self, **files):
     #     # prepare
     #     local = self.__task.local
